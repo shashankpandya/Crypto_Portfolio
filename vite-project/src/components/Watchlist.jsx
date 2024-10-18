@@ -2,8 +2,14 @@ import React, { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import { TransactionContext } from "../context/TransactionContext";
 import { searchCoins } from "../api";
-import { FaSearch, FaCoins, FaDollarSign, FaChartLine, FaTrash } from "react-icons/fa";
-import { debounce } from 'lodash';  // Add this import at the top of your file
+import {
+  FaSearch,
+  FaCoins,
+  FaDollarSign,
+  FaChartLine,
+  FaTrash,
+} from "react-icons/fa";
+import { debounce } from "lodash"; // Add this import at the top of your file
 
 const Watchlist = ({ coins }) => {
   const { currentAccount } = useContext(TransactionContext);
@@ -14,10 +20,11 @@ const Watchlist = ({ coins }) => {
 
   const debouncedSearch = debounce((term) => {
     handleSearch(term);
-  }, 300);  // 300ms delay
+  }, 300); // 300ms delay
 
   useEffect(() => {
-    const storedWatchlist = JSON.parse(localStorage.getItem(`watchlist_${currentAccount}`)) || [];
+    const storedWatchlist =
+      JSON.parse(localStorage.getItem(`watchlist_${currentAccount}`)) || [];
     setWatchlist(storedWatchlist);
     setIsLoading(false);
 
@@ -47,9 +54,9 @@ const Watchlist = ({ coins }) => {
   const handleSearchChange = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
-    
+
     // Immediately clear results if the input is empty
-    if (term.trim() === '') {
+    if (term.trim() === "") {
       setSearchResults([]);
       // Cancel any pending debounced searches
       debouncedSearch.cancel();
@@ -62,16 +69,22 @@ const Watchlist = ({ coins }) => {
     if (!watchlist.includes(coin.id)) {
       const updatedWatchlist = [...watchlist, coin.id];
       setWatchlist(updatedWatchlist);
-      localStorage.setItem(`watchlist_${currentAccount}`, JSON.stringify(updatedWatchlist));
+      localStorage.setItem(
+        `watchlist_${currentAccount}`,
+        JSON.stringify(updatedWatchlist)
+      );
     }
     setSearchTerm("");
     setSearchResults([]);
   };
 
   const removeFromWatchlist = (coinId) => {
-    const updatedWatchlist = watchlist.filter(id => id !== coinId);
+    const updatedWatchlist = watchlist.filter((id) => id !== coinId);
     setWatchlist(updatedWatchlist);
-    localStorage.setItem(`watchlist_${currentAccount}`, JSON.stringify(updatedWatchlist));
+    localStorage.setItem(
+      `watchlist_${currentAccount}`,
+      JSON.stringify(updatedWatchlist)
+    );
   };
 
   if (isLoading) {
@@ -93,11 +106,20 @@ const Watchlist = ({ coins }) => {
       </div>
       {searchResults.length > 0 && (
         <div className="mb-6 bg-gray-800 p-4 rounded-lg shadow-md">
-          {searchResults.map(coin => (
-            <div key={coin.id} className="flex justify-between items-center mb-3 p-2 hover:bg-gray-700 rounded transition duration-300">
+          {searchResults.map((coin) => (
+            <div
+              key={coin.id}
+              className="flex justify-between items-center mb-3 p-2 hover:bg-gray-700 rounded transition duration-300"
+            >
               <span className="flex items-center">
-                <img src={coin.image} alt={coin.name} className="w-8 h-8 mr-3 rounded-full" />
-                <span>{coin.name} ({coin.symbol.toUpperCase()})</span>
+                <img
+                  src={coin.image}
+                  alt={coin.name}
+                  className="w-8 h-8 mr-3 rounded-full"
+                />
+                <span>
+                  {coin.name} ({coin.symbol.toUpperCase()})
+                </span>
               </span>
               <button
                 onClick={() => addToWatchlist(coin)}
@@ -110,20 +132,28 @@ const Watchlist = ({ coins }) => {
         </div>
       )}
       {watchlist.length === 0 ? (
-        <p className="text-center text-gray-400 text-lg">Your watchlist is empty. Use the search bar to add coins.</p>
+        <p className="text-center text-gray-400 text-lg">
+          Your watchlist is empty. Use the search bar to add coins.
+        </p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
             <thead className="bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  <span className="flex items-center"><FaCoins className="mr-2" /> Name</span>
+                  <span className="flex items-center">
+                    <FaCoins className="mr-2" /> Name
+                  </span>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  <span className="flex items-center"><FaDollarSign className="mr-2" /> Current Price (USD)</span>
+                  <span className="flex items-center">
+                    <FaDollarSign className="mr-2" /> Current Price (USD)
+                  </span>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  <span className="flex items-center"><FaChartLine className="mr-2" /> 24h Change (%)</span>
+                  <span className="flex items-center">
+                    <FaChartLine className="mr-2" /> 24h Change (%)
+                  </span>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Actions
@@ -132,22 +162,40 @@ const Watchlist = ({ coins }) => {
             </thead>
             <tbody className="divide-y divide-gray-700">
               {watchlist.map((coinId) => {
-                const coin = coins.find(c => c.id === coinId);
+                const coin = coins.find((c) => c.id === coinId);
                 return coin ? (
-                  <tr key={coinId} className="hover:bg-gray-700 transition duration-300">
+                  <tr
+                    key={coinId}
+                    className="hover:bg-gray-700 transition duration-300"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Link to={`/coin/${coinId}`} className="flex items-center text-teal-400 hover:text-teal-300">
-                        <img src={coin.image} alt={coin.name} className="w-8 h-8 mr-3 rounded-full" />
+                      <Link
+                        to={`/coin/${coinId}`}
+                        className="flex items-center text-teal-400 hover:text-teal-300"
+                      >
+                        <img
+                          src={coin.image}
+                          alt={coin.name}
+                          className="w-8 h-8 mr-3 rounded-full"
+                        />
                         <div>
                           <div className="font-medium">{coin.name}</div>
-                          <div className="text-sm text-gray-400">{coin.symbol.toUpperCase()}</div>
+                          <div className="text-sm text-gray-400">
+                            {coin.symbol.toUpperCase()}
+                          </div>
                         </div>
                       </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       ${coin.current_price.toFixed(2)}
                     </td>
-                    <td className={`px-6 py-4 whitespace-nowrap ${coin.price_change_percentage_24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    <td
+                      className={`px-6 py-4 whitespace-nowrap ${
+                        coin.price_change_percentage_24h >= 0
+                          ? "text-green-400"
+                          : "text-red-400"
+                      }`}
+                    >
                       {coin.price_change_percentage_24h.toFixed(2)}%
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
