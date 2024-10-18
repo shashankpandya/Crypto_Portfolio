@@ -1,0 +1,19 @@
+{
+  "name": "my-project",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && node index.js",
+    "client": "cd vite-project && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^6.2.0"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.5",
+    "idb": "^8.0.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-confirm-alert": "^3.0.6",
+    "react-tooltip": "^5.28.0"
+  }
+}
