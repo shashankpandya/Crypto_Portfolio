@@ -18,6 +18,11 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['react-tooltip']
-  }
+    include: ["react-tooltip"],
+  },
+  build: {
+    rollupOptions: {
+      external: ["react-tooltip"],
+    },
+  },
 });
