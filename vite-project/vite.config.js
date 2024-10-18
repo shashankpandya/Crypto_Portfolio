@@ -18,14 +18,11 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['react-tooltip', 'lodash']
+    include: ["react-tooltip", "lodash", "react-dom"],
   },
   build: {
-    rollupOptions: {
-      external: ['react-tooltip', 'lodash'],
-    },
     commonjsOptions: {
-      include: [/react-tooltip/, /lodash/, /node_modules/]
-    }
-  }
+      include: [/node_modules/],
+    },
+  },
 });
