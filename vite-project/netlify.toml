@@ -9,7 +9,7 @@
   # directory located at the absolute path "root/project/build-output"
   publish = "dist"
   # Default build command.
-  command = "npm run build -- --debug"
+  command = "npm run build"
 
 # Production context: all deploys from the Production branch set in your site's 
 # deploy settings will inherit these settings.

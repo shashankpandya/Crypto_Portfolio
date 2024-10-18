@@ -9,7 +9,7 @@ import {
   FaChartLine,
   FaTrash,
 } from "react-icons/fa";
-import { debounce } from "lodash"; // Add this import at the top of your file
+import { debounce } from "lodash";
 
 const Watchlist = ({ coins }) => {
   const { currentAccount } = useContext(TransactionContext);
