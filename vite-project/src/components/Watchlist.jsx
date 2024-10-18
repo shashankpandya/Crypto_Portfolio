@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { TransactionContext } from "../context/TransactionContext";
 import { searchCoins } from "../api";
 import { FaSearch, FaCoins, FaDollarSign, FaChartLine, FaTrash } from "react-icons/fa";
+import { debounce } from 'lodash';  // Add this import at the top of your file
 
 const Watchlist = ({ coins }) => {
   const { currentAccount } = useContext(TransactionContext);
@@ -11,10 +12,19 @@ const Watchlist = ({ coins }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const debouncedSearch = debounce((term) => {
+    handleSearch(term);
+  }, 300);  // 300ms delay
+
   useEffect(() => {
     const storedWatchlist = JSON.parse(localStorage.getItem(`watchlist_${currentAccount}`)) || [];
     setWatchlist(storedWatchlist);
     setIsLoading(false);
+
+    // Cleanup function
+    return () => {
+      debouncedSearch.cancel();
+    };
   }, [currentAccount]);
 
   const handleSearch = async (term) => {
@@ -37,7 +47,15 @@ const Watchlist = ({ coins }) => {
   const handleSearchChange = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
-    handleSearch(term);
+    
+    // Immediately clear results if the input is empty
+    if (term.trim() === '') {
+      setSearchResults([]);
+      // Cancel any pending debounced searches
+      debouncedSearch.cancel();
+    } else {
+      debouncedSearch(term);
+    }
   };
 
   const addToWatchlist = (coin) => {
