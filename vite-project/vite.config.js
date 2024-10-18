@@ -7,4 +7,8 @@ export default defineConfig({
   optimizeDeps: {
     include: ["react-tooltip", "lodash", "react-dom"],
   },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+  },
 });
