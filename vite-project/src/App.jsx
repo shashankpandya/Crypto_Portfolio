@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Homepage/Navbar";
 import {
@@ -9,6 +9,7 @@ import {
   Home,
   CoinDetails,
 } from "./components";
+import ChatWidget from "./components/ChatWidget";
 import { TransactionProvider } from "./context/TransactionContext";
 import "./App.css";
 import { fetchCoins } from "./api";
@@ -45,23 +46,14 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Home coins={coins} />} />
               <Route path="/watchlist" element={<Watchlist coins={coins} />} />
-              <Route
-                path="/approveallowance"
-                element={<ApproveAllowance />}
-              />
+              <Route path="/approveallowance" element={<ApproveAllowance />} />
               <Route path="/allowancecheck" element={<AllowanceCheck />} />
               <Route path="/transfer" element={<TokenTransfer />} />
-              <Route
-                path="/coin/:id"
-                element={
-                  <CoinDetails
-                    coins={coins}
-                  />
-                }
-              />
+              <Route path="/coin/:id" element={<CoinDetails coins={coins} />} />
               <Route path="*" element={<div>Page not found</div>} />
             </Routes>
           </div>
+          <ChatWidget />
         </div>
       </TransactionProvider>
     </Router>
