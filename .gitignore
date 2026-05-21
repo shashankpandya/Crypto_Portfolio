@@ -51,4 +51,4 @@ coverage/
 # Misc
 .cache/
 .project
-*.sublime-workspace
+*.sublime-workspace.next

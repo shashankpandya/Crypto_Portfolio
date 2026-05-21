@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Navbar from "./components/Homepage/Navbar";
 import {
   Watchlist,
@@ -9,9 +9,14 @@ import {
   Home,
   CoinDetails,
 } from "./components";
-import { TransactionProvider } from "./context/TransactionContext";
+import { TransactionProvider, TransactionContext } from "./context/TransactionContext";
 import "./App.css";
 import { fetchCoins } from "./api";
+
+const ProtectedRoute = ({ children }) => {
+  const { isConnectedToSite } = useContext(TransactionContext);
+  return isConnectedToSite ? children : <Navigate to="/" />;
+};
 
 const App = () => {
   const [coins, setCoins] = useState([]);
@@ -21,7 +26,7 @@ const App = () => {
   useEffect(() => {
     const loadCoins = async () => {
       try {
-        const fetchedCoins = await fetchCoins(100); // Adjust the number as needed
+        const fetchedCoins = await fetchCoins(100);
         setCoins(fetchedCoins);
       } catch (err) {
         console.error("Failed to load coins:", err);
@@ -44,21 +49,11 @@ const App = () => {
           <div className="container mx-auto px-4 py-8">
             <Routes>
               <Route path="/" element={<Home coins={coins} />} />
-              <Route path="/watchlist" element={<Watchlist coins={coins} />} />
-              <Route
-                path="/approveallowance"
-                element={<ApproveAllowance />}
-              />
-              <Route path="/allowancecheck" element={<AllowanceCheck />} />
-              <Route path="/transfer" element={<TokenTransfer />} />
-              <Route
-                path="/coin/:id"
-                element={
-                  <CoinDetails
-                    coins={coins}
-                  />
-                }
-              />
+              <Route path="/coin/:id" element={<CoinDetails coins={coins} />} />
+              <Route path="/watchlist" element={<ProtectedRoute><Watchlist coins={coins} /></ProtectedRoute>} />
+              <Route path="/approveallowance" element={<ProtectedRoute><ApproveAllowance /></ProtectedRoute>} />
+              <Route path="/allowancecheck" element={<ProtectedRoute><AllowanceCheck /></ProtectedRoute>} />
+              <Route path="/transfer" element={<ProtectedRoute><TokenTransfer /></ProtectedRoute>} />
               <Route path="*" element={<div>Page not found</div>} />
             </Routes>
           </div>

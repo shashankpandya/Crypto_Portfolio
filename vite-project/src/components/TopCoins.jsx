@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 
 const TopCoins = ({ coins }) => {
   return (
-    <div className="w-full bg-gray-800 text-white rounded-lg shadow-lg p-8 mt-12">
-      <h2 className="text-4xl font-bold mb-8 text-center text-teal-400">
+    <div className="w-full bg-gray-800 text-white rounded-lg shadow-lg p-4 md:p-8 mt-8 md:mt-12">
+      <h2 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-center text-teal-400">
         Explore Top Crypto Coins
       </h2>
       <div className="overflow-x-auto">
@@ -41,19 +41,19 @@ const TopCoins = ({ coins }) => {
                   </Link>
                 </td>
                 <td className="px-4 py-4 text-right">
-                  ${coin.current_price.toLocaleString()}
+                  ${coin.current_price?.toLocaleString() ?? "N/A"}
                 </td>
                 <td
                   className={`px-4 py-4 text-right ${
-                    coin.price_change_percentage_24h >= 0
+                    (coin.price_change_percentage_24h ?? 0) >= 0
                       ? "text-green-400"
                       : "text-red-400"
                   }`}
                 >
-                  {coin.price_change_percentage_24h.toFixed(2)}%
+                  {coin.price_change_percentage_24h?.toFixed(2) ?? "N/A"}%
                 </td>
                 <td className="px-4 py-4 text-right">
-                  ${coin.market_cap.toLocaleString()}
+                  ${coin.market_cap?.toLocaleString() ?? "N/A"}
                 </td>
               </tr>
             ))}
