@@ -9,7 +9,7 @@ frameworkVersion: "4"
 provider:
   name: aws
   runtime: nodejs22.x
-  region: ap-southeast-1
+  region: ap-south-1
   memorySize: 1024
   timeout: 28
   environment:
