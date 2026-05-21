@@ -3,7 +3,7 @@
 **Date:** May 22, 2026  
 **Status:** ✅ **PRODUCTION DEPLOYED**  
 **Platform:** AWS Lambda (Full Stack)  
-**Region:** ap-southeast-1 (Singapore)
+**Region:** ap-south-1 (Mumbai, India)
 
 ---
 
@@ -22,7 +22,7 @@
 ### Where It's Deployed
 
 ```
-🌐 LIVE: https://08f8vcbldj.execute-api.ap-southeast-1.amazonaws.com/
+🌐 LIVE: https://08f8vcbldj.execute-api.ap-south-1.amazonaws.com/
 └── Everything (Frontend + API) accessible from single URL
 ```
 
@@ -31,7 +31,7 @@
 ```
 User Browser
     ↓
-AWS Lambda (ap-southeast-1)
+AWS Lambda (ap-south-1)
 ├── Frontend: React + Vite build (80 MB total)
 ├── Backend: Express.js
 ├── Web3: ethers.js library
@@ -76,7 +76,7 @@ AWS Lambda (ap-southeast-1)
 - Runtime: nodejs22.x
 - Memory: 1024 MB
 - Timeout: 28 seconds
-- Region: ap-southeast-1
+- Region: ap-south-1
 - Includes frontend build in deployment package
 
 ### 4. Node.js Version Alignment
@@ -109,21 +109,21 @@ AWS Lambda (ap-southeast-1)
 ### Frontend
 
 ```
-GET https://08f8vcbldj.execute-api.ap-southeast-1.amazonaws.com/
+GET https://08f8vcbldj.execute-api.ap-south-1.amazonaws.com/
 → React application loads
 ```
 
 ### API - Health Check
 
 ```
-GET https://08f8vcbldj.execute-api.ap-southeast-1.amazonaws.com/health
-→ {"status":"ok","timestamp":"2026-05-21T21:50:28.979Z"}
+GET https://08f8vcbldj.execute-api.ap-south-1.amazonaws.com/health
+→ {"status":"ok","timestamp":"2026-05-21T21:50:28.979Z"}}
 ```
 
 ### API - Routes (Proxied)
 
 ```
-ANY https://08f8vcbldj.execute-api.ap-southeast-1.amazonaws.com/{proxy+}
+ANY https://08f8vcbldj.execute-api.ap-south-1.amazonaws.com/{proxy+}
 → All routes handled by Express
 ```
 
@@ -202,7 +202,7 @@ npm run deploy                 # Deploy to AWS Lambda
 npm run deploy
 
 # Deploy to specific region
-serverless deploy --region ap-southeast-1
+serverless deploy --region ap-south-1
 
 # View deployment info
 serverless info
@@ -272,7 +272,7 @@ cd server && npm install
 
 5. **Verify live:**
    ```bash
-   curl https://08f8vcbldj.execute-api.ap-southeast-1.amazonaws.com/health
+   curl https://08f8vcbldj.execute-api.ap-south-1.amazonaws.com/health
    ```
 
 ---
@@ -322,7 +322,7 @@ cd server && npm install
 | Lambda Memory | 1024 MB          |
 | Timeout       | 28 seconds       |
 | Runtime       | Node.js 22.x     |
-| Region        | ap-southeast-1   |
+| Region        | ap-south-1       |
 | Cold Start    | ~1-2 seconds     |
 | Warm Response | <500ms           |
 | Build Time    | ~2 minutes       |
@@ -557,7 +557,7 @@ npm run deploy
    ├── Smart Contracts: Accessible
    └── Deployment: AWS Lambda (production)
 
-📍 Location: https://08f8vcbldj.execute-api.ap-southeast-1.amazonaws.com/
+📍 Location: https://08f8vcbldj.execute-api.ap-south-1.amazonaws.com/
 
 ✅ All systems operational
 ✅ All tests passing
@@ -589,9 +589,9 @@ npm run deploy
 
 ## 📞 QUICK REFERENCE
 
-**Live App:** https://08f8vcbldj.execute-api.ap-southeast-1.amazonaws.com/  
+**Live App:** https://08f8vcbldj.execute-api.ap-south-1.amazonaws.com/  
 **Health Check:** `/health` endpoint  
-**Region:** ap-southeast-1 (Singapore)  
+**Region:** ap-south-1 (Mumbai, India)  
 **Runtime:** Node.js 22.x  
 **Framework:** Serverless v4 + AWS Lambda
 
