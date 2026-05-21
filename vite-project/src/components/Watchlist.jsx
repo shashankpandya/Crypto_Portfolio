@@ -17,23 +17,13 @@ const Watchlist = ({ coins }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  const debouncedSearch = debounce((term) => {
-    handleSearch(term);
-  }, 300); // 300ms delay
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     const storedWatchlist =
       JSON.parse(localStorage.getItem(`watchlist_${currentAccount}`)) || [];
-    const storedWatchlist =
-      JSON.parse(localStorage.getItem(`watchlist_${currentAccount}`)) || [];
     setWatchlist(storedWatchlist);
     setIsLoading(false);
-
-    // Cleanup function
-    return () => {
-      debouncedSearch.cancel();
-    };
   }, [currentAccount]);
 
   const handleSearch = useCallback(
@@ -53,10 +43,9 @@ const Watchlist = ({ coins }) => {
         setIsSearching(false);
       }
     },
-    [coins]
+    [coins],
   );
 
-  // Move this outside the component to avoid recreating on each render
   const debouncedSearch = debounce(handleSearch, 300);
 
   const handleSearchChange = (e) => {
@@ -79,7 +68,7 @@ const Watchlist = ({ coins }) => {
       setWatchlist(updatedWatchlist);
       localStorage.setItem(
         `watchlist_${currentAccount}`,
-        JSON.stringify(updatedWatchlist)
+        JSON.stringify(updatedWatchlist),
       );
     }
     setSearchTerm("");
@@ -91,7 +80,7 @@ const Watchlist = ({ coins }) => {
     setWatchlist(updatedWatchlist);
     localStorage.setItem(
       `watchlist_${currentAccount}`,
-      JSON.stringify(updatedWatchlist)
+      JSON.stringify(updatedWatchlist),
     );
   };
 
@@ -101,7 +90,9 @@ const Watchlist = ({ coins }) => {
 
   return (
     <div className="p-4 md:p-8 bg-gray-900 text-white rounded-lg shadow-lg">
-      <h2 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-teal-400">Your Watchlist</h2>
+      <h2 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-teal-400">
+        Your Watchlist
+      </h2>
       <div className="mb-6 relative">
         <input
           type="text"
@@ -122,20 +113,7 @@ const Watchlist = ({ coins }) => {
               key={coin.id}
               className="flex justify-between items-center mb-3 p-2 hover:bg-gray-700 rounded transition duration-300"
             >
-          {searchResults.map((coin) => (
-            <div
-              key={coin.id}
-              className="flex justify-between items-center mb-3 p-2 hover:bg-gray-700 rounded transition duration-300"
-            >
               <span className="flex items-center">
-                <img
-                  src={coin.image}
-                  alt={coin.name}
-                  className="w-8 h-8 mr-3 rounded-full"
-                />
-                <span>
-                  {coin.name} ({coin.symbol.toUpperCase()})
-                </span>
                 <img
                   src={coin.image}
                   alt={coin.name}
@@ -146,7 +124,7 @@ const Watchlist = ({ coins }) => {
                 </span>
               </span>
               <button
-                onClick={() => memoizedAddToWatchlist(coin)}
+                onClick={() => addToWatchlist(coin)}
                 className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full transition duration-300 transform hover:scale-105"
               >
                 Add to Watchlist
@@ -168,22 +146,13 @@ const Watchlist = ({ coins }) => {
                   <span className="flex items-center">
                     <FaCoins className="mr-2" /> Name
                   </span>
-                  <span className="flex items-center">
-                    <FaCoins className="mr-2" /> Name
-                  </span>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   <span className="flex items-center">
                     <FaDollarSign className="mr-2" /> Current Price (USD)
                   </span>
-                  <span className="flex items-center">
-                    <FaDollarSign className="mr-2" /> Current Price (USD)
-                  </span>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  <span className="flex items-center">
-                    <FaChartLine className="mr-2" /> 24h Change (%)
-                  </span>
                   <span className="flex items-center">
                     <FaChartLine className="mr-2" /> 24h Change (%)
                   </span>
@@ -196,12 +165,7 @@ const Watchlist = ({ coins }) => {
             <tbody className="divide-y divide-gray-700">
               {watchlist.map((coinId) => {
                 const coin = coins.find((c) => c.id === coinId);
-                const coin = coins.find((c) => c.id === coinId);
                 return coin ? (
-                  <tr
-                    key={coinId}
-                    className="hover:bg-gray-700 transition duration-300"
-                  >
                   <tr
                     key={coinId}
                     className="hover:bg-gray-700 transition duration-300"
@@ -216,20 +180,8 @@ const Watchlist = ({ coins }) => {
                           alt={coin.name}
                           className="w-8 h-8 mr-3 rounded-full"
                         />
-                      <Link
-                        to={`/coin/${coinId}`}
-                        className="flex items-center text-teal-400 hover:text-teal-300"
-                      >
-                        <img
-                          src={coin.image}
-                          alt={coin.name}
-                          className="w-8 h-8 mr-3 rounded-full"
-                        />
                         <div>
                           <div className="font-medium">{coin.name}</div>
-                          <div className="text-sm text-gray-400">
-                            {coin.symbol.toUpperCase()}
-                          </div>
                           <div className="text-sm text-gray-400">
                             {coin.symbol.toUpperCase()}
                           </div>
@@ -246,18 +198,11 @@ const Watchlist = ({ coins }) => {
                           : "text-red-400"
                       }`}
                     >
-                    <td
-                      className={`px-6 py-4 whitespace-nowrap ${
-                        coin.price_change_percentage_24h >= 0
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }`}
-                    >
                       {coin.price_change_percentage_24h.toFixed(2)}%
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
-                        onClick={() => memoizedRemoveFromWatchlist(coinId)}
+                        onClick={() => removeFromWatchlist(coinId)}
                         className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition duration-300 transform hover:scale-105 flex items-center"
                       >
                         <FaTrash className="mr-2" /> Remove
@@ -275,16 +220,3 @@ const Watchlist = ({ coins }) => {
 };
 
 export default Watchlist;
-
-// Add this utility function at the end of the file
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
