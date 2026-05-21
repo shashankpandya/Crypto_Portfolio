@@ -1,14 +1,24 @@
 {
-  "name": "my-project",
+  "name": "crypto-portfolio",
   "version": "1.0.0",
+  "description": "Crypto Portfolio Management Application",
+  "main": "server/index.js",
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && node index.js",
     "client": "cd vite-project && npm run dev",
-    "build": "cd vite-project && npm run build"
+    "build": "cd vite-project && npm run build",
+    "build:all": "npm install && cd server && npm install && cd ../vite-project && npm install && npm run build",
+    "lint": "cd vite-project && npm run lint",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "serverless deploy --region us-east-1",
+    "deploy:local": "serverless offline start"
   },
   "devDependencies": {
-    "concurrently": "^6.2.0"
+    "concurrently": "^6.2.0",
+    "serverless": "^4.36.1",
+    "serverless-dynamodb-local": "^0.2.40",
+    "serverless-offline": "^14.6.0"
   },
   "dependencies": {
     "chart.js": "^4.4.5",
@@ -16,5 +26,9 @@
     "react-chartjs-2": "^5.2.0",
     "react-confirm-alert": "^3.0.6",
     "react-tooltip": "^5.28.0"
+  },
+  "engines": {
+    "node": ">=20.x",
+    "npm": ">=9.x"
   }
 }

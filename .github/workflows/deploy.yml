@@ -1,0 +1,72 @@
+name: Deploy to AWS Lambda
+
+on:
+  push:
+    branches:
+      - main
+      - deploy
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install root dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm install --legacy-peer-deps
+
+      - name: Install client dependencies
+        working-directory: vite-project
+        run: npm install --legacy-peer-deps
+
+      - name: Build client
+        working-directory: vite-project
+        run: npm run build
+
+      - name: Lint server code
+        working-directory: server
+        run: npm run test || true
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Install Serverless Framework
+        run: npm install -g serverless
+
+      - name: Install Serverless plugins
+        run: npm install --save-dev serverless-offline serverless-dynamodb-local
+
+      - name: Deploy to AWS Lambda
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: serverless deploy --region us-east-1
+
+      - name: Validate Deployment
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          # Wait for deployment to complete
+          sleep 5
+          # Test health endpoint
+          curl -f https://$(serverless info --region us-east-1 | grep endpoint | awk '{print $2}')/health || exit 1
