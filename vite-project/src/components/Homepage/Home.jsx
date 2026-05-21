@@ -53,12 +53,12 @@ const Home = ({ coins }) => {
   return (
     <div className="min-h-screen bg-gray-900 rounded-lg text-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-5xl font-bold text-center text-teal-400 mb-12">
+        <h1 className="text-3xl md:text-5xl font-bold text-center text-teal-400 mb-8 md:mb-12">
           Your Crypto Dashboard
         </h1>
 
         {isConnectedToSite ? (
-          <div className="mb-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="mb-8 md:mb-12 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
             {/* Ethereum Card */}
             <div className="lg:col-span-1">
               <div
@@ -126,11 +126,11 @@ const Home = ({ coins }) => {
             </div>
           </div>
         ) : (
-          <div className="text-center mb-12 bg-gray-800 rounded-lg p-8">
-            <p className="text-2xl mb-4">
+          <div className="text-center mb-12 bg-gray-800 rounded-lg p-4 md:p-8">
+            <p className="text-xl md:text-2xl mb-4">
               Connect your wallet to view your portfolio and access features.
             </p>
-            <p className="text-gray-400 text-lg">
+            <p className="text-gray-400 text-base md:text-lg">
               Use the{" "}
               <span className="text-teal-400 font-semibold">
                 Connect for experience
@@ -141,11 +141,11 @@ const Home = ({ coins }) => {
         )}
 
         {/* Top Cryptocurrencies Grid */}
-        <div className="mt-12">
-          <h2 className="text-3xl font-bold mb-6 text-teal-400">
+        <div className="mt-8 md:mt-12">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-teal-400">
             Top Cryptocurrencies
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {coins &&
               coins.slice(0, 6).map((coin) => (
                 <Link

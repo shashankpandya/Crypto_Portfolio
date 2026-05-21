@@ -50,9 +50,9 @@ function TokenTransfer() {
   return (
     <div className="min-h-screen rounded-xl bg-gradient-to-br from-gray-900 via-gray-700 to-black text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-shine"></div>
-      <div className="relative z-10 p-8">
-        <div className="max-w-md mx-auto bg-gray-800 bg-opacity-80 rounded-2xl shadow-2xl p-8 backdrop-filter backdrop-blur-sm">
-          <h2 className="text-3xl font-bold mb-6 text-teal-400 flex items-center justify-center">
+      <div className="relative z-10 p-4 md:p-8">
+        <div className="max-w-md mx-auto bg-gray-800 bg-opacity-80 rounded-2xl shadow-2xl p-6 md:p-8 backdrop-filter backdrop-blur-sm">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-teal-400 flex items-center justify-center">
             <FaEthereum className="mr-2" /> ETH Transfer
           </h2>
           <div className="space-y-6">
