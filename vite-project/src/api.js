@@ -3,7 +3,7 @@
 import axios from "axios";
 
 const BASE_URL = "https://api.coingecko.com/api/v3";
-const API_KEY = "CG-Vg854mvNNJR3N8KfKxKZ68N8";
+const API_KEY = import.meta.env.VITE_COINGECKO_API_KEY;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const RETRY_DELAY = 2000; // 2 seconds
 

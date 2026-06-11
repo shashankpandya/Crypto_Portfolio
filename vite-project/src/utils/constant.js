@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import abi from "./Transactions.json";
 
 export const transactionsABI = abi.abi;
-export const transactionsAddress = "0x22664A9539c165f2A462Dc0eBE78b85063613A12";
+export const transactionsAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
 
 // Utility function for retrying operations
 const retry = async (fn, retries = 3, delay = 1000) => {
