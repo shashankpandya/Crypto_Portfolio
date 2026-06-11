@@ -48,6 +48,8 @@ async function connectDB() {
 
       await mongoose.connect(uri, {
         serverSelectionTimeoutMS: 5_000, // per-attempt timeout
+        family: 4,                       // force IPv4 — prevents ECONNREFUSED on
+                                         // networks that block IPv6 on port 27017
       });
 
       dbState.connected = true;
