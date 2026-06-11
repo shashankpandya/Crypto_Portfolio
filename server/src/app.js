@@ -53,6 +53,24 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // ---------------------------------------------------------------------------
+// DB health guard
+// Sits in front of all /api routes. Reads dbState from app.locals (set by
+// index.js after connectDB resolves) and short-circuits with 503 when the
+// database is not connected. The /health route is intentionally excluded so
+// load balancers and uptime monitors always receive a response.
+// ---------------------------------------------------------------------------
+app.use('/api', (req, res, next) => {
+  const { dbState } = req.app.locals;
+  if (!dbState || !dbState.connected) {
+    return res.status(503).json({
+      success: false,
+      message: 'Service temporarily unavailable. The database is not connected.',
+    });
+  }
+  return next();
+});
+
+// ---------------------------------------------------------------------------
 // Routes
 // ---------------------------------------------------------------------------
 app.use('/api/transactions', transactionRoutes);
@@ -62,13 +80,18 @@ app.use('/api/watchlist',    watchlistRoutes);
 // ---------------------------------------------------------------------------
 // Health check
 // GET /health
-// Used by load balancers, Docker HEALTHCHECK, and uptime monitors.
+// Intentionally placed AFTER the DB guard so it always responds, even when
+// the database is down. Reports DB status in the response body.
 // ---------------------------------------------------------------------------
-app.get('/health', (_req, res) => {
-  res.status(200).json({
-    success: true,
-    status:  'ok',
-    uptime:  process.uptime(),
+app.get('/health', (req, res) => {
+  const { dbState } = req.app.locals ?? {};
+  const dbConnected = dbState?.connected ?? false;
+
+  res.status(dbConnected ? 200 : 503).json({
+    success:   dbConnected,
+    status:    dbConnected ? 'ok' : 'degraded',
+    db:        dbConnected ? 'connected' : 'disconnected',
+    uptime:    process.uptime(),
     timestamp: new Date().toISOString(),
   });
 });
