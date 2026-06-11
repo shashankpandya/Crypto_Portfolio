@@ -4,7 +4,7 @@ require("dotenv").config();
 // NEVER hardcode private keys or API keys in this file.
 // All secrets are loaded from smart_contract/.env
 module.exports = {
-  defaultNetwork: "sepolia",
+  defaultNetwork: "hardhat",
   solidity: {
     version: "0.8.27",
     settings: {

@@ -102,6 +102,7 @@
     "delayed-stream": "^1.0.0",
     "depd": "^2.0.0",
     "diff": "^5.2.0",
+    "dotenv": "^17.4.2",
     "ecc-jsbn": "^0.1.2",
     "elliptic": "^6.5.4",
     "emittery": "^0.10.0",
