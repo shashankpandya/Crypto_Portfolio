@@ -1,6 +1,19 @@
 'use strict';
 
+const dns      = require('dns');
 const mongoose = require('mongoose');
+
+// ---------------------------------------------------------------------------
+// DNS resolver override
+// Node.js inherits its DNS servers from Windows, which on some networks
+// (campus Wi-Fi, phone hotspots with strict NAT) refuses port 53 connections
+// from userspace processes.  Forcing Google's public resolvers (8.8.8.8 /
+// 8.8.4.4) bypasses the system resolver entirely and fixes the
+// "querySrv ECONNREFUSED" error that occurs before any TCP connection to
+// MongoDB is even attempted.
+// ---------------------------------------------------------------------------
+dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+console.log('[DB] DNS resolvers set to:', dns.getServers());
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -18,7 +31,7 @@ const dbState = {
 };
 
 // ---------------------------------------------------------------------------
-// sleep — simple promise-based delay.
+// sleep - simple promise-based delay.
 // ---------------------------------------------------------------------------
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -28,7 +41,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // RETRY_DELAY_MS between each attempt.
 //
 // Key design decisions:
-//   - Never calls process.exit() — the caller decides what to do on failure.
+//   - Never calls process.exit() - the caller decides what to do on failure.
 //   - Returns true on success, false when all retries are exhausted.
 //   - Registers runtime event listeners only once, after the first success.
 //
@@ -48,14 +61,13 @@ async function connectDB() {
 
       await mongoose.connect(uri, {
         serverSelectionTimeoutMS: 5_000, // per-attempt timeout
-        family: 4,                       // force IPv4 — prevents ECONNREFUSED on
-                                         // networks that block IPv6 on port 27017
+        family: 4,                       // force IPv4
       });
 
       dbState.connected = true;
       console.log(`[DB] MongoDB connected: ${mongoose.connection.host}`);
 
-      // Register runtime listeners once — after the first successful connect.
+      // Register runtime listeners once - after the first successful connect.
       mongoose.connection.on('error', (err) => {
         console.error('[DB] Mongoose connection error:', err.message);
       });
