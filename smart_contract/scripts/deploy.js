@@ -1,6 +1,3 @@
-// Deploying contracts with the account: 0x407031C5911e10bEc23eB86893083F52D0a49251   --my account address
-// Transactions deployed to: 0x22664A9539c165f2A462Dc0eBE78b85063613A12    -- our contract address
-
 const hre = require("hardhat");
 
 async function main() {
