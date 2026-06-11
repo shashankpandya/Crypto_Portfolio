@@ -20,7 +20,6 @@
     "express-rate-limit": "^7.5.1",
     "express-slow-down": "^2.0.3",
     "helmet": "^8.2.0",
-    "mongodb": "3.7",
     "mongoose": "^9.7.0"
   },
   "type": "commonjs",
