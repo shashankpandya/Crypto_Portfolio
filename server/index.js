@@ -2,6 +2,7 @@
 
 // Load environment variables first — before any other import reads process.env.
 require('dotenv').config();
+console.log('[DEBUG] MONGO_URI loaded:', !!process.env.MONGO_URI); // should print: true
 
 const app                    = require('./src/app');
 const { connectDB, dbState } = require('./src/config/db');
