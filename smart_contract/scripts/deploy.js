@@ -3,22 +3,24 @@ const hre = require("hardhat");
 async function main() {
   try {
     const [deployer] = await hre.ethers.getSigners();
-
     console.log("Deploying contracts with the account:", deployer.address);
 
     const Transactions = await hre.ethers.getContractFactory("Transactions");
-    
-    const initialSupply = hre.ethers.utils.parseUnits("1000000", 18);
 
     console.log("Deploying Transactions...");
 
-    const transactions = await Transactions.deploy(initialSupply);
+    // Deploy with no constructor arguments.
+    // waitForDeployment() is the ethers v6 / Hardhat 2.22+ API.
+    // The old .deployed() and ethers.utils.* calls no longer exist.
+    const transactions = await Transactions.deploy();
 
-    console.log("Waiting for deployment...");
-    await transactions.deployed();
+    console.log("Waiting for deployment confirmation...");
+    await transactions.waitForDeployment();
 
-    console.log("Transactions deployed to:", transactions.address);
-    console.log("Contract deployment transaction hash:", transactions.deployTransaction.hash);
+    const address = await transactions.getAddress();
+    console.log("Transactions deployed to:", address);
+    console.log("\nAdd this to your server/.env:");
+    console.log(`CONTRACT_ADDRESS=${address}`);
   } catch (error) {
     console.error("Deployment failed:", error);
     process.exitCode = 1;
