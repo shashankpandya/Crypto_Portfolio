@@ -3,6 +3,19 @@
 // Load environment variables first — before any other import reads process.env.
 require('dotenv').config();
 console.log('[DEBUG] MONGO_URI loaded:', !!process.env.MONGO_URI); // should print: true
+const dns = require('dns');
+dns.resolveSrv('_mongodb._tcp.cluster0.mliqw48.mongodb.net', (err, addresses) => {
+  if (err) {
+    console.error('[DNS DEBUG] Code:', err.code);
+    console.error('[DNS DEBUG] Syscall:', err.syscall);
+    console.error('[DNS DEBUG] Full error:', err);
+  } else {
+    console.log('[DNS DEBUG] SRV resolved successfully:', addresses);
+  }
+});
+
+
+
 
 const app                    = require('./src/app');
 const { connectDB, dbState } = require('./src/config/db');
