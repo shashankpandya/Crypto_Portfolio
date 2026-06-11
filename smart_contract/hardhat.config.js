@@ -1,6 +1,3 @@
-// zb6vbCKpRBpsrMQfccLFf_jD180NF_Bh
-//https://eth-sepolia.g.alchemy.com/v2/zb6vbCKpRBpsrMQfccLFf_jD180NF_Bh
-
 require("@nomiclabs/hardhat-waffle");
 
 module.exports = {
