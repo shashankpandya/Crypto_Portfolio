@@ -1,20 +1,18 @@
 {
-  "name": "my-project",
+  "name": "crypto-portfolio-root",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "cd server && node index.js",
-    "client": "cd vite-project && npm run dev",
-    "build": "cd vite-project && npm run build"
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "server": "cd server && npm start",
+    "server:dev": "cd server && npm run dev",
+    "client": "cd vite-project && npm start",
+    "client:dev": "cd vite-project && npm run dev",
+    "build": "cd vite-project && npm run build",
+    "install:all": "npm install && cd server && npm install && cd vite-project && npm install && cd smart_contract && npm install"
   },
   "devDependencies": {
     "concurrently": "^6.5.1"
-  },
-  "dependencies": {
-    "chart.js": "^4.4.5",
-    "idb": "^8.0.0",
-    "react-chartjs-2": "^5.2.0",
-    "react-confirm-alert": "^3.0.6",
-    "react-tooltip": "^5.28.0"
   }
 }
