@@ -9,15 +9,16 @@ async function main() {
 
     console.log("Deploying Transactions...");
 
-    // Deploy with no constructor arguments.
-    // waitForDeployment() is the ethers v6 / Hardhat 2.22+ API.
-    // The old .deployed() and ethers.utils.* calls no longer exist.
-    const transactions = await Transactions.deploy();
+    // The Transactions contract requires an initialSupply in its constructor.
+    // We'll deploy with 1,000,000 tokens (assuming 18 decimals).
+    const initialSupply = hre.ethers.utils.parseEther("1000000");
+    const transactions = await Transactions.deploy(initialSupply);
 
     console.log("Waiting for deployment confirmation...");
-    await transactions.waitForDeployment();
+    // Using Ethers v5 syntax .deployed() instead of v6 .waitForDeployment()
+    await transactions.deployed();
 
-    const address = await transactions.getAddress();
+    const address = transactions.address;
     console.log("Transactions deployed to:", address);
     console.log("\nAdd this to your server/.env:");
     console.log(`CONTRACT_ADDRESS=${address}`);
