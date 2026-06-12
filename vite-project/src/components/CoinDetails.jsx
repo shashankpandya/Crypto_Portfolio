@@ -34,7 +34,8 @@ const timeRanges = [
 
 const CoinDetails = () => {
   const { id } = useParams();
-  const { currentAccount } = useContext(TransactionContext);
+  const { currentAccount, fetchWatchlistDB, addToWatchlistDB, removeFromWatchlistDB } =
+    useContext(TransactionContext);
   const [coinDetails, setCoinDetails] = useState(null);
   const [coinHistory, setCoinHistory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,10 +44,18 @@ const CoinDetails = () => {
   const [isInWatchlist, setIsInWatchlist] = useState(false);
 
   useEffect(() => {
-    const watchlist =
-      JSON.parse(localStorage.getItem(`watchlist_${currentAccount}`)) || [];
-    setIsInWatchlist(watchlist.includes(id));
-  }, [id, currentAccount]);
+    const checkWatchlist = async () => {
+      if (currentAccount) {
+        const dbCoins = await fetchWatchlistDB(currentAccount);
+        setIsInWatchlist(dbCoins.includes(id));
+      } else {
+        const watchlist =
+          JSON.parse(localStorage.getItem("watchlist_anonymous")) || [];
+        setIsInWatchlist(watchlist.includes(id));
+      }
+    };
+    checkWatchlist();
+  }, [id, currentAccount, fetchWatchlistDB]);
 
   useEffect(() => {
     async function fetchData() {
@@ -69,22 +78,50 @@ const CoinDetails = () => {
     fetchData();
   }, [id, selectedRange]);
 
-  const toggleWatchlist = () => {
-    const watchlist =
-      JSON.parse(localStorage.getItem(`watchlist_${currentAccount}`)) || [];
+  const toggleWatchlist = async () => {
     if (isInWatchlist) {
-      const updatedWatchlist = watchlist.filter((coinId) => coinId !== id);
-      localStorage.setItem(
-        `watchlist_${currentAccount}`,
-        JSON.stringify(updatedWatchlist)
-      );
+      if (currentAccount) {
+        await removeFromWatchlistDB(currentAccount, id);
+        const watchlist =
+          JSON.parse(localStorage.getItem(`watchlist_${currentAccount}`)) || [];
+        const updatedWatchlist = watchlist.filter((coinId) => coinId !== id);
+        localStorage.setItem(
+          `watchlist_${currentAccount}`,
+          JSON.stringify(updatedWatchlist)
+        );
+      } else {
+        const watchlist =
+          JSON.parse(localStorage.getItem("watchlist_anonymous")) || [];
+        const updatedWatchlist = watchlist.filter((coinId) => coinId !== id);
+        localStorage.setItem(
+          "watchlist_anonymous",
+          JSON.stringify(updatedWatchlist)
+        );
+      }
       setIsInWatchlist(false);
     } else {
-      watchlist.push(id);
-      localStorage.setItem(
-        `watchlist_${currentAccount}`,
-        JSON.stringify(watchlist)
-      );
+      if (currentAccount) {
+        await addToWatchlistDB(currentAccount, id);
+        const watchlist =
+          JSON.parse(localStorage.getItem(`watchlist_${currentAccount}`)) || [];
+        if (!watchlist.includes(id)) {
+          watchlist.push(id);
+          localStorage.setItem(
+            `watchlist_${currentAccount}`,
+            JSON.stringify(watchlist)
+          );
+        }
+      } else {
+        const watchlist =
+          JSON.parse(localStorage.getItem("watchlist_anonymous")) || [];
+        if (!watchlist.includes(id)) {
+          watchlist.push(id);
+          localStorage.setItem(
+            "watchlist_anonymous",
+            JSON.stringify(watchlist)
+          );
+        }
+      }
       setIsInWatchlist(true);
     }
   };

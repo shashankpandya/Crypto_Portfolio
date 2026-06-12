@@ -47,16 +47,24 @@ function AllowanceCheck() {
             <FaSearchDollar className="mr-2" /> Check Allowance
           </h2>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Spender Address"
-                value={spender}
-                onChange={(e) => setSpender(e.target.value)}
-                className="w-full px-4 py-3 pl-10 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent placeholder-gray-400 transition duration-300"
-              />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <FaCheckCircle className="text-gray-400" />
+            <div>
+              <label htmlFor="spenderInput" className="block text-gray-400 text-sm font-semibold mb-2">
+                Spender Wallet Address
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="spenderInput"
+                  name="spender"
+                  placeholder="Spender Address"
+                  value={spender}
+                  onChange={(e) => setSpender(e.target.value)}
+                  className="w-full px-4 py-3 pl-10 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent placeholder-gray-400 transition duration-300"
+                  required
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <FaCheckCircle className="text-gray-400" />
+                </div>
               </div>
             </div>
             <button

@@ -16,7 +16,7 @@ const NavBarItem = ({ title, path, classprops, closeMenu }) => (
 
 const Navbar = () => {
   const [toggleMenu, setToggleMenu] = React.useState(false);
-  const { connectWallet, currentAccount, disconnectWallet, isConnectedToSite } =
+  const { connectWallet, currentAccount, disconnectWallet, isConnectedToSite, isAdmin } =
     useContext(TransactionContext);
   const navigate = useNavigate();
 
@@ -49,6 +49,7 @@ const Navbar = () => {
             { title: "Transfer", path: "/transfer" },
             { title: "Approve Allowance", path: "/approveallowance" },
             { title: "Allowance Check", path: "/allowancecheck" },
+            ...(isAdmin ? [{ title: "Admin Panel", path: "/admin" }] : []),
           ].map((item, index) => (
             <NavBarItem key={index} title={item.title} path={item.path} />
           ))}
@@ -90,6 +91,7 @@ const Navbar = () => {
               { title: "Transfer", path: "/transfer" },
               { title: "Approve Allowance", path: "/approveallowance" },
               { title: "Allowance Check", path: "/allowancecheck" },
+              ...(isAdmin ? [{ title: "Admin Panel", path: "/admin" }] : []),
             ].map((item, index) => (
               <NavBarItem
                 key={index}
