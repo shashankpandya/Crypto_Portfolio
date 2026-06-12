@@ -9,11 +9,14 @@ const RETRY_DELAY = 2000; // 2 seconds
 
 const cache = new Map();
 
+const apiParams = {};
+if (API_KEY) {
+  apiParams.x_cg_demo_api_key = API_KEY;
+}
+
 const api = axios.create({
   baseURL: BASE_URL,
-  params: {
-    x_cg_demo_api_key: API_KEY
-  }
+  params: apiParams,
 });
 
 const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -124,8 +127,10 @@ export const fetchTokenHistory = async (id, days = 30) => {
 };
 
 export const searchCoins = async (query, coins) => {
-  return coins.filter(coin => 
-    coin.name.toLowerCase().includes(query.toLowerCase()) ||
-    coin.symbol.toLowerCase().includes(query.toLowerCase())
+  return (coins || []).filter(coin => 
+    coin && (
+      (coin.name || '').toLowerCase().includes(query.toLowerCase()) ||
+      (coin.symbol || '').toLowerCase().includes(query.toLowerCase())
+    )
   );
 };

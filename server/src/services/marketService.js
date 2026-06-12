@@ -53,17 +53,17 @@ class MarketService {
     console.log('[MarketService] Cache miss – fetching from CoinGecko…');
 
     const apiKey = process.env.COINGECKO_API_KEY;
-    if (!apiKey) {
-      throw new Error('COINGECKO_API_KEY environment variable is not set.');
+    const headers = {
+      Accept: 'application/json',
+    };
+    if (apiKey) {
+      headers['x-cg-demo-api-key'] = apiKey;
     }
 
     let coins;
     try {
       const response = await axios.get(COINGECKO_MARKETS_URL, {
-        headers: {
-          'x-cg-demo-api-key': apiKey,
-          Accept: 'application/json',
-        },
+        headers,
         params: {
           vs_currency:            DEFAULT_VS_CURRENCY,
           order:                  DEFAULT_ORDER,

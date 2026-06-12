@@ -1,6 +1,15 @@
 import React from "react";
 
 function TokenTable({ tokenData }) {
+  if (!tokenData || Object.keys(tokenData).length === 0) {
+    return (
+      <div className="p-8 bg-gray-800 text-white rounded-lg shadow-lg">
+        <h2 className="text-3xl font-bold mb-6 text-teal-400">Token Prices</h2>
+        <p className="text-gray-400">No token data available.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 bg-gray-800 text-white rounded-lg shadow-lg">
       <h2 className="text-3xl font-bold mb-6 text-teal-400">Token Prices</h2>
@@ -36,16 +45,16 @@ function TokenTable({ tokenData }) {
                   {token.symbol}
                 </td>
                 <td className="border border-gray-600 px-4 py-2">
-                  ${token.current_price.toFixed(2)}
+                  ${token.current_price?.toFixed(2) ?? 'N/A'}
                 </td>
                 <td className="border border-gray-600 px-4 py-2">
-                  ${token.market_cap.toLocaleString()}
+                  ${token.market_cap?.toLocaleString() ?? 'N/A'}
                 </td>
                 <td className="border border-gray-600 px-4 py-2">
-                  ${token.total_volume.toLocaleString()}
+                  ${token.total_volume?.toLocaleString() ?? 'N/A'}
                 </td>
                 <td className="border border-gray-600 px-4 py-2">
-                  {token.price_change_percentage_24h.toFixed(2)}%
+                  {token.price_change_percentage_24h?.toFixed(2) ?? 'N/A'}%
                 </td>
               </tr>
             );

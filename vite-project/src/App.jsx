@@ -8,6 +8,7 @@ import {
   AllowanceCheck,
   Home,
   CoinDetails,
+  ErrorBoundary,
 } from "./components";
 import { TransactionProvider } from "./context/TransactionContext";
 import "./App.css";
@@ -42,25 +43,27 @@ const App = () => {
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-700 to-black text-white">
           <Navbar />
           <div className="container mx-auto px-4 py-8">
-            <Routes>
-              <Route path="/" element={<Home coins={coins} />} />
-              <Route path="/watchlist" element={<Watchlist coins={coins} />} />
-              <Route
-                path="/approveallowance"
-                element={<ApproveAllowance />}
-              />
-              <Route path="/allowancecheck" element={<AllowanceCheck />} />
-              <Route path="/transfer" element={<TokenTransfer />} />
-              <Route
-                path="/coin/:id"
-                element={
-                  <CoinDetails
-                    coins={coins}
-                  />
-                }
-              />
-              <Route path="*" element={<div>Page not found</div>} />
-            </Routes>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Home coins={coins} />} />
+                <Route path="/watchlist" element={<Watchlist coins={coins} />} />
+                <Route
+                  path="/approveallowance"
+                  element={<ApproveAllowance />}
+                />
+                <Route path="/allowancecheck" element={<AllowanceCheck />} />
+                <Route path="/transfer" element={<TokenTransfer />} />
+                <Route
+                  path="/coin/:id"
+                  element={
+                    <CoinDetails
+                      coins={coins}
+                    />
+                  }
+                />
+                <Route path="*" element={<div>Page not found</div>} />
+              </Routes>
+            </ErrorBoundary>
           </div>
         </div>
       </TransactionProvider>

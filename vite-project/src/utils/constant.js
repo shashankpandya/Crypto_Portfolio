@@ -21,6 +21,11 @@ export const verifyContract = async () => {
     return false;
   }
 
+  if (!transactionsAddress || !ethers.isAddress(transactionsAddress)) {
+    console.warn("VITE_CONTRACT_ADDRESS is not set or invalid. Smart contract integrations will be disabled.");
+    return false;
+  }
+
   return retry(async () => {
     const provider = new ethers.BrowserProvider(window.ethereum);
     const transactionsContract = new ethers.Contract(
@@ -84,6 +89,9 @@ export const checkAllowance = async (owner, spender) => {
   if (typeof window.ethereum === "undefined") {
     throw new Error("Ethereum object not found");
   }
+  if (!transactionsAddress || !ethers.isAddress(transactionsAddress)) {
+    throw new Error("Smart contract address (VITE_CONTRACT_ADDRESS) is not configured.");
+  }
 
   return retry(async () => {
     const provider = new ethers.BrowserProvider(window.ethereum);
@@ -113,6 +121,9 @@ export const checkAllowance = async (owner, spender) => {
 export const approveAllowance = async (spender, amount) => {
   if (typeof window.ethereum === "undefined") {
     throw new Error("Ethereum object not found");
+  }
+  if (!transactionsAddress || !ethers.isAddress(transactionsAddress)) {
+    throw new Error("Smart contract address (VITE_CONTRACT_ADDRESS) is not configured.");
   }
 
   return retry(async () => {

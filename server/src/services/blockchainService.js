@@ -20,13 +20,13 @@ const CONTRACT_ABI = [
     type: 'event',
     name: 'TransactionAdded',
     inputs: [
-      { indexed: true,  name: 'id',        type: 'uint256' },
-      { indexed: true,  name: 'sender',    type: 'address' },
-      { indexed: false, name: 'recipient', type: 'address' },
+      { indexed: false, name: 'from',      type: 'address' },
+      { indexed: false, name: 'receiver',  type: 'address' },
       { indexed: false, name: 'amount',    type: 'uint256' },
       { indexed: false, name: 'message',   type: 'string'  },
+      { indexed: false, name: 'category',  type: 'string'  },
+      { indexed: false, name: 'tags',      type: 'string[]' },
       { indexed: false, name: 'timestamp', type: 'uint256' },
-      { indexed: false, name: 'keyword',   type: 'string'  },
     ],
   },
   {
@@ -43,8 +43,9 @@ const CONTRACT_ABI = [
           { name: 'receiver',  type: 'address' },
           { name: 'amount',    type: 'uint256' },
           { name: 'message',   type: 'string'  },
+          { name: 'category',  type: 'string'  },
+          { name: 'tags',      type: 'string[]' },
           { name: 'timestamp', type: 'uint256' },
-          { name: 'keyword',   type: 'string'  },
         ],
       },
     ],
@@ -55,13 +56,15 @@ const CONTRACT_ABI = [
 // Helper — normalise raw on-chain data into a Mongoose-compatible object.
 // ---------------------------------------------------------------------------
 function normalizeTx(raw, txHash = null, blockNumber = null) {
+  const senderAddress = raw.sender ?? raw.from ?? raw[0];
+  const recipientAddress = raw.receiver ?? raw.recipient ?? raw[1];
   return {
-    sender:      raw.sender    ?? raw[0],
-    recipient:   raw.recipient ?? raw.receiver ?? raw[1],
+    sender:      senderAddress ? senderAddress.toLowerCase().trim() : '',
+    recipient:   recipientAddress ? recipientAddress.toLowerCase().trim() : '',
     amount:      (raw.amount   ?? raw[2]).toString(),
     message:     raw.message   ?? raw[3] ?? '',
-    timestamp:   Number(raw.timestamp ?? raw[4]),
-    keyword:     raw.keyword   ?? raw[5] ?? '',
+    keyword:     raw.category  ?? raw.keyword ?? raw[4] ?? '',
+    timestamp:   Number(raw.timestamp ?? raw[6] ?? raw[4] ?? 0),
     ...(txHash      && { txHash }),
     ...(blockNumber && { blockNumber }),
   };
@@ -131,14 +134,14 @@ class BlockchainService {
 
     this.contract.on(
       'TransactionAdded',
-      async (id, sender, recipient, amount, message, timestamp, keyword, event) => {
+      async (from, receiver, amount, message, category, tags, timestamp, event) => {
         const txHash      = event?.log?.transactionHash ?? null;
         const blockNumber = event?.log?.blockNumber      ?? null;
 
         console.log(`[BlockchainService] TransactionAdded event — txHash: ${txHash}`);
 
         try {
-          const data   = normalizeTx({ sender, recipient, amount, message, timestamp, keyword }, txHash, blockNumber);
+          const data   = normalizeTx({ sender: from, receiver, amount, message, category, timestamp }, txHash, blockNumber);
           const filter = txHash
             ? { txHash }
             : { sender: data.sender, timestamp: data.timestamp };

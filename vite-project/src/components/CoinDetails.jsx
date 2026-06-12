@@ -95,11 +95,11 @@ const CoinDetails = () => {
     return <div className="text-white">No data available for this coin.</div>;
 
   const chartData = {
-    labels: coinHistory.map((price) => new Date(price[0]).toLocaleDateString()),
+    labels: (coinHistory || []).map((price) => new Date(price[0]).toLocaleDateString()),
     datasets: [
       {
         label: "Price",
-        data: coinHistory.map((price) => price[1]),
+        data: (coinHistory || []).map((price) => price[1]),
         fill: false,
         borderColor: "rgb(75, 192, 192)",
         tension: 0.1,
@@ -177,7 +177,7 @@ const CoinDetails = () => {
               <p className="text-gray-400 mb-1">24h Change</p>
               <p
                 className={`text-2xl font-bold ${
-                  coinDetails.market_data?.price_change_percentage_24h >= 0
+                  (coinDetails.market_data?.price_change_percentage_24h ?? 0) >= 0
                     ? "text-green-400"
                     : "text-red-400"
                 }`}

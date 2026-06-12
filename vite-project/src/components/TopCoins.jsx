@@ -19,41 +19,43 @@ const TopCoins = ({ coins }) => {
             </tr>
           </thead>
           <tbody>
-            {coins.map((coin, index) => (
+            {(coins || []).map((coin, index) => (
               <tr
-                key={coin.id}
+                key={coin.id || index}
                 className="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200"
               >
                 <td className="px-4 py-4">{index + 1}</td>
                 <td className="px-4 py-4">
-                  <Link to={`/coin/${coin.id}`} className="flex items-center">
-                    <img
-                      src={coin.image}
-                      alt={coin.name}
-                      className="w-8 h-8 mr-3"
-                    />
+                  <Link to={`/coin/${coin.id || ''}`} className="flex items-center">
+                    {coin.image && (
+                      <img
+                        src={coin.image}
+                        alt={coin.name || 'Coin'}
+                        className="w-8 h-8 mr-3"
+                      />
+                    )}
                     <div>
-                      <div className="font-bold">{coin.name}</div>
+                      <div className="font-bold">{coin.name || 'N/A'}</div>
                       <div className="text-sm text-gray-400">
-                        {coin.symbol.toUpperCase()}
+                        {coin.symbol?.toUpperCase() ?? 'N/A'}
                       </div>
                     </div>
                   </Link>
                 </td>
                 <td className="px-4 py-4 text-right">
-                  ${coin.current_price.toLocaleString()}
+                  ${coin.current_price?.toLocaleString() ?? 'N/A'}
                 </td>
                 <td
                   className={`px-4 py-4 text-right ${
-                    coin.price_change_percentage_24h >= 0
+                    (coin.price_change_percentage_24h ?? 0) >= 0
                       ? "text-green-400"
                       : "text-red-400"
                   }`}
                 >
-                  {coin.price_change_percentage_24h.toFixed(2)}%
+                  {coin.price_change_percentage_24h?.toFixed(2) ?? 'N/A'}%
                 </td>
                 <td className="px-4 py-4 text-right">
-                  ${coin.market_cap.toLocaleString()}
+                  ${coin.market_cap?.toLocaleString() ?? 'N/A'}
                 </td>
               </tr>
             ))}

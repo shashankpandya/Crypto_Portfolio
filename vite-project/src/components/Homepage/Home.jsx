@@ -6,6 +6,19 @@ import { FaEthereum } from "react-icons/fa";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { BiNetworkChart } from "react-icons/bi";
 import TopCoins from "../TopCoins";
+import ErrorBoundary from "../ErrorBoundary";
+
+const getNetworkName = (chainIdHex) => {
+  const chainId = parseInt(chainIdHex, 16);
+  const networks = {
+    1: "Ethereum Mainnet",
+    5: "Goerli Testnet",
+    11155111: "Sepolia Testnet",
+    137: "Polygon Mainnet",
+    80001: "Mumbai Testnet",
+  };
+  return networks[chainId] || `Chain ID: ${chainId}`;
+};
 
 const Home = ({ coins }) => {
   const { currentAccount, checkTokenBalance, isConnectedToSite } =
@@ -18,34 +31,39 @@ const Home = ({ coins }) => {
       if (currentAccount && window.ethereum) {
         try {
           const rawBalance = await checkTokenBalance(currentAccount);
-          setBalance(parseFloat(rawBalance).toFixed(4));
+          const parsedBalance = parseFloat(rawBalance);
+          setBalance(!isNaN(parsedBalance) ? parsedBalance.toFixed(4) : "0.0000");
 
           const provider = new ethers.BrowserProvider(window.ethereum);
           const networkInfo = await provider.getNetwork();
-          const chainId = networkInfo.chainId;
 
-          // Fetch network name using eth_chainId method
-          const networkName = await provider.send("eth_chainId", []);
-          setNetwork(networkName);
-
-          // Listen for network changes
-          window.ethereum.on("chainChanged", async (chainId) => {
-            const newProvider = new ethers.BrowserProvider(window.ethereum);
-            const newNetworkName = await newProvider.send("eth_chainId", []);
-            setNetwork(newNetworkName);
-          });
+          const chainIdHex = await provider.send("eth_chainId", []);
+          setNetwork(getNetworkName(chainIdHex));
         } catch (error) {
           console.error("Error fetching balance or network:", error);
         }
       }
     };
 
+    const handleChainChanged = async () => {
+      try {
+        const newProvider = new ethers.BrowserProvider(window.ethereum);
+        const chainIdHex = await newProvider.send("eth_chainId", []);
+        setNetwork(getNetworkName(chainIdHex));
+      } catch (error) {
+        console.error("Error handling chain change:", error);
+      }
+    };
+
     fetchBalanceAndNetwork();
 
-    // Cleanup listener
+    if (window.ethereum) {
+      window.ethereum.on("chainChanged", handleChainChanged);
+    }
+
     return () => {
       if (window.ethereum) {
-        window.ethereum.removeListener("chainChanged", () => {});
+        window.ethereum.removeListener("chainChanged", handleChainChanged);
       }
     };
   }, [currentAccount, checkTokenBalance]);
@@ -147,31 +165,33 @@ const Home = ({ coins }) => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {coins &&
-              coins.slice(0, 6).map((coin) => (
+              coins.slice(0, 6).map((coin, index) => (
                 <Link
-                  key={coin.id}
-                  to={`/coin/${coin.id}`}
+                  key={coin.id || index}
+                  to={`/coin/${coin.id || ''}`}
                   className="bg-gray-800 p-4 rounded-lg hover:bg-gray-700 transition-colors"
                 >
                   <div className="flex items-center mb-2">
-                    <img
-                      src={coin.image}
-                      alt={coin.name}
-                      className="w-8 h-8 mr-2"
-                    />
-                    <h3 className="text-xl font-semibold">{coin.name}</h3>
+                    {coin.image && (
+                      <img
+                        src={coin.image}
+                        alt={coin.name || 'Coin'}
+                        className="w-8 h-8 mr-2"
+                      />
+                    )}
+                    <h3 className="text-xl font-semibold">{coin.name || 'N/A'}</h3>
                   </div>
                   <p className="text-gray-400">
-                    Price: ${coin.current_price.toLocaleString()}
+                    Price: ${coin.current_price?.toLocaleString() ?? 'N/A'}
                   </p>
                   <p
                     className={`${
-                      coin.price_change_percentage_24h >= 0
+                      (coin.price_change_percentage_24h ?? 0) >= 0
                         ? "text-green-500"
                         : "text-red-500"
                     }`}
                   >
-                    24h: {coin.price_change_percentage_24h.toFixed(2)}%
+                    24h: {coin.price_change_percentage_24h?.toFixed(2) ?? 'N/A'}%
                   </p>
                 </Link>
               ))}
@@ -179,7 +199,9 @@ const Home = ({ coins }) => {
         </div>
 
         {/* TopCoins component */}
-        <TopCoins coins={coins} />
+        <ErrorBoundary>
+          <TopCoins coins={coins} />
+        </ErrorBoundary>
       </div>
     </div>
   );

@@ -7,3 +7,4 @@ export { default as CoinDetails } from "./CoinDetails";
 export { default as TopCoins } from "./TopCoins";
 export { default as TokenTable } from "./TokenTable";
 export { default as TokenDetails } from "./TokenDetails";
+export { default as ErrorBoundary } from "./ErrorBoundary";

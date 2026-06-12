@@ -84,7 +84,7 @@ const Navbar = () => {
                 aria-label="Close menu"
               />
             </li>
-            {[
+            {isConnectedToSite && [
               { title: "Home", path: "/" },
               { title: "Watchlist", path: "/watchlist" },
               { title: "Transfer", path: "/transfer" },

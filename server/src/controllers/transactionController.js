@@ -45,8 +45,8 @@ async function getByAddress(req, res) {
 
     const filter = {
       $or: [
-        { sender:    { $regex: new RegExp(`^${address}$`, 'i') } },
-        { recipient: { $regex: new RegExp(`^${address}$`, 'i') } },
+        { sender:    address },
+        { recipient: address },
       ],
     };
 
