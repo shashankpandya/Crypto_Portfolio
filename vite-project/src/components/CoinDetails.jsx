@@ -167,10 +167,10 @@ const CoinDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 md:p-8">
       <div className="max-w-6xl mx-auto bg-gray-800 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="p-4 md:p-8">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-6">
             <div className="flex items-center">
               {coinDetails.image && (
                 <img
@@ -193,7 +193,7 @@ const CoinDetails = () => {
               {isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-8">
             <div className="bg-gray-700 p-4 rounded-xl">
               <p className="text-gray-400 mb-1">Current Price</p>
               <p className="text-2xl font-bold">
@@ -227,7 +227,7 @@ const CoinDetails = () => {
             </div>
           </div>
           <div className="mb-6">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-4">
               <h3 className="text-2xl font-bold text-teal-400">
                 Price History
               </h3>
@@ -245,7 +245,7 @@ const CoinDetails = () => {
             </div>
             <div
               className="bg-gray-700 p-4 rounded-xl"
-              style={{ height: "400px" }}
+              style={{ height: "300px", minHeight: "300px" }}
             >
               <Line data={chartData} options={chartOptions} />
             </div>

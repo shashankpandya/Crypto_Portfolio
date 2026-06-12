@@ -10,6 +10,7 @@ import {
   FaChartLine,
   FaTrash,
 } from "react-icons/fa";
+import { debounce } from "lodash";
 
 const Watchlist = ({ coins }) => {
   const { currentAccount, fetchWatchlistDB, addToWatchlistDB, removeFromWatchlistDB } =
@@ -53,7 +54,7 @@ const Watchlist = ({ coins }) => {
         setIsSearching(false);
       }
     },
-    [coins]
+    [coins],
   );
 
   const debouncedSearch = React.useMemo(
@@ -64,8 +65,6 @@ const Watchlist = ({ coins }) => {
   const handleSearchChange = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
-    debouncedSearch(term);
-  };
 
   // Memoize this function to prevent unnecessary re-renders
   const memoizedAddToWatchlist = useCallback(
@@ -118,8 +117,10 @@ const Watchlist = ({ coins }) => {
   }
 
   return (
-    <div className="p-8 bg-gray-900 text-white rounded-lg shadow-lg">
-      <h2 className="text-4xl font-bold mb-8 text-teal-400">Your Watchlist</h2>
+    <div className="p-4 md:p-8 bg-gray-900 text-white rounded-lg shadow-lg">
+      <h2 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-teal-400">
+        Your Watchlist
+      </h2>
       <div className="mb-6 relative">
         <input
           type="text"
@@ -151,7 +152,7 @@ const Watchlist = ({ coins }) => {
                 </span>
               </span>
               <button
-                onClick={() => memoizedAddToWatchlist(coin)}
+                onClick={() => addToWatchlist(coin)}
                 className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full transition duration-300 transform hover:scale-105"
               >
                 Add to Watchlist
@@ -161,7 +162,7 @@ const Watchlist = ({ coins }) => {
         </div>
       )}
       {watchlist.length === 0 ? (
-        <p className="text-center text-gray-400 text-lg">
+        <p className="text-center text-gray-400 text-base md:text-lg">
           Your watchlist is empty. Use the search bar to add coins.
         </p>
       ) : (
@@ -229,7 +230,7 @@ const Watchlist = ({ coins }) => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
-                        onClick={() => memoizedRemoveFromWatchlist(coinId)}
+                        onClick={() => removeFromWatchlist(coinId)}
                         className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition duration-300 transform hover:scale-105 flex items-center"
                       >
                         <FaTrash className="mr-2" /> Remove

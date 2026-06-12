@@ -48,6 +48,20 @@ coverage/
 # Production build files
 /build
 
+# Serverless Framework
+.serverless/
+.serverless_plugins/
+serverless-state.json
+.dynamodb/
+
+# Smart contract artifacts
+smart_contract/artifacts/
+smart_contract/cache/
+
+# IDE
+vscode-settings.json
+
+
 # Misc
 .cache/
 .project

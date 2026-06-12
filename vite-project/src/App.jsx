@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Navbar from "./components/Homepage/Navbar";
 import {
   Watchlist,
@@ -11,9 +11,14 @@ import {
   ErrorBoundary,
   AdminPanel,
 } from "./components";
-import { TransactionProvider } from "./context/TransactionContext";
+import { TransactionProvider, TransactionContext } from "./context/TransactionContext";
 import "./App.css";
 import { fetchCoins } from "./api";
+
+const ProtectedRoute = ({ children }) => {
+  const { isConnectedToSite } = useContext(TransactionContext);
+  return isConnectedToSite ? children : <Navigate to="/" />;
+};
 
 const App = () => {
   const [coins, setCoins] = useState([]);
@@ -23,7 +28,7 @@ const App = () => {
   useEffect(() => {
     const loadCoins = async () => {
       try {
-        const fetchedCoins = await fetchCoins(100); // Adjust the number as needed
+        const fetchedCoins = await fetchCoins(100);
         setCoins(fetchedCoins);
       } catch (err) {
         console.error("Failed to load coins:", err);

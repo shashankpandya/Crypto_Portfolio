@@ -8,7 +8,8 @@
     "start": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "npm rebuild react-tooltip"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
@@ -18,12 +19,13 @@
     "axios": "^1.7.7",
     "chart.js": "^4.4.5",
     "coingecko-api": "^1.0.10",
-    "ethers": "^6.13.4",
+    "ethers": "^5.8.0",
     "gsap": "^3.12.5",
-    "react": "^18.3.1",
+    "lodash": "^4.17.21",
+    "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
     "react-datepicker": "^7.5.0",
-    "react-dom": "^18.3.1",
+    "react-dom": "^18.2.0",
     "react-icons": "^5.3.0",
     "react-router-dom": "^6.26.2",
     "react-tooltip": "^5.28.0"
