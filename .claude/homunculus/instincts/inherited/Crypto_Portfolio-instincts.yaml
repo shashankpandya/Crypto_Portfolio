@@ -1,0 +1,565 @@
+# Instincts generated from https://github.com/shashankpandya/Crypto_Portfolio
+# Generated: 2026-06-12T23:34:58.363Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: Crypto_Portfolio-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_Portfolio Commit Length
+
+## Action
+
+Write moderate-length commit messages (~72 characters)
+
+## Evidence
+
+- Average commit message length: 72 chars
+- Based on 27 commits
+
+---
+id: Crypto_Portfolio-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_Portfolio Naming Files
+
+## Action
+
+Use PascalCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: PascalCase
+
+---
+id: Crypto_Portfolio-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_Portfolio Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: Crypto_Portfolio-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_Portfolio Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: Crypto_Portfolio-arch-type-based
+trigger: "when adding new code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_Portfolio Arch Type Based
+
+## Action
+
+Place code in the appropriate type folder (components/, services/, utils/, etc.)
+
+## Evidence
+
+- Type-based module organization detected
+- Folders: 
+
+---
+id: Crypto_Portfolio-workflow-feature-development
+trigger: "when implementing a new feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_Portfolio Workflow Feature Development
+
+## Action
+
+Follow the feature-development workflow:
+1. Add feature implementation
+2. Add tests for feature
+3. Update documentation
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~8x per month
+- Files: vite-project/src/components/*, vite-project/src/components/homepage/*, **/*.test.*
+
+---
+id: Crypto_Portfolio-workflow-add-new-model-and-related-controller-route
+trigger: "when doing add new model and related controller route"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_Portfolio Workflow Add New Model And Related Controller Route
+
+## Action
+
+Follow the add-new-model-and-related-controller-route workflow:
+1. Create or update a new model file in server/src/models/
+2. Create or update a controller in server/src/controllers/
+3. Create or update a route file in server/src/routes/
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: server/src/models/*.js, server/src/controllers/*Controller.js, server/src/routes/*.js
+
+---
+id: Crypto_Portfolio-workflow-service-layer-feature-addition
+trigger: "when doing service layer feature addition"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_Portfolio Workflow Service Layer Feature Addition
+
+## Action
+
+Follow the service-layer-feature-addition workflow:
+1. Create or update a service file in server/src/services/
+2. Optionally update related controllers to use the new service
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: server/src/services/*.js, server/src/controllers/*Controller.js
+
+---
+id: Crypto_Portfolio-workflow-package-update-or-fix
+trigger: "when doing package update or fix"
+confidence: 0.7
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_Portfolio Workflow Package Update Or Fix
+
+## Action
+
+Follow the package-update-or-fix workflow:
+1. Edit package.json
+2. Update package-lock.json (via npm install or manually)
+3. Repeat for subprojects as needed
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~4x per month
+- Files: package.json, package-lock.json, server/package.json
+
+---
+id: Crypto_Portfolio-workflow-env-and-config-management
+trigger: "when doing env and config management"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_Portfolio Workflow Env And Config Management
+
+## Action
+
+Follow the env-and-config-management workflow:
+1. Edit or add .env.example or .env.production
+2. Update config files (e.g., db.js, hardhat.config.js) to use env variables
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: .env.example, .env.production, server/.env.example
+
+---
+id: Crypto_Portfolio-workflow-smart-contract-feature-extension
+trigger: "when doing smart contract feature extension"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_Portfolio Workflow Smart Contract Feature Extension
+
+## Action
+
+Follow the smart-contract-feature-extension workflow:
+1. Edit or add contract in smart_contract/contracts/
+2. Update deployment scripts and config (hardhat.config.js, scripts/deploy.js)
+3. Add or update test files in smart_contract/test/
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: smart_contract/contracts/*.sol, smart_contract/hardhat.config.js, smart_contract/scripts/deploy.js
+
+---
+id: crypto_portfolio-instinct-file-naming
+trigger: "When creating a new file for a class or component"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct File Naming
+
+## Action
+
+Name the file using PascalCase (e.g., BlockchainService.js)
+
+## Evidence
+
+- Pattern in vite-project/src/components/*
+- server/src/services/blockchainService.js
+
+---
+id: crypto_portfolio-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Function Naming
+
+## Action
+
+Use camelCase for function names (e.g., getMarketData)
+
+## Evidence
+
+- Pattern in server/src/services/blockchainService.js
+- Pattern in vite-project/src/components/*
+
+---
+id: crypto_portfolio-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Class Naming
+
+## Action
+
+Use PascalCase for class names (e.g., TransactionController)
+
+## Evidence
+
+- Pattern in server/src/models/Transaction.js
+- Pattern in server/src/controllers/TransactionController.js
+
+---
+id: crypto_portfolio-instinct-constant-naming
+trigger: "When declaring a constant value"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constant names (e.g., MAX_RETRIES)
+
+## Evidence
+
+- Pattern in server/src/config/db.js
+
+---
+id: crypto_portfolio-instinct-import-style
+trigger: "When importing modules within the project"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Import Style
+
+## Action
+
+Use relative import paths (e.g., import x from '../utils/x')
+
+## Evidence
+
+- Pattern in server/src/services/blockchainService.js
+
+---
+id: crypto_portfolio-instinct-export-style
+trigger: "When exporting functions or classes"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Export Style
+
+## Action
+
+Use named exports (e.g., export function foo() {})
+
+## Evidence
+
+- Pattern in server/src/services/marketService.js
+
+---
+id: crypto_portfolio-instinct-test-location
+trigger: "When adding tests for a feature"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Test Location
+
+## Action
+
+Place test files alongside implementation or in a dedicated test folder (mixed location)
+
+## Evidence
+
+- Pattern in vite-project/src/components/*
+- Pattern in smart_contract/test/*.js
+
+---
+id: crypto_portfolio-instinct-test-coverage
+trigger: "When implementing a new feature"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Test Coverage
+
+## Action
+
+Add or update corresponding test files for the feature
+
+## Evidence
+
+- Workflow: feature-development
+- Workflow: smart-contract-feature-extension
+
+---
+id: crypto_portfolio-instinct-test-naming
+trigger: "When naming a test file"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Test Naming
+
+## Action
+
+Use the pattern *.test.js for test files
+
+## Evidence
+
+- Pattern in vite-project/src/components/*
+- Pattern in smart_contract/test/*.js
+
+---
+id: crypto_portfolio-instinct-git-commit-prefix
+trigger: "When making a git commit"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Git Commit Prefix
+
+## Action
+
+Prefix commit messages with feat:, fix:, or refactor: to indicate the type of change
+
+## Evidence
+
+- Seen in commit 'feat: add blockchainService and marketService (Phase 3 & 4)'
+- Seen in commit 'fix: force IPv4 (family: 4) in mongoose.connect to resolve ECONNREFUSED on restricted networks'
+
+---
+id: crypto_portfolio-instinct-git-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Git Commit Length
+
+## Action
+
+Keep the commit message concise, ideally around 72 characters
+
+## Evidence
+
+- Average commit length: 72
+- Examples in commit history
+
+---
+id: crypto_portfolio-instinct-add-model-controller-route
+trigger: "When a new resource/entity is needed in the backend API"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Add Model Controller Route
+
+## Action
+
+Create or update a model in server/src/models/, a controller in server/src/controllers/, and a route in server/src/routes/
+
+## Evidence
+
+- Workflow: add-new-model-and-related-controller-route
+- Seen in commit sequence for new models and controllers
+
+---
+id: crypto_portfolio-instinct-add-service-layer
+trigger: "When new backend business logic or external API integration is required"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Add Service Layer
+
+## Action
+
+Create or update a service in server/src/services/ and update related controllers if needed
+
+## Evidence
+
+- Workflow: service-layer-feature-addition
+- Seen in commit sequence for new services
+
+---
+id: crypto_portfolio-instinct-update-packages
+trigger: "When npm dependencies need to be updated, added, or fixed"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Update Packages
+
+## Action
+
+Edit package.json and package-lock.json in relevant project folders and repeat for subprojects as needed
+
+## Evidence
+
+- Workflow: package-update-or-fix
+- Seen in commits editing package.json and package-lock.json
+
+---
+id: crypto_portfolio-instinct-update-env-config
+trigger: "When environment variables or deployment configuration need to be added or updated"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Update Env Config
+
+## Action
+
+Edit or add .env.example/.env.production and update config files to use env variables
+
+## Evidence
+
+- Workflow: env-and-config-management
+- Seen in commits editing .env.example and config files
+
+---
+id: crypto_portfolio-instinct-extend-smart-contract
+trigger: "When adding or enhancing a smart contract feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: shashankpandya/Crypto_Portfolio
+---
+
+# Crypto_portfolio Instinct Extend Smart Contract
+
+## Action
+
+Edit or add contracts in smart_contract/contracts/, update deployment scripts/config, and add/update tests in smart_contract/test/
+
+## Evidence
+
+- Workflow: smart-contract-feature-extension
+- Seen in commits editing .sol, deploy.js, and test/*.js files
+
