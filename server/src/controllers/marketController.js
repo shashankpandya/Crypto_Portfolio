@@ -55,15 +55,15 @@ async function getCoinDetails(req, res) {
     }
 
     const apiKey = process.env.COINGECKO_API_KEY;
-    if (!apiKey) {
-      throw new Error('COINGECKO_API_KEY environment variable is not set.');
+    const headers = {
+      Accept: 'application/json',
+    };
+    if (apiKey) {
+      headers['x-cg-demo-api-key'] = apiKey;
     }
 
     const response = await axios.get(`${COINGECKO_COIN_URL}/${coinId}`, {
-      headers: {
-        'x-cg-demo-api-key': apiKey,
-        Accept: 'application/json',
-      },
+      headers,
       params: {
         localization:   false,
         tickers:        false,

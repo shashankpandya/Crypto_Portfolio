@@ -8,17 +8,19 @@ const mongoose = require('mongoose');
 const transactionSchema = new mongoose.Schema(
   {
     sender: {
-      type:     String,
-      required: true,
-      index:    true,
-      trim:     true,
+      type:      String,
+      required:  true,
+      index:     true,
+      trim:      true,
+      lowercase: true,
     },
 
     recipient: {
-      type:     String,
-      required: true,
-      index:    true,
-      trim:     true,
+      type:      String,
+      required:  true,
+      index:     true,
+      trim:      true,
+      lowercase: true,
     },
 
     // Stored as a String to safely handle BigInt / wei values without precision loss.

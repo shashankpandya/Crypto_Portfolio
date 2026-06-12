@@ -40,6 +40,10 @@ function ApproveAllowance() {
     setIsLoading(true);
 
     try {
+      if (!currentAccount) {
+        throw new Error("Please connect your wallet first using the 'Connect for experience' button.");
+      }
+
       if (!ethers.isAddress(spender)) {
         throw new Error("Invalid spender address");
       }

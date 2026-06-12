@@ -13,6 +13,7 @@
     "install:all": "npm install && cd server && npm install && cd vite-project && npm install && cd smart_contract && npm install"
   },
   "devDependencies": {
-    "concurrently": "^6.5.1"
+    "concurrently": "^6.5.1",
+    "vite": "^8.0.16"
   }
 }

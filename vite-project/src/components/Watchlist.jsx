@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { TransactionContext } from "../context/TransactionContext";
 import { searchCoins } from "../api";
+import { debounce } from "../utils/debounce";
 import {
   FaSearch,
   FaCoins,
@@ -45,8 +46,10 @@ const Watchlist = ({ coins }) => {
     [coins]
   );
 
-  // Move this outside the component to avoid recreating on each render
-  const debouncedSearch = debounce(handleSearch, 300);
+  const debouncedSearch = React.useMemo(
+    () => debounce(handleSearch, 300),
+    [handleSearch]
+  );
 
   const handleSearchChange = (e) => {
     const term = e.target.value;
@@ -187,16 +190,16 @@ const Watchlist = ({ coins }) => {
                       </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      ${coin.current_price.toFixed(2)}
+                      ${coin.current_price?.toFixed(2) ?? 'N/A'}
                     </td>
                     <td
                       className={`px-6 py-4 whitespace-nowrap ${
-                        coin.price_change_percentage_24h >= 0
+                        (coin.price_change_percentage_24h ?? 0) >= 0
                           ? "text-green-400"
                           : "text-red-400"
                       }`}
                     >
-                      {coin.price_change_percentage_24h.toFixed(2)}%
+                      {coin.price_change_percentage_24h?.toFixed(2) ?? 'N/A'}%
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
@@ -218,16 +221,3 @@ const Watchlist = ({ coins }) => {
 };
 
 export default Watchlist;
-
-// Add this utility function at the end of the file
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}

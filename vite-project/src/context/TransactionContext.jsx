@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 import {
   transactionsABI,
@@ -17,10 +16,9 @@ import {
 
 export const TransactionContext = React.createContext();
 
-const { ethereum } = window;
-
 const getEthereumContract = async () => {
-  const provider = new ethers.BrowserProvider(ethereum);
+  if (!window.ethereum) throw new Error("Please install MetaMask.");
+  const provider = new ethers.BrowserProvider(window.ethereum);
   const signer = await provider.getSigner();
   const transactionsContract = new ethers.Contract(
     transactionsAddress,
@@ -32,7 +30,7 @@ const getEthereumContract = async () => {
 };
 
 const fetchContractABI = async (contractAddress) => {
-  const apiKey = "XK6DFZKVW68WSQS17KQXKTZQA6IT7M7FW1";
+  const apiKey = import.meta.env.VITE_ETHERSCAN_API_KEY;
   const url = `https://api.etherscan.io/api?module=contract&action=getabi&address=${contractAddress}&apikey=${apiKey}`;
 
   try {
@@ -49,8 +47,8 @@ const fetchContractABI = async (contractAddress) => {
 };
 
 const getContractInfo = async () => {
-  if (!ethereum) throw new Error("Please install MetaMask.");
-  const provider = new ethers.BrowserProvider(ethereum);
+  if (!window.ethereum) throw new Error("Please install MetaMask.");
+  const provider = new ethers.BrowserProvider(window.ethereum);
   const contract = new ethers.Contract(
     transactionsAddress,
     transactionsABI,
@@ -103,8 +101,12 @@ export const TransactionProvider = ({ children }) => {
 
   const getAllTransactions = async () => {
     try {
-      if (ethereum) {
-        const provider = new ethers.BrowserProvider(ethereum);
+      if (window.ethereum) {
+        if (!transactionsAddress || !ethers.isAddress(transactionsAddress)) {
+          console.warn("VITE_CONTRACT_ADDRESS is not set or invalid. Skipping fetching transactions.");
+          return;
+        }
+        const provider = new ethers.BrowserProvider(window.ethereum);
         const transactionsContract = new ethers.Contract(
           transactionsAddress,
           transactionsABI,
@@ -118,10 +120,10 @@ export const TransactionProvider = ({ children }) => {
             addressTo: transaction.receiver,
             addressFrom: transaction.sender,
             timestamp: new Date(
-              transaction.timestamp.toNumber() * 1000
+              Number(transaction.timestamp) * 1000
             ).toLocaleString(),
             message: transaction.message,
-            amount: parseInt(transaction.amount._hex) / 10 ** 18,
+            amount: Number(transaction.amount) / 10 ** 18,
           })
         );
 
@@ -138,9 +140,12 @@ export const TransactionProvider = ({ children }) => {
 
   const checkIfWalletIsConnect = async () => {
     try {
-      if (!ethereum) return alert("Please install MetaMask.");
+      if (!window.ethereum) {
+        console.log("MetaMask is not installed.");
+        return;
+      }
 
-      const accounts = await ethereum.request({ method: "eth_accounts" });
+      const accounts = await window.ethereum.request({ method: "eth_accounts" });
 
       if (accounts.length) {
         setCurrentAccount(accounts[0]);
@@ -156,7 +161,7 @@ export const TransactionProvider = ({ children }) => {
 
   const checkIfTransactionsExists = async () => {
     try {
-      if (!ethereum) return false;
+      if (!window.ethereum) return false;
       const transactionsContract = await getEthereumContract();
       const currentTransactionCount =
         await transactionsContract.getTransactionCount();
@@ -174,15 +179,15 @@ export const TransactionProvider = ({ children }) => {
 
   const connectWallet = async () => {
     try {
-      if (!ethereum) return alert("Please install MetaMask.");
-      const accounts = await ethereum.request({
+      if (!window.ethereum) return alert("Please install MetaMask.");
+      const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
       const account = accounts[0];
       setCurrentAccount(account);
 
       // Request signature
-      const provider = new ethers.BrowserProvider(ethereum);
+      const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const message = "Connect to Crypto Portfolio";
       const signature = await signer.signMessage(message);
@@ -194,8 +199,11 @@ export const TransactionProvider = ({ children }) => {
       localStorage.setItem("currentAccount", account);
       localStorage.setItem("signature", signature);
     } catch (error) {
-      console.log(error);
-      throw new Error("No ethereum object");
+      console.error("Connection failed:", error);
+      if (error.code === 4001 || error.message?.includes("rejected")) {
+        throw new Error("Connection request rejected by user.");
+      }
+      throw new Error("No ethereum object or connection failed.");
     }
   };
 
@@ -210,27 +218,25 @@ export const TransactionProvider = ({ children }) => {
 
   const sendTransaction = async () => {
     try {
-      if (ethereum) {
-        const { addressTo, amount } = formData;
+      if (window.ethereum) {
+        const { addressTo, amount, message } = formData;
 
-        const provider = new ethers.BrowserProvider(ethereum);
-        const signer = await provider.getSigner();
+        if (!transactionsAddress || !ethers.isAddress(transactionsAddress)) {
+          throw new Error("Smart contract address (VITE_CONTRACT_ADDRESS) is not configured.");
+        }
 
+        const contract = await getEthereumContract();
         const parsedAmount = ethers.parseEther(amount);
 
-        const tx = {
-          to: addressTo,
-          value: parsedAmount,
-          gasLimit: 21000,
-        };
-
-        const transaction = await signer.sendTransaction(tx);
-
-        setIsLoading(true);
-        // console.log(`Transaction sent. Hash: ${transaction.hash}`);
-        await transaction.wait();
-        // console.log(`Transaction confirmed. Hash: ${transaction.hash}`);
-        setIsLoading(false);
+        // Call the smart contract's addToBlockchain method.
+        // This transfers the ERC20 token, collects fees, and records the metadata.
+        const transaction = await contract.addToBlockchain(
+          addressTo,
+          parsedAmount,
+          message || "",
+          "Transfer",
+          []
+        );
 
         return transaction;
       } else {
@@ -252,7 +258,7 @@ export const TransactionProvider = ({ children }) => {
 
   const checkAllowance = async (owner, spender) => {
     try {
-      if (!ethereum) throw new Error("Please install MetaMask.");
+      if (!window.ethereum) throw new Error("Please install MetaMask.");
       const contract = await getEthereumContract();
       const allowance = await contract.allowance(owner, spender);
       return ethers.formatUnits(allowance, 18);
@@ -279,7 +285,7 @@ export const TransactionProvider = ({ children }) => {
 
   const checkTokenBalance = async (address) => {
     try {
-      const provider = new ethers.BrowserProvider(ethereum);
+      const provider = new ethers.BrowserProvider(window.ethereum);
       const balance = await provider.getBalance(address);
       return ethers.formatEther(balance);
     } catch (error) {

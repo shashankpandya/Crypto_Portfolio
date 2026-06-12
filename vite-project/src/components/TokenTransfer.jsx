@@ -4,7 +4,7 @@ import { FaEthereum, FaPaperPlane } from "react-icons/fa";
 
 // TokenTransfer component allows the user to transfer tokens to another address
 function TokenTransfer() {
-  const { formData, handleChange, sendTransaction } =
+  const { currentAccount, formData, handleChange, sendTransaction } =
     useContext(TransactionContext);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -12,6 +12,11 @@ function TokenTransfer() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!currentAccount) {
+      setErrorMessage("Please connect your wallet first using the 'Connect for experience' button.");
+      return;
+    }
 
     const { addressTo, amount } = formData;
 
