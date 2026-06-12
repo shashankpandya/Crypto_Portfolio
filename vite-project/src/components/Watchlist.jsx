@@ -12,7 +12,8 @@ import {
 } from "react-icons/fa";
 
 const Watchlist = ({ coins }) => {
-  const { currentAccount } = useContext(TransactionContext);
+  const { currentAccount, fetchWatchlistDB, addToWatchlistDB, removeFromWatchlistDB } =
+    useContext(TransactionContext);
   const [watchlist, setWatchlist] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -20,11 +21,20 @@ const Watchlist = ({ coins }) => {
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
-    const storedWatchlist =
-      JSON.parse(localStorage.getItem(`watchlist_${currentAccount}`)) || [];
-    setWatchlist(storedWatchlist);
-    setIsLoading(false);
-  }, [currentAccount]);
+    const loadWatchlist = async () => {
+      setIsLoading(true);
+      if (currentAccount) {
+        const dbCoins = await fetchWatchlistDB(currentAccount);
+        setWatchlist(dbCoins);
+      } else {
+        const storedWatchlist =
+          JSON.parse(localStorage.getItem("watchlist_anonymous")) || [];
+        setWatchlist(storedWatchlist);
+      }
+      setIsLoading(false);
+    };
+    loadWatchlist();
+  }, [currentAccount, fetchWatchlistDB]);
 
   const handleSearch = useCallback(
     async (term) => {
@@ -59,32 +69,48 @@ const Watchlist = ({ coins }) => {
 
   // Memoize this function to prevent unnecessary re-renders
   const memoizedAddToWatchlist = useCallback(
-    (coin) => {
+    async (coin) => {
       if (!watchlist.includes(coin.id)) {
         const updatedWatchlist = [...watchlist, coin.id];
         setWatchlist(updatedWatchlist);
-        localStorage.setItem(
-          `watchlist_${currentAccount}`,
-          JSON.stringify(updatedWatchlist)
-        );
+        if (currentAccount) {
+          await addToWatchlistDB(currentAccount, coin.id);
+          localStorage.setItem(
+            `watchlist_${currentAccount}`,
+            JSON.stringify(updatedWatchlist)
+          );
+        } else {
+          localStorage.setItem(
+            "watchlist_anonymous",
+            JSON.stringify(updatedWatchlist)
+          );
+        }
       }
       setSearchTerm("");
       setSearchResults([]);
     },
-    [watchlist, currentAccount]
+    [watchlist, currentAccount, addToWatchlistDB]
   );
 
   // Memoize this function as well
   const memoizedRemoveFromWatchlist = useCallback(
-    (coinId) => {
+    async (coinId) => {
       const updatedWatchlist = watchlist.filter((id) => id !== coinId);
       setWatchlist(updatedWatchlist);
-      localStorage.setItem(
-        `watchlist_${currentAccount}`,
-        JSON.stringify(updatedWatchlist)
-      );
+      if (currentAccount) {
+        await removeFromWatchlistDB(currentAccount, coinId);
+        localStorage.setItem(
+          `watchlist_${currentAccount}`,
+          JSON.stringify(updatedWatchlist)
+        );
+      } else {
+        localStorage.setItem(
+          "watchlist_anonymous",
+          JSON.stringify(updatedWatchlist)
+        );
+      }
     },
-    [watchlist, currentAccount]
+    [watchlist, currentAccount, removeFromWatchlistDB]
   );
 
   if (isLoading) {

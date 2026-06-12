@@ -9,6 +9,7 @@ import {
   Home,
   CoinDetails,
   ErrorBoundary,
+  AdminPanel,
 } from "./components";
 import { TransactionProvider } from "./context/TransactionContext";
 import "./App.css";
@@ -53,6 +54,7 @@ const App = () => {
                 />
                 <Route path="/allowancecheck" element={<AllowanceCheck />} />
                 <Route path="/transfer" element={<TokenTransfer />} />
+                <Route path="/admin" element={<AdminPanel />} />
                 <Route
                   path="/coin/:id"
                   element={

@@ -94,9 +94,123 @@ export const TransactionProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [isConnectedToSite, setIsConnectedToSite] = useState(false);
   const [signature, setSignature] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [contractOwner, setContractOwner] = useState("");
+  const [feePercentage, setFeePercentage] = useState("0");
 
   const handleChange = (e, name) => {
     setformData((prevState) => ({ ...prevState, [name]: e.target.value }));
+  };
+
+  const checkAdminStatus = React.useCallback(async (account) => {
+    if (!account) return;
+    try {
+      if (!transactionsAddress || !ethers.isAddress(transactionsAddress)) return;
+      const contract = await getEthereumContract();
+      const owner = await contract.owner();
+      setContractOwner(owner);
+      setIsAdmin(account.toLowerCase() === owner.toLowerCase());
+      
+      const fee = await contract.feePercentage();
+      setFeePercentage((Number(fee) / 100).toString()); // 1% = 100 basis points
+    } catch (err) {
+      console.error("Error checking admin status:", err);
+    }
+  }, []);
+
+  const updateFeePercentage = React.useCallback(async (newFeePercent) => {
+    try {
+      const contract = await getEthereumContract();
+      const basisPoints = Math.round(parseFloat(newFeePercent) * 100);
+      const tx = await contract.setFeePercentage(basisPoints);
+      setIsLoading(true);
+      await tx.wait();
+      setIsLoading(false);
+      setFeePercentage(newFeePercent.toString());
+      return tx.hash;
+    } catch (err) {
+      setIsLoading(false);
+      console.error("Error setting fee percentage:", err);
+      throw err;
+    }
+  }, []);
+
+  const fetchWatchlistDB = React.useCallback(async (address) => {
+    try {
+      const res = await axios.get(`/api/watchlist/${address}`);
+      if (res.data.success) {
+        return res.data.data.coins.map(c => c.coinId);
+      }
+    } catch (err) {
+      console.error("Failed to fetch watchlist from DB:", err);
+    }
+    return [];
+  }, []);
+
+  const addToWatchlistDB = React.useCallback(async (address, coinId) => {
+    try {
+      await axios.post(`/api/watchlist/${address}/coins`, { coinId });
+    } catch (err) {
+      console.error("Failed to add to watchlist DB:", err);
+    }
+  }, []);
+
+  const removeFromWatchlistDB = React.useCallback(async (address, coinId) => {
+    try {
+      await axios.delete(`/api/watchlist/${address}/coins/${coinId}`);
+    } catch (err) {
+      console.error("Failed to remove from watchlist DB:", err);
+    }
+  }, []);
+
+  const sendBatchTransaction = React.useCallback(async (receivers, amounts, message = "") => {
+    try {
+      if (window.ethereum) {
+        if (!transactionsAddress || !ethers.isAddress(transactionsAddress)) {
+          throw new Error("Smart contract address (VITE_CONTRACT_ADDRESS) is not configured.");
+        }
+
+        const contract = await getEthereumContract();
+        const parsedAmounts = amounts.map(amt => ethers.parseEther(amt));
+
+        setIsLoading(true);
+        const transaction = await contract.addToBlockchainBatch(
+          receivers,
+          parsedAmounts,
+          message || "",
+          "Batch Transfer",
+          []
+        );
+        await transaction.wait();
+        setIsLoading(false);
+        return transaction;
+      } else {
+        throw new Error("No ethereum object found");
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error("Batch transaction failed:", error);
+      throw error;
+    }
+  }, []);
+
+  const syncLocalWatchlistToDB = async (address) => {
+    try {
+      const localWatchlist = JSON.parse(localStorage.getItem(`watchlist_${address}`)) || [];
+      if (localWatchlist.length === 0) return;
+
+      const res = await axios.get(`/api/watchlist/${address}`);
+      const dbCoins = res.data.success ? res.data.data.coins.map(c => c.coinId) : [];
+
+      for (const coinId of localWatchlist) {
+        if (!dbCoins.includes(coinId)) {
+          await axios.post(`/api/watchlist/${address}/coins`, { coinId });
+        }
+      }
+      console.log("[Watchlist] Local watchlist synced to database.");
+    } catch (err) {
+      console.error("Error syncing watchlist to DB:", err);
+    }
   };
 
   const getAllTransactions = async () => {
@@ -149,8 +263,9 @@ export const TransactionProvider = ({ children }) => {
 
       if (accounts.length) {
         setCurrentAccount(accounts[0]);
-
         await getAllTransactions();
+        await checkAdminStatus(accounts[0]);
+        await syncLocalWatchlistToDB(accounts[0]);
       } else {
         console.log("No accounts found");
       }
@@ -198,6 +313,9 @@ export const TransactionProvider = ({ children }) => {
       // Save to local storage
       localStorage.setItem("currentAccount", account);
       localStorage.setItem("signature", signature);
+
+      await checkAdminStatus(account);
+      await syncLocalWatchlistToDB(account);
     } catch (error) {
       console.error("Connection failed:", error);
       if (error.code === 4001 || error.message?.includes("rejected")) {
@@ -211,6 +329,9 @@ export const TransactionProvider = ({ children }) => {
     setIsConnectedToSite(false);
     setCurrentAccount("");
     setSignature(null);
+    setIsAdmin(false);
+    setContractOwner("");
+    setFeePercentage("0");
     // Clear local storage
     localStorage.removeItem("currentAccount");
     localStorage.removeItem("signature");
@@ -343,6 +464,7 @@ export const TransactionProvider = ({ children }) => {
         setCurrentAccount(storedAccount);
         setSignature(storedSignature);
         setIsConnectedToSite(true);
+        await checkAdminStatus(storedAccount);
       } else {
         setIsConnectedToSite(false);
       }
@@ -360,6 +482,7 @@ export const TransactionProvider = ({ children }) => {
         currentAccount,
         isLoading,
         sendTransaction,
+        sendBatchTransaction,
         handleChange,
         formData,
         checkAllowance,
@@ -375,6 +498,13 @@ export const TransactionProvider = ({ children }) => {
         disconnectWallet,
         isConnectedToSite,
         signature,
+        isAdmin,
+        contractOwner,
+        feePercentage,
+        updateFeePercentage,
+        fetchWatchlistDB,
+        addToWatchlistDB,
+        removeFromWatchlistDB,
       }}
     >
       {children}
