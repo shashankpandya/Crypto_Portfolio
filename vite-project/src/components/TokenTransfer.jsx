@@ -103,7 +103,7 @@ function TokenTransfer() {
   };
 
   return (
-    <div className="p-8 premium-glow-card text-white rounded-3xl relative overflow-hidden max-w-2xl mx-auto">
+    <div className="page-container premium-glow-card text-white rounded-3xl relative overflow-hidden max-w-2xl">
       <div className="absolute inset-0 bg-shine opacity-5 pointer-events-none"></div>
       <div className="relative z-10">
         {/* Header */}
@@ -246,9 +246,9 @@ function TokenTransfer() {
 
               <div className="max-h-60 overflow-y-auto space-y-3 pr-2 border-t border-b border-[#374151]/60 py-4">
                 {batchRecipients.map((recipient, index) => (
-                  <div key={index} className="flex space-x-3 items-end bg-[#111827]/40 p-3.5 rounded-2xl border border-[#374151]/60 relative">
+                  <div key={index} className="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0 items-stretch sm:items-end bg-[#111827]/40 p-4 rounded-2xl border border-[#374151]/60 relative">
                     <div className="flex-1">
-                      <label htmlFor={`batchAddressInput_${index}`} className="block text-[#a1a7bb] text-xs font-semibold mb-1">
+                      <label htmlFor={`batchAddressInput_${index}`} className="block text-[#e2e8f0] text-xs font-semibold mb-1">
                         #{index + 1} Recipient Wallet Address
                       </label>
                       <input
@@ -262,8 +262,8 @@ function TokenTransfer() {
                         required
                       />
                     </div>
-                    <div className="w-1/3">
-                      <label htmlFor={`batchAmountInput_${index}`} className="block text-[#a1a7bb] text-xs font-semibold mb-1">
+                    <div className="w-full sm:w-1/3">
+                      <label htmlFor={`batchAmountInput_${index}`} className="block text-[#e2e8f0] text-xs font-semibold mb-1">
                         Amount (MTK)
                       </label>
                       <input
@@ -283,7 +283,7 @@ function TokenTransfer() {
                       <button
                         type="button"
                         onClick={() => removeBatchRow(index)}
-                        className="bg-[#ea3943]/10 hover:bg-[#ea3943] hover:text-white text-[#ea3943] px-3.5 py-2 text-xs font-bold rounded-xl transition duration-200 border border-[#ea3943]/20"
+                        className="bg-[#ea3943]/10 hover:bg-[#ea3943] hover:text-white text-[#ea3943] px-3.5 py-2 text-xs font-bold rounded-xl transition duration-200 border border-[#ea3943]/20 h-[38px] sm:h-auto"
                         aria-label={`Remove recipient ${index + 1}`}
                       >
                         Delete

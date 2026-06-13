@@ -9,8 +9,29 @@
 
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const { ethers } = require('ethers');
 const Transaction = require('../models/Transaction');
+const { dbState } = require('../config/db');
+
+const DATA_DIR = path.resolve(__dirname, '../../data');
+const TRANSACTIONS_FILE = path.join(DATA_DIR, 'transactions.json');
+
+function getLocalTransactions() {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(TRANSACTIONS_FILE)) return [];
+  try {
+    return JSON.parse(fs.readFileSync(TRANSACTIONS_FILE, 'utf8'));
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveLocalTransactions(txs) {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(TRANSACTIONS_FILE, JSON.stringify(txs, null, 2), 'utf8');
+}
 
 // ---------------------------------------------------------------------------
 // Minimal ABI
@@ -125,7 +146,12 @@ class BlockchainService {
   }
 
   async startEventListener() {
-    this._init();
+    try {
+      this._init();
+    } catch (err) {
+      console.warn('[BlockchainService] Initialization failed (non-fatal listener):', err.message);
+      return;
+    }
 
     if (this._listenerAttached) {
       console.warn('[BlockchainService] Event listener already attached — skipping.');
@@ -142,15 +168,30 @@ class BlockchainService {
 
         try {
           const data   = normalizeTx({ sender: from, receiver, amount, message, category, timestamp }, txHash, blockNumber);
-          const filter = txHash
-            ? { txHash }
-            : { sender: data.sender, timestamp: data.timestamp };
 
-          await Transaction.findOneAndUpdate(filter, data, {
-            upsert: true,
-            new: true,
-            setDefaultsOnInsert: true,
-          });
+          if (dbState && dbState.connected) {
+            const filter = txHash
+              ? { txHash }
+              : { sender: data.sender, timestamp: data.timestamp };
+
+            await Transaction.findOneAndUpdate(filter, data, {
+              upsert: true,
+              new: true,
+              setDefaultsOnInsert: true,
+            });
+          } else {
+            // Local JSON file fallback
+            const txs = getLocalTransactions();
+            const index = txs.findIndex(t => 
+              txHash ? t.txHash === txHash : (t.sender === data.sender && t.timestamp === data.timestamp)
+            );
+            if (index > -1) {
+              txs[index] = { ...txs[index], ...data };
+            } else {
+              txs.push(data);
+            }
+            saveLocalTransactions(txs);
+          }
 
           console.log(`[BlockchainService] Saved transaction — txHash: ${txHash}`);
         } catch (err) {
@@ -164,7 +205,12 @@ class BlockchainService {
   }
 
   async syncHistoricalTransactions() {
-    this._init();
+    try {
+      this._init();
+    } catch (err) {
+      console.warn('[BlockchainService] Initialization failed (non-fatal sync):', err.message);
+      return [];
+    }
 
     console.log('[BlockchainService] Fetching historical transactions from contract.');
 
@@ -181,29 +227,55 @@ class BlockchainService {
       return [];
     }
 
-    console.log(`[BlockchainService] Upserting ${rawTxs.length} historical transaction(s).`);
+    console.log(`[BlockchainService] Processing ${rawTxs.length} historical transaction(s).`);
 
-    const ops = rawTxs.map((raw) => {
-      const data = normalizeTx(raw);
-      return {
-        updateOne: {
-          filter: { sender: data.sender, timestamp: data.timestamp },
-          update: { $set: data },
-          upsert: true,
-        },
-      };
-    });
+    if (dbState && dbState.connected) {
+      const ops = rawTxs.map((raw) => {
+        const data = normalizeTx(raw);
+        return {
+          updateOne: {
+            filter: { sender: data.sender, timestamp: data.timestamp },
+            update: { $set: data },
+            upsert: true,
+          },
+        };
+      });
 
-    try {
-      const result = await Transaction.bulkWrite(ops, { ordered: false });
+      try {
+        const result = await Transaction.bulkWrite(ops, { ordered: false });
+        console.log(
+          `[BlockchainService] Sync complete — ` +
+          `upserted: ${result.upsertedCount}, modified: ${result.modifiedCount}`,
+        );
+        return rawTxs;
+      } catch (err) {
+        console.error('[BlockchainService] Bulk upsert failed:', err.message);
+        throw err;
+      }
+    } else {
+      // Local JSON file fallback
+      const txs = getLocalTransactions();
+      let updatedCount = 0;
+      let upsertedCount = 0;
+
+      rawTxs.forEach((raw) => {
+        const data = normalizeTx(raw);
+        const index = txs.findIndex(t => t.sender === data.sender && t.timestamp === data.timestamp);
+        if (index > -1) {
+          txs[index] = { ...txs[index], ...data };
+          updatedCount++;
+        } else {
+          txs.push(data);
+          upsertedCount++;
+        }
+      });
+
+      saveLocalTransactions(txs);
       console.log(
-        `[BlockchainService] Sync complete — ` +
-        `upserted: ${result.upsertedCount}, modified: ${result.modifiedCount}`,
+        `[BlockchainService] Local JSON sync complete — ` +
+        `upserted: ${upsertedCount}, modified: ${updatedCount}`,
       );
       return rawTxs;
-    } catch (err) {
-      console.error('[BlockchainService] Bulk upsert failed:', err.message);
-      throw err;
     }
   }
 

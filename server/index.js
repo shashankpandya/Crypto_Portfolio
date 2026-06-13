@@ -13,31 +13,31 @@ const PORT = process.env.PORT || 5000;
 async function start() {
   const dbConnected = await connectDB();
 
-  if (dbConnected) {
-    // Back-fill historical on-chain transactions (non-fatal).
-    try {
-      await blockchainService.syncHistoricalTransactions();
-    } catch (err) {
-      console.error('[Server] Historical sync failed (non-fatal):', err.message);
-    }
-
-    // Subscribe to live events (non-fatal).
-    try {
-      await blockchainService.startEventListener();
-    } catch (err) {
-      console.error('[Server] Event listener failed to start (non-fatal):', err.message);
-    }
-  } else {
+  if (!dbConnected) {
     console.warn(
       '[Server] Starting WITHOUT database. ' +
-      'All /api routes will return 503 until MongoDB becomes available.',
+      'All /api routes will fallback to local file-based JSON storage.',
     );
   }
 
   app.locals.dbState = dbState;
 
+  // Back-fill historical on-chain transactions (non-fatal, falls back to local JSON file).
+  try {
+    await blockchainService.syncHistoricalTransactions();
+  } catch (err) {
+    console.error('[Server] Historical sync failed (non-fatal):', err.message);
+  }
+
+  // Subscribe to live events (non-fatal, falls back to local JSON file).
+  try {
+    await blockchainService.startEventListener();
+  } catch (err) {
+    console.error('[Server] Event listener failed to start (non-fatal):', err.message);
+  }
+
   const server = app.listen(PORT, () => {
-    const dbTag = dbConnected ? '' : ' [DB UNAVAILABLE — routes returning 503]';
+    const dbTag = dbConnected ? '' : ' [DB UNAVAILABLE — using local fallback]';
     console.log(
       `[Server] Running in ${process.env.NODE_ENV || 'development'} mode ` +
       `on port ${PORT}${dbTag}`,

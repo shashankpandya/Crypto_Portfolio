@@ -38,7 +38,7 @@ function AllowanceCheck() {
   };
 
   return (
-    <div className="p-8 premium-glow-card text-white rounded-3xl relative overflow-hidden max-w-md mx-auto">
+    <div className="page-container premium-glow-card text-white rounded-3xl relative overflow-hidden max-w-md">
       <div className="absolute inset-0 bg-shine opacity-5 pointer-events-none"></div>
       <div className="relative z-10">
         <h2 className="text-3xl font-extrabold mb-6 text-center tracking-tight">

@@ -137,7 +137,8 @@ export const TransactionProvider = ({ children }) => {
 
   const fetchWatchlistDB = React.useCallback(async (address) => {
     try {
-      const res = await axios.get(`/api/watchlist/${address}`);
+      const addrLower = address.toLowerCase();
+      const res = await axios.get(`/api/watchlist/${addrLower}`);
       if (res.data.success) {
         return res.data.data.coins.map(c => c.coinId);
       }
@@ -149,7 +150,8 @@ export const TransactionProvider = ({ children }) => {
 
   const addToWatchlistDB = React.useCallback(async (address, coinId) => {
     try {
-      await axios.post(`/api/watchlist/${address}/coins`, { coinId });
+      const addrLower = address.toLowerCase();
+      await axios.post(`/api/watchlist/${addrLower}/coins`, { coinId });
     } catch (err) {
       console.error("Failed to add to watchlist DB:", err);
     }
@@ -157,7 +159,8 @@ export const TransactionProvider = ({ children }) => {
 
   const removeFromWatchlistDB = React.useCallback(async (address, coinId) => {
     try {
-      await axios.delete(`/api/watchlist/${address}/coins/${coinId}`);
+      const addrLower = address.toLowerCase();
+      await axios.delete(`/api/watchlist/${addrLower}/coins/${coinId}`);
     } catch (err) {
       console.error("Failed to remove from watchlist DB:", err);
     }
@@ -196,15 +199,39 @@ export const TransactionProvider = ({ children }) => {
 
   const syncLocalWatchlistToDB = async (address) => {
     try {
-      const localWatchlist = JSON.parse(localStorage.getItem(`watchlist_${address}`)) || [];
+      const addrLower = address.toLowerCase();
+      const userWatchlistKey = `watchlist_${addrLower}`;
+      const mixedCaseKey = `watchlist_${address}`;
+      
+      let localWatchlist = JSON.parse(localStorage.getItem(userWatchlistKey)) || [];
+
+      // Migrate from mixed-case key if it exists and is different
+      if (mixedCaseKey !== userWatchlistKey) {
+        const mixedWatchlist = JSON.parse(localStorage.getItem(mixedCaseKey));
+        if (mixedWatchlist) {
+          localWatchlist = [...new Set([...localWatchlist, ...mixedWatchlist])];
+          localStorage.removeItem(mixedCaseKey);
+        }
+      }
+
+      // Merge anonymous watchlist if present
+      const anonWatchlist = JSON.parse(localStorage.getItem("watchlist_anonymous")) || [];
+      if (anonWatchlist.length > 0) {
+        localWatchlist = [...new Set([...localWatchlist, ...anonWatchlist])];
+        localStorage.removeItem("watchlist_anonymous");
+      }
+
+      // Save merged list back to lowercase user key
+      localStorage.setItem(userWatchlistKey, JSON.stringify(localWatchlist));
+
       if (localWatchlist.length === 0) return;
 
-      const res = await axios.get(`/api/watchlist/${address}`);
+      const res = await axios.get(`/api/watchlist/${addrLower}`);
       const dbCoins = res.data.success ? res.data.data.coins.map(c => c.coinId) : [];
 
       for (const coinId of localWatchlist) {
         if (!dbCoins.includes(coinId)) {
-          await axios.post(`/api/watchlist/${address}/coins`, { coinId });
+          await axios.post(`/api/watchlist/${addrLower}/coins`, { coinId });
         }
       }
       console.log("[Watchlist] Local watchlist synced to database.");

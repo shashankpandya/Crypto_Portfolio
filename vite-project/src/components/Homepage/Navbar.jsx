@@ -156,9 +156,9 @@ const Navbar = () => {
         ) : (
           <div className="flex items-center space-x-3 bg-[#111827]/40 border border-[#374151]/40 px-3 py-1.5 rounded-full">
             {/* Grey dot */}
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-650"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-600"></span>
             <button
-              className="premium-btn text-white text-xs font-bold py-2 px-5 rounded-full transition duration-300"
+              className="premium-btn text-white text-xs font-bold py-2 px-5 rounded-full transition duration-300 pulse-cta"
               onClick={handleConnect}
               data-tooltip-id="connect-wallet-tooltip"
               data-tooltip-content="Connect your Ethereum wallet to interact with the app"

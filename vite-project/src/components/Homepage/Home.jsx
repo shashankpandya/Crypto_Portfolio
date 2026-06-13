@@ -19,10 +19,18 @@ const getNetworkName = (chainIdHex) => {
 };
 
 const Home = ({ coins }) => {
-  const { currentAccount, checkTokenBalance, isConnectedToSite } =
+  const { currentAccount, checkTokenBalance, isConnectedToSite, connectWallet } =
     useContext(TransactionContext);
   const [balance, setBalance] = useState("0");
   const [network, setNetwork] = useState("Unknown Network");
+
+  const handleConnect = async () => {
+    try {
+      await connectWallet();
+    } catch (error) {
+      console.error("Failed to connect wallet:", error);
+    }
+  };
 
   useEffect(() => {
     // Staggered entry animation for dashboard
@@ -74,9 +82,9 @@ const Home = ({ coins }) => {
   }, [currentAccount, checkTokenBalance]);
 
   return (
-    <div className="p-8 premium-glow-card text-white rounded-3xl relative overflow-hidden max-w-6xl mx-auto">
+    <div className="page-container premium-glow-card text-white rounded-3xl relative overflow-hidden">
       <div className="absolute inset-0 bg-shine opacity-5 pointer-events-none"></div>
-      <div className="relative z-10">
+      <div className="relative z-10 w-full">
         <h1 className="text-5xl font-black text-center mb-12 gsap-fade-in tracking-tight">
           <span className="premium-text-gradient-primary">Your Crypto Dashboard</span>
         </h1>
@@ -138,17 +146,19 @@ const Home = ({ coins }) => {
             </div>
           </div>
         ) : (
-          <div className="text-center mb-12 bg-[#1f2937]/40 rounded-2xl p-10 border border-[#374151]/80 backdrop-filter backdrop-blur-sm gsap-fade-in shadow-inner">
-            <p className="text-2xl mb-4 font-bold text-slate-100">
-              Connect your wallet to view your portfolio and access features.
+          <div className="text-center mb-12 bg-[#1f2937]/40 rounded-3xl p-10 border border-[#374151]/80 backdrop-filter backdrop-blur-sm gsap-fade-in shadow-xl max-w-xl mx-auto flex flex-col items-center">
+            <h2 className="text-2xl md:text-3xl font-extrabold mb-4 text-white tracking-tight">
+              Connect Your Web3 Wallet
+            </h2>
+            <p className="text-slate-300 text-sm md:text-base mb-8 max-w-md leading-relaxed">
+              Link your wallet securely to view balances, track transaction history, and manage your watchlist tokens instantly.
             </p>
-            <p className="text-slate-400 text-base">
-              Use the{" "}
-              <span className="text-[#14b8a6] font-semibold underline decoration-2 decoration-[#14b8a6] cursor-pointer">
-                Connect Wallet
-              </span>{" "}
-              button in the navbar to get started.
-            </p>
+            <button
+              onClick={handleConnect}
+              className="premium-btn text-white text-base font-bold py-3.5 px-8 rounded-full transition duration-300 transform hover:scale-105 hover:shadow-[0_10px_25px_rgba(20,184,166,0.4)] shadow-lg pulse-cta"
+            >
+              Connect Wallet
+            </button>
           </div>
         )}
 
