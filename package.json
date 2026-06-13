@@ -10,7 +10,7 @@
     "client": "cd vite-project && npm start",
     "client:dev": "cd vite-project && npm run dev",
     "build": "cd vite-project && npm run build",
-    "install:all": "npm install && cd server && npm install && cd vite-project && npm install && cd smart_contract && npm install",
+    "install:all": "npm install && cd server && npm install && cd ../vite-project && npm install && cd ../smart_contract && npm install",
     "postinstall": "cd vite-project && npm install"
   },
   "devDependencies": {
