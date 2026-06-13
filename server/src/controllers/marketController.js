@@ -54,7 +54,7 @@ async function getCoinDetails(req, res) {
       return res.status(400).json({ success: false, message: 'coinId parameter is required.' });
     }
 
-    const apiKey = process.env.COINGECKO_API_KEY;
+    const apiKey = process.env.COINGECKO_API_KEY || process.env.VITE_COINGECKO_API_KEY;
     const headers = {
       Accept: 'application/json',
     };

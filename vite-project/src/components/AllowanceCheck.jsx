@@ -79,7 +79,7 @@ function AllowanceCheck() {
         </form>
 
         {allowance !== null && (
-          <div className="mt-6 p-4 bg-[#0e0f17]/50 border border-[#2e324d]/80 rounded-2xl animate-fade-in flex flex-col items-center backdrop-filter backdrop-blur-sm shadow-inner">
+          <div className="mt-6 p-4 bg-[#111827]/50 border border-[#374151]/80 rounded-2xl animate-fade-in flex flex-col items-center backdrop-filter backdrop-blur-sm shadow-inner">
             <p className="text-sm font-semibold text-[#a1a7bb] mb-1">Allowance Limit:</p>
             <p className="text-2xl font-black text-[#16c784] font-mono">
               {ethers.formatEther(allowance)} MTK

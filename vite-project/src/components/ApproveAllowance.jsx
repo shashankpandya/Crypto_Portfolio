@@ -84,7 +84,7 @@ function ApproveAllowance() {
         </p>
 
         {currentAllowance !== "0" && (
-          <div className="mb-6 p-4 bg-[#0e0f17]/50 border border-[#2e324d]/80 rounded-2xl animate-fade-in flex flex-col justify-center items-center backdrop-filter backdrop-blur-sm shadow-inner">
+          <div className="mb-6 p-4 bg-[#111827]/50 border border-[#374151]/80 rounded-2xl animate-fade-in flex flex-col justify-center items-center backdrop-filter backdrop-blur-sm shadow-inner">
             <p className="text-sm font-semibold text-[#a1a7bb] mb-1">
               Current Allowance:
             </p>

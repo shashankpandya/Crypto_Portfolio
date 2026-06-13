@@ -129,13 +129,13 @@ const CoinDetails = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#3861fb] shadow-md shadow-blue-500/20"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#14b8a6] shadow-md shadow-teal-500/20"></div>
       </div>
     );
   }
   if (error) return <div className="text-[#ea3943] p-8 text-center bg-[#ea3943]/10 border border-[#ea3943]/30 rounded-3xl max-w-xl mx-auto">{error}</div>;
   if (!coinDetails || !coinHistory)
-    return <div className="text-white p-8 text-center bg-[#0e0f17]/40 border border-[#2e324d] rounded-3xl max-w-xl mx-auto">No data available for this coin.</div>;
+    return <div className="text-white p-8 text-center bg-[#111827]/40 border border-[#374151] rounded-3xl max-w-xl mx-auto">No data available for this coin.</div>;
 
   const chartData = {
     labels: (coinHistory || []).map((price) => new Date(price[0]).toLocaleDateString()),
@@ -144,7 +144,7 @@ const CoinDetails = () => {
         label: "Price",
         data: (coinHistory || []).map((price) => price[1]),
         fill: false,
-        borderColor: "#3861fb",
+        borderColor: "#14b8a6",
         tension: 0.1,
       },
     ],
@@ -162,7 +162,7 @@ const CoinDetails = () => {
         type: "category",
         title: { display: true, text: "Date", color: "#9ca3af" },
         ticks: { maxTicksLimit: 8, color: "#9ca3af" },
-        grid: { color: "rgba(56, 97, 251, 0.08)" }
+        grid: { color: "rgba(20, 184, 166, 0.08)" }
       },
       y: {
         title: { display: true, text: "Price (USD)", color: "#9ca3af" },
@@ -211,7 +211,7 @@ const CoinDetails = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-[#0e0f17]/50 p-5 rounded-2xl border border-[#2e324d]/85 shadow-inner">
+          <div className="bg-[#111827]/50 p-5 rounded-2xl border border-[#374151]/85 shadow-inner">
             <p className="text-[#a1a7bb] text-xs font-semibold uppercase tracking-wider mb-1">Current Price</p>
             <p className="text-2xl font-black font-mono text-white">
               $
@@ -219,7 +219,7 @@ const CoinDetails = () => {
                 "N/A"}
             </p>
           </div>
-          <div className="bg-[#0e0f17]/50 p-5 rounded-2xl border border-[#2e324d]/85 shadow-inner">
+          <div className="bg-[#111827]/50 p-5 rounded-2xl border border-[#374151]/85 shadow-inner">
             <p className="text-[#a1a7bb] text-xs font-semibold uppercase tracking-wider mb-1">Market Cap</p>
             <p className="text-2xl font-black font-mono text-white">
               $
@@ -227,7 +227,7 @@ const CoinDetails = () => {
                 "N/A"}
             </p>
           </div>
-          <div className="bg-[#0e0f17]/50 p-5 rounded-2xl border border-[#2e324d]/85 shadow-inner">
+          <div className="bg-[#111827]/50 p-5 rounded-2xl border border-[#374151]/85 shadow-inner">
             <p className="text-[#a1a7bb] text-xs font-semibold uppercase tracking-wider mb-1">24h Change</p>
             <p
               className={`text-2xl font-black font-mono ${
@@ -246,7 +246,7 @@ const CoinDetails = () => {
         </div>
 
         {/* Chart Area */}
-        <div className="bg-[#0e0f17]/50 p-6 rounded-2xl border border-[#2e324d]/85 shadow-inner">
+        <div className="bg-[#111827]/50 p-6 rounded-2xl border border-[#374151]/85 shadow-inner">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <h3 className="text-2xl font-bold tracking-tight">
               <span className="premium-text-gradient-primary">Price Chart</span>
