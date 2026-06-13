@@ -85,7 +85,7 @@ export const fetchCoins = async (limit = 100) => {
       order: 'market_cap_desc',
       per_page: limit,
       page: 1,
-      sparkline: false
+      sparkline: true
     });
   } catch (error) {
     console.error("Error fetching coins:", error);
@@ -100,7 +100,7 @@ export const fetchAllCoins = async () => {
       order: 'market_cap_desc',
       per_page: 250,
       page: 1,
-      sparkline: false
+      sparkline: true
     });
   } catch (error) {
     console.error("Error fetching all coins:", error);
