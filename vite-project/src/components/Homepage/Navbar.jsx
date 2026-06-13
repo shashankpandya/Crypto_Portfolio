@@ -108,27 +108,36 @@ const Navbar = () => {
       {/* Wallet Connection Section */}
       <div className="flex items-center space-x-4">
         {isConnectedToSite ? (
-          <div className="flex items-center space-x-2">
-            <p className="text-gray-300">{`${currentAccount.slice(
+          <div className="flex items-center space-x-3 bg-gray-900 bg-opacity-40 border border-gray-700 px-3 py-1.5 rounded-full shadow-inner">
+            {/* Pulsating green dot */}
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <p className="text-gray-300 font-mono text-sm font-semibold">{`${currentAccount.slice(
               0,
               6
             )}...${currentAccount.slice(-4)}`}</p>
             <button
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-200"
+              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-1.5 px-3 rounded-full transition duration-200"
               onClick={handleDisconnect}
             >
               Disconnect
             </button>
           </div>
         ) : (
-          <button
-            className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded transition duration-200"
-            onClick={handleConnect}
-            data-tooltip-id="connect-wallet-tooltip"
-            data-tooltip-content="Connect your Ethereum wallet to interact with the app"
-          >
-            Connect Wallet
-          </button>
+          <div className="flex items-center space-x-3 bg-gray-900 bg-opacity-40 border border-gray-800 px-3 py-1.5 rounded-full">
+            {/* Grey dot */}
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-gray-600"></span>
+            <button
+              className="bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold py-1 px-4 rounded-full transition duration-200"
+              onClick={handleConnect}
+              data-tooltip-id="connect-wallet-tooltip"
+              data-tooltip-content="Connect your Ethereum wallet to interact with the app"
+            >
+              Connect Wallet
+            </button>
+          </div>
         )}
         <Tooltip id="connect-wallet-tooltip" />
       </div>
