@@ -52,5 +52,3 @@ coverage/
 .cache/
 .project
 *.sublime-workspace
-
-.env.deployment.whole

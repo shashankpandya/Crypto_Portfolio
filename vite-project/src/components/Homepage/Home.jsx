@@ -86,9 +86,9 @@ const Home = ({ coins }) => {
             {/* Wallet Card */}
             <div className="lg:col-span-1 gsap-fade-in">
               <div
-                className="h-[200px] w-full max-w-[350px] mx-auto rounded-2xl shadow-2xl p-6 flex flex-col justify-between relative overflow-hidden transform hover:scale-105 hover:shadow-[0_20px_50px_rgba(56,97,251,0.25)] transition-all duration-500 cursor-pointer border border-[#4e557b]/30"
+                className="h-[200px] w-full max-w-[350px] mx-auto rounded-2xl shadow-2xl p-6 flex flex-col justify-between relative overflow-hidden transform hover:scale-105 hover:shadow-[0_20px_50px_rgba(156,122,242,0.25)] transition-all duration-500 cursor-pointer border border-[#9c7af2]/30"
                 style={{
-                  background: "linear-gradient(135deg, #3861fb 0%, #6366f1 50%, #5b21b6 100%)",
+                  background: "linear-gradient(135deg, #9c7af2 0%, #f07a7c 50%, #9cdf9b 100%)",
                 }}
               >
                 <div className="absolute inset-0 bg-shine opacity-20 pointer-events-none"></div>
@@ -113,23 +113,23 @@ const Home = ({ coins }) => {
             </div>
 
             {/* Wallet Info Slots */}
-            <div className="lg:col-span-2 bg-[#141520]/50 rounded-2xl p-6 border border-[#2c2f45]/80 backdrop-filter backdrop-blur-sm gsap-fade-in shadow-inner">
+            <div className="lg:col-span-2 bg-[#1f2937]/50 rounded-2xl p-6 border border-[#374151]/80 backdrop-filter backdrop-blur-sm gsap-fade-in shadow-inner">
               <h2 className="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-[#a1a7bb] tracking-tight">
                 Wallet Information
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-[#0e0f17]/60 p-4 rounded-xl border border-[#2c2f45]/50">
+                <div className="bg-[#111827]/60 p-4 rounded-xl border border-[#374151]/50">
                   <p className="text-[#a1a7bb] text-xs font-bold uppercase tracking-wider mb-1">Balance</p>
                   <p className="text-white text-2xl font-black font-mono">
                     {balance} ETH
                   </p>
                 </div>
-                <div className="bg-[#0e0f17]/60 p-4 rounded-xl border border-[#2c2f45]/50">
+                <div className="bg-[#111827]/60 p-4 rounded-xl border border-[#374151]/50">
                   <p className="text-[#a1a7bb] text-xs font-bold uppercase tracking-wider mb-1">Network</p>
                   <p className="text-white text-xl font-bold font-mono">{network}</p>
                 </div>
               </div>
-              <div className="mt-6 border-t border-[#2c2f45]/60 pt-4">
+              <div className="mt-6 border-t border-[#374151]/60 pt-4">
                 <p className="text-[#a1a7bb] text-xs font-bold uppercase tracking-wider mb-1">Connected Address</p>
                 <p className="text-white text-sm break-all font-mono">
                   {currentAccount || "Not connected"}
@@ -138,13 +138,13 @@ const Home = ({ coins }) => {
             </div>
           </div>
         ) : (
-          <div className="text-center mb-12 bg-[#141520]/40 rounded-2xl p-10 border border-[#2c2f45]/80 backdrop-filter backdrop-blur-sm gsap-fade-in shadow-inner">
+          <div className="text-center mb-12 bg-[#1f2937]/40 rounded-2xl p-10 border border-[#374151]/80 backdrop-filter backdrop-blur-sm gsap-fade-in shadow-inner">
             <p className="text-2xl mb-4 font-bold text-slate-100">
               Connect your wallet to view your portfolio and access features.
             </p>
             <p className="text-slate-400 text-base">
               Use the{" "}
-              <span className="text-[#3861fb] font-semibold underline decoration-2 decoration-[#3861fb] cursor-pointer">
+              <span className="text-[#14b8a6] font-semibold underline decoration-2 decoration-[#14b8a6] cursor-pointer">
                 Connect Wallet
               </span>{" "}
               button in the navbar to get started.

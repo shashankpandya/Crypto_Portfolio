@@ -74,7 +74,7 @@ function TourGuide() {
       {/* Floating help button */}
       <button
         onClick={toggleSidebar}
-        className="fixed bottom-6 right-6 z-50 px-5 py-2.5 premium-btn-secondary text-[#3861fb] text-xs font-bold rounded-full shadow-2xl transition-all duration-300"
+        className="fixed bottom-6 right-6 z-50 px-5 py-2.5 premium-btn-secondary text-[#14b8a6] text-xs font-bold rounded-full shadow-2xl transition-all duration-300"
         aria-label="Open tour guide"
       >
         Guide
@@ -89,16 +89,16 @@ function TourGuide() {
           {/* Drawer container */}
           <div
             ref={sidebarRef}
-            className="w-full max-w-md h-full bg-[#0e0f17] bg-opacity-95 border-l border-[#2e324d]/85 backdrop-filter backdrop-blur-md text-white shadow-2xl flex flex-col justify-between p-8 relative"
+            className="w-full max-w-md h-full bg-[#111827] bg-opacity-95 border-l border-[#374151]/85 backdrop-filter backdrop-blur-md text-white shadow-2xl flex flex-col justify-between p-8 relative"
           >
             {/* Header */}
-            <div className="flex justify-between items-center mb-8 border-b border-[#2e324d]/30 pb-4">
+            <div className="flex justify-between items-center mb-8 border-b border-[#374151]/30 pb-4">
               <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#a1a7bb]">
                 Platform Guide
               </h3>
               <button
                 onClick={toggleSidebar}
-                className="px-3.5 py-1.5 rounded-lg bg-[#12131a] hover:bg-[#1a1c27] border border-[#2e324d] text-xs font-bold transition duration-200"
+                className="px-3.5 py-1.5 rounded-lg bg-[#111827] hover:bg-[#1f2937] border border-[#374151] text-xs font-bold transition duration-200"
                 aria-label="Close guide"
               >
                 Close
@@ -116,7 +116,7 @@ function TourGuide() {
             </div>
 
             {/* Footer / Controls */}
-            <div className="mt-8 border-t border-[#2e324d]/30 pt-6">
+            <div className="mt-8 border-t border-[#374151]/30 pt-6">
               {/* Progress Dots */}
               <div className="flex justify-center space-x-2 mb-6">
                 {slides.map((_, i) => (
@@ -124,7 +124,7 @@ function TourGuide() {
                     key={i}
                     onClick={() => setCurrentSlide(i)}
                     className={`h-2 rounded-full transition-all duration-300 ${
-                      i === currentSlide ? "w-6 bg-[#3861fb]" : "w-2 bg-[#2e324d] hover:bg-[#383d5a]"
+                      i === currentSlide ? "w-6 bg-[#14b8a6]" : "w-2 bg-[#374151] hover:bg-[#4b5563]"
                     }`}
                     aria-label={`Go to slide ${i + 1}`}
                   ></button>
@@ -135,7 +135,7 @@ function TourGuide() {
               <div className="flex justify-between items-center">
                 <button
                   onClick={handlePrev}
-                  className="px-4 py-2 bg-[#12131a] hover:bg-[#1a1c27] border border-[#2e324d] text-white font-semibold rounded-lg flex items-center transition duration-200 text-sm"
+                  className="px-4 py-2 bg-[#111827] hover:bg-[#1f2937] border border-[#374151] text-white font-semibold rounded-lg flex items-center transition duration-200 text-sm"
                 >
                   Prev
                 </button>

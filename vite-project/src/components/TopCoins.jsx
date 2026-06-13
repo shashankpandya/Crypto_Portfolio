@@ -66,10 +66,10 @@ const TopCoins = ({ coins }) => {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-[#2e324d]/80 shadow-2xl">
+      <div className="overflow-x-auto rounded-2xl border border-[#374151]/80 shadow-2xl">
         <table className="w-full table-auto border-collapse">
           <thead>
-            <tr className="bg-[#13141f] text-[#a1a7bb] text-sm font-semibold border-b border-[#2e324d]/80">
+            <tr className="bg-[#111827] text-[#a1a7bb] text-sm font-semibold border-b border-[#374151]/80">
               <th className="px-6 py-4 text-left font-bold w-20">Rank</th>
               <th className="px-6 py-4 text-left font-bold">Coin</th>
               <th className="px-6 py-4 text-right font-bold">Price</th>
@@ -77,14 +77,14 @@ const TopCoins = ({ coins }) => {
               <th className="px-6 py-4 text-right font-bold">Market Cap</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#2e324d]/30">
+          <tbody className="divide-y divide-[#374151]/30">
             {filteredCoins.length > 0 ? (
               filteredCoins.map((coin, index) => {
                 const actualRank = (coins || []).findIndex((c) => c.id === coin.id) + 1;
                 return (
                   <tr
                      key={coin.id || index}
-                     className="coin-row border-b border-[#2e324d]/20 hover:bg-[#1f2233]/60 transition-colors duration-200"
+                     className="coin-row border-b border-[#374151]/20 hover:bg-[#1f2937]/60 transition-colors duration-200"
                   >
                     <td className="px-6 py-4 font-bold text-[#a1a7bb]">{getRankBadge(actualRank)}</td>
                     <td className="px-6 py-4">
@@ -97,7 +97,7 @@ const TopCoins = ({ coins }) => {
                           />
                         )}
                         <div>
-                          <div className="font-bold text-white group-hover:text-[#3861fb] transition-colors duration-200">
+                          <div className="font-bold text-white group-hover:text-[#14b8a6] transition-colors duration-200">
                             {coin.name || "N/A"}
                           </div>
                           <div className="text-xs text-[#a1a7bb] font-mono uppercase">

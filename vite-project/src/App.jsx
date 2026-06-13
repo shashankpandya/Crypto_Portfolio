@@ -38,16 +38,16 @@ const App = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#12131a] premium-bg flex flex-col justify-center items-center text-white relative overflow-hidden">
+      <div className="min-h-screen bg-[#111827] premium-bg flex flex-col justify-center items-center text-white relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#3861fb]/10 blur-[120px]"></div>
-          <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#5b21b6]/10 blur-[120px]"></div>
+          <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#14b8a6]/08 blur-[120px]"></div>
+          <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#06b6d4]/08 blur-[120px]"></div>
         </div>
         <div className="relative z-10 flex flex-col items-center">
           <div className="flex items-center space-x-3 mb-8 animate-pulse">
-            <span className="p-3 rounded-2xl bg-gradient-to-br from-[#3861fb] to-[#5b21b6] text-white shadow-xl shadow-blue-500/20">
+            <span className="p-3 rounded-2xl bg-gradient-to-br from-[#14b8a6] to-[#06b6d4] text-white shadow-xl shadow-teal-500/20">
               <div className="w-5 h-5 rounded-full bg-white relative">
-                <div className="absolute inset-0.5 rounded-full bg-gradient-to-br from-[#3861fb] to-[#5b21b6]"></div>
+                <div className="absolute inset-0.5 rounded-full bg-gradient-to-br from-[#14b8a6] to-[#06b6d4]"></div>
               </div>
             </span>
             <div className="flex flex-col leading-none text-left select-none">
@@ -55,7 +55,7 @@ const App = () => {
               <span className="text-xl font-black tracking-tight text-white">Portfolio</span>
             </div>
           </div>
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#3861fb] shadow-md shadow-blue-500/20"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#14b8a6] shadow-md shadow-teal-500/20"></div>
           <p className="mt-4 text-[#a1a7bb] font-medium tracking-wide">Syncing market data...</p>
         </div>
       </div>
@@ -64,9 +64,9 @@ const App = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#12131a] premium-bg flex flex-col justify-center items-center text-white relative overflow-hidden">
+      <div className="min-h-screen bg-[#111827] premium-bg flex flex-col justify-center items-center text-white relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#3861fb]/10 blur-[120px]"></div>
+          <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#14b8a6]/08 blur-[120px]"></div>
         </div>
         <div className="relative z-10 max-w-md w-full px-6">
           <div className="premium-glow-card p-8 rounded-3xl text-center shadow-2xl">
@@ -92,11 +92,11 @@ const App = () => {
   return (
     <Router>
       <TransactionProvider>
-        <div className="min-h-screen bg-[#12131a] premium-bg text-white relative overflow-x-hidden">
+        <div className="min-h-screen bg-[#111827] premium-bg text-white relative overflow-x-hidden">
           {/* Ambient Background Glow Blur Circles */}
           <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-            <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[#3861fb]/05 blur-[150px]"></div>
-            <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[#5b21b6]/05 blur-[150px]"></div>
+            <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[#14b8a6]/05 blur-[150px]"></div>
+            <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[#06b6d4]/05 blur-[150px]"></div>
           </div>
           <div className="relative z-10">
             <Navbar />

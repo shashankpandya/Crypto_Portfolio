@@ -107,7 +107,7 @@ class BlockchainService {
     if (this.contract) return;
 
     const alchemyUrl      = process.env.ALCHEMY_URL;
-    const contractAddress = process.env.CONTRACT_ADDRESS;
+    const contractAddress = process.env.CONTRACT_ADDRESS || process.env.VITE_CONTRACT_ADDRESS;
 
     // Validate URL format — throws a clear error instead of the cryptic
     // "unsupported protocol" message from ethers internals.

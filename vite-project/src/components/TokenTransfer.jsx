@@ -115,7 +115,7 @@ function TokenTransfer() {
         </p>
 
         {/* Tab Selector */}
-        <div className="flex mb-8 bg-[#0e0f17]/50 p-1 rounded-2xl border border-[#2e324d]/80">
+        <div className="flex mb-8 bg-[#111827]/50 p-1 rounded-2xl border border-[#374151]/80">
           <button
             type="button"
             onClick={() => {
@@ -125,7 +125,7 @@ function TokenTransfer() {
             }}
             className={`flex-1 py-3 text-center font-bold text-base rounded-xl transition duration-300 ${
               activeTab === "single"
-                ? "premium-btn text-white shadow-lg shadow-blue-500/20"
+                ? "premium-btn text-white shadow-lg shadow-teal-500/20"
                 : "text-gray-405 hover:text-white"
             }`}
           >
@@ -140,7 +140,7 @@ function TokenTransfer() {
             }}
             className={`flex-1 py-3 text-center font-bold text-base rounded-xl transition duration-300 ${
               activeTab === "batch"
-                ? "premium-btn text-white shadow-lg shadow-blue-500/20"
+                ? "premium-btn text-white shadow-lg shadow-teal-500/20"
                 : "text-gray-405 hover:text-white"
             }`}
           >
@@ -238,15 +238,15 @@ function TokenTransfer() {
                 <button
                   type="button"
                   onClick={addBatchRow}
-                  className="bg-[#3861fb]/10 border border-[#3861fb]/30 hover:bg-[#3861fb] hover:text-white text-[#3861fb] px-4 py-1.5 rounded-full text-xs font-bold transition duration-200"
+                  className="bg-[#14b8a6]/10 border border-[#14b8a6]/30 hover:bg-[#14b8a6] hover:text-white text-[#14b8a6] px-4 py-1.5 rounded-full text-xs font-bold transition duration-200"
                 >
                   Add Recipient +
                 </button>
               </div>
 
-              <div className="max-h-60 overflow-y-auto space-y-3 pr-2 border-t border-b border-[#2e324d]/60 py-4">
+              <div className="max-h-60 overflow-y-auto space-y-3 pr-2 border-t border-b border-[#374151]/60 py-4">
                 {batchRecipients.map((recipient, index) => (
-                  <div key={index} className="flex space-x-3 items-end bg-[#0e0f17]/40 p-3.5 rounded-2xl border border-[#2e324d]/60 relative">
+                  <div key={index} className="flex space-x-3 items-end bg-[#111827]/40 p-3.5 rounded-2xl border border-[#374151]/60 relative">
                     <div className="flex-1">
                       <label htmlFor={`batchAddressInput_${index}`} className="block text-[#a1a7bb] text-xs font-semibold mb-1">
                         #{index + 1} Recipient Wallet Address

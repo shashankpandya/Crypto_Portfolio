@@ -52,7 +52,7 @@ class MarketService {
     // -----------------------------------------------------------------------
     console.log('[MarketService] Cache miss – fetching from CoinGecko…');
 
-    const apiKey = process.env.COINGECKO_API_KEY;
+    const apiKey = process.env.COINGECKO_API_KEY || process.env.VITE_COINGECKO_API_KEY;
     const headers = {
       Accept: 'application/json',
     };

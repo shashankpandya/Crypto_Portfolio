@@ -57,8 +57,8 @@ function AdminPanel() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Contract Metadata Card */}
-          <div className="bg-[#0e0f17]/50 p-6 rounded-2xl border border-[#2e324d]/85 shadow-inner">
-            <h3 className="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-[#a1a7bb] border-b border-[#2e324d] pb-3 tracking-tight">
+          <div className="bg-[#111827]/50 p-6 rounded-2xl border border-[#374151]/85 shadow-inner">
+            <h3 className="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-[#a1a7bb] border-b border-[#374151] pb-3 tracking-tight">
               Contract Details
             </h3>
             <div className="space-y-4 text-sm text-[#a1a7bb]">
@@ -76,7 +76,7 @@ function AdminPanel() {
                   {contractInfo ? (Number(contractInfo.totalSupply) / 10 ** Number(contractInfo.decimals)).toLocaleString() : "1,000,000"} MTK
                 </p>
               </div>
-              <div className="border-t border-[#2e324d] pt-3">
+              <div className="border-t border-[#374151] pt-3">
                 <p className="text-[#a1a7bb] text-xs font-semibold uppercase">Contract Owner Address</p>
                 <p className="text-white text-xs break-all font-mono">
                   {contractOwner || "0x0000..."}
@@ -92,14 +92,14 @@ function AdminPanel() {
           </div>
 
           {/* Action Card: Update Fee */}
-          <div className="bg-[#0e0f17]/50 p-6 rounded-2xl border border-[#2e324d]/85 shadow-inner flex flex-col justify-between">
+          <div className="bg-[#111827]/50 p-6 rounded-2xl border border-[#374151]/85 shadow-inner flex flex-col justify-between">
             <div>
-              <h3 className="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-[#a1a7bb] border-b border-[#2e324d] pb-3 tracking-tight">
+              <h3 className="text-2xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-[#a1a7bb] border-b border-[#374151] pb-3 tracking-tight">
                 Fee Management
               </h3>
-              <div className="mb-6 p-4 bg-[#0e0f17] rounded-2xl border border-[#2e324d]">
+              <div className="mb-6 p-4 bg-[#111827] rounded-2xl border border-[#374151]">
                 <p className="text-[#a1a7bb] text-xs font-semibold uppercase">Current Contract Fee</p>
-                <p className="text-3xl font-black text-[#3861fb] font-mono">{feePercentage}%</p>
+                <p className="text-3xl font-black text-[#14b8a6] font-mono">{feePercentage}%</p>
                 <p className="text-xs text-[#a1a7bb] mt-1">
                   Charged on transfers called via addToBlockchain.
                 </p>
@@ -131,7 +131,7 @@ function AdminPanel() {
                 disabled={isLoading}
                 className={`w-full px-6 py-3 rounded-full font-bold text-white transition duration-300 ${
                   isLoading
-                    ? "bg-[#0e0f17] text-slate-550 cursor-not-allowed border border-[#2e324d]"
+                    ? "bg-[#111827] text-slate-550 cursor-not-allowed border border-[#374151]"
                     : "premium-btn"
                 }`}
               >

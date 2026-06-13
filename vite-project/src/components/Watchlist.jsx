@@ -151,7 +151,7 @@ const Watchlist = ({ coins }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#3861fb] shadow-md shadow-blue-500/20"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#14b8a6] shadow-md shadow-teal-500/20"></div>
       </div>
     );
   }
@@ -169,7 +169,7 @@ const Watchlist = ({ coins }) => {
           <p className="text-sm text-[#a1a7bb] mt-1">Explore, monitor, and manage your preferred tokens</p>
         </div>
 
-        <div className="flex items-center space-x-2 bg-[#0e0f17]/50 p-1 rounded-xl border border-[#2e324d]/85 self-end md:self-auto font-bold text-xs select-none">
+        <div className="flex items-center space-x-2 bg-[#111827]/50 p-1 rounded-xl border border-[#374151]/85 self-end md:self-auto font-bold text-xs select-none">
           <button
             onClick={() => setViewMode("grid")}
             className={`px-3 py-1.5 rounded-lg transition duration-200 ${
@@ -210,7 +210,7 @@ const Watchlist = ({ coins }) => {
                 setSearchTerm("");
                 setSearchResults([]);
               }}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs bg-[#12131a] hover:bg-[#1a1c27] px-3 py-2 rounded-lg border border-[#2e324d] transition-all duration-200 text-gray-300 font-bold"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs bg-[#111827] hover:bg-[#1f2937] px-3 py-2 rounded-lg border border-[#374151] transition-all duration-200 text-gray-300 font-bold"
             >
               Clear
             </button>
@@ -219,12 +219,12 @@ const Watchlist = ({ coins }) => {
 
         {/* Suggestion Dropdown Panel */}
         {searchResults.length > 0 && (
-          <div className="absolute left-0 right-0 mt-2 bg-[#12131a]/95 border border-[#2e324d] rounded-2xl shadow-2xl overflow-hidden backdrop-filter backdrop-blur-md">
+          <div className="absolute left-0 right-0 mt-2 bg-[#111827]/95 border border-[#374151] rounded-2xl shadow-2xl overflow-hidden backdrop-filter backdrop-blur-md">
             {searchResults.map((coin) => (
               <button
                 key={coin.id}
                 onClick={() => memoizedAddToWatchlist(coin)}
-                className="w-full flex justify-between items-center px-6 py-4 hover:bg-[#1f2233]/70 transition duration-200 border-b border-[#2e324d]/30 text-left"
+                className="w-full flex justify-between items-center px-6 py-4 hover:bg-[#1f2937]/70 transition duration-200 border-b border-[#374151]/30 text-left"
               >
                 <span className="flex items-center">
                   <img
@@ -237,7 +237,7 @@ const Watchlist = ({ coins }) => {
                     <span className="text-[#a1a7bb] text-xs font-mono ml-2">({coin.symbol.toUpperCase()})</span>
                   </span>
                 </span>
-                <span className="text-[#3861fb] font-bold text-sm">
+                <span className="text-[#14b8a6] font-bold text-sm">
                   Add +
                 </span>
               </button>
@@ -246,7 +246,7 @@ const Watchlist = ({ coins }) => {
         )}
         {isSearching && (
           <div className="absolute right-14 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#3861fb] border-t-transparent"></div>
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#14b8a6] border-t-transparent"></div>
           </div>
         )}
       </div>
@@ -290,7 +290,7 @@ const Watchlist = ({ coins }) => {
                             className="w-10 h-10 mr-3 rounded-full shadow-lg"
                           />
                           <div>
-                            <h4 className="font-bold text-white group-hover:text-[#3861fb] transition duration-200">
+                            <h4 className="font-bold text-white group-hover:text-[#14b8a6] transition duration-200">
                               {coin.name}
                             </h4>
                             <span className="text-xs text-[#a1a7bb] font-mono font-bold uppercase">
@@ -325,7 +325,7 @@ const Watchlist = ({ coins }) => {
                     </div>
 
                     {/* Sparkline & Details */}
-                    <div className="mt-4 pt-4 border-t border-[#2e324d]/30 flex justify-between items-center">
+                    <div className="mt-4 pt-4 border-t border-[#374151]/30 flex justify-between items-center">
                       <div className="flex flex-col">
                         <span className="text-[10px] text-[#a1a7bb] uppercase font-extrabold tracking-wider mb-1">
                           7d Trend
@@ -337,7 +337,7 @@ const Watchlist = ({ coins }) => {
                       </div>
                       <Link
                         to={`/coin/${coinId}`}
-                        className="premium-btn-secondary text-[#3861fb] font-bold text-xs py-2 px-4 rounded-xl flex items-center transition duration-200"
+                        className="premium-btn-secondary text-[#14b8a6] font-bold text-xs py-2 px-4 rounded-xl flex items-center transition duration-200"
                       >
                         Details
                       </Link>
@@ -348,10 +348,10 @@ const Watchlist = ({ coins }) => {
             </div>
           ) : (
             /* List View */
-            <div className="overflow-x-auto rounded-2xl border border-[#2e324d]/85 shadow-2xl">
-              <table className="min-w-full bg-[#181a26]/40 border-collapse">
+            <div className="overflow-x-auto rounded-2xl border border-[#374151]/85 shadow-2xl">
+              <table className="min-w-full bg-[#1f2937]/40 border-collapse">
                 <thead>
-                  <tr className="bg-[#13141f] text-[#a1a7bb] text-xs font-bold uppercase border-b border-[#2e324d]">
+                  <tr className="bg-[#111827] text-[#a1a7bb] text-xs font-bold uppercase border-b border-[#374151]">
                     <th className="px-6 py-4 text-left">Token</th>
                     <th className="px-6 py-4 text-right">Price</th>
                     <th className="px-6 py-4 text-right">24h Change</th>
@@ -359,7 +359,7 @@ const Watchlist = ({ coins }) => {
                     <th className="px-6 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#2e324d]/30">
+                <tbody className="divide-y divide-[#374151]/30">
                   {watchlist.map((coinId) => {
                     const coin = coins.find((c) => c.id === coinId);
                     if (!coin) return null;
@@ -367,13 +367,13 @@ const Watchlist = ({ coins }) => {
                     return (
                       <tr
                         key={coinId}
-                        className="watchlist-item hover:bg-[#1f2233]/50 transition duration-200"
+                        className="watchlist-item hover:bg-[#1f2937]/50 transition duration-200"
                       >
                         {/* Token info */}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <Link
                             to={`/coin/${coinId}`}
-                            className="flex items-center text-[#3861fb] hover:text-[#2b52e2] group"
+                            className="flex items-center text-[#14b8a6] hover:text-[#0d9488] group"
                           >
                             <img
                               src={coin.image}
@@ -381,7 +381,7 @@ const Watchlist = ({ coins }) => {
                               className="w-8 h-8 mr-3 rounded-full"
                             />
                             <div>
-                              <div className="font-bold text-white group-hover:text-[#3861fb] transition duration-200">
+                              <div className="font-bold text-white group-hover:text-[#14b8a6] transition duration-200">
                                 {coin.name}
                               </div>
                               <div className="text-xs text-[#a1a7bb] font-mono font-bold uppercase">
@@ -421,7 +421,7 @@ const Watchlist = ({ coins }) => {
                           <div className="flex items-center justify-center space-x-3">
                             <Link
                               to={`/coin/${coinId}`}
-                              className="text-xs premium-btn-secondary text-[#3861fb] font-bold px-3 py-1.5 rounded-lg transition duration-200"
+                              className="text-xs premium-btn-secondary text-[#14b8a6] font-bold px-3 py-1.5 rounded-lg transition duration-200"
                             >
                               View
                             </Link>
