@@ -129,13 +129,13 @@ const CoinDetails = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#3861fb] shadow-md shadow-blue-500/20"></div>
       </div>
     );
   }
-  if (error) return <div className="text-rose-500 p-8 text-center bg-gray-900/30 border border-gray-850 rounded-3xl max-w-xl mx-auto">{error}</div>;
+  if (error) return <div className="text-[#ea3943] p-8 text-center bg-[#ea3943]/10 border border-[#ea3943]/30 rounded-3xl max-w-xl mx-auto">{error}</div>;
   if (!coinDetails || !coinHistory)
-    return <div className="text-white p-8 text-center bg-gray-900/30 border border-gray-850 rounded-3xl max-w-xl mx-auto">No data available for this coin.</div>;
+    return <div className="text-white p-8 text-center bg-[#0e0f17]/40 border border-[#2e324d] rounded-3xl max-w-xl mx-auto">No data available for this coin.</div>;
 
   const chartData = {
     labels: (coinHistory || []).map((price) => new Date(price[0]).toLocaleDateString()),
@@ -144,7 +144,7 @@ const CoinDetails = () => {
         label: "Price",
         data: (coinHistory || []).map((price) => price[1]),
         fill: false,
-        borderColor: "rgb(20, 184, 166)",
+        borderColor: "#3861fb",
         tension: 0.1,
       },
     ],
@@ -162,7 +162,7 @@ const CoinDetails = () => {
         type: "category",
         title: { display: true, text: "Date", color: "#9ca3af" },
         ticks: { maxTicksLimit: 8, color: "#9ca3af" },
-        grid: { color: "rgba(75, 85, 99, 0.15)" }
+        grid: { color: "rgba(56, 97, 251, 0.08)" }
       },
       y: {
         title: { display: true, text: "Price (USD)", color: "#9ca3af" },
@@ -170,14 +170,14 @@ const CoinDetails = () => {
           color: "#9ca3af",
           callback: (value) => "$" + value.toLocaleString(),
         },
-        grid: { color: "rgba(75, 85, 99, 0.15)" }
+        grid: { color: "rgba(56, 97, 251, 0.08)" }
       },
     },
   };
 
   return (
-    <div className="p-8 bg-gray-950 text-white rounded-3xl shadow-2xl border border-gray-800 backdrop-filter backdrop-blur-md relative overflow-hidden max-w-6xl mx-auto">
-      <div className="absolute inset-0 bg-shine opacity-10 pointer-events-none"></div>
+    <div className="p-8 premium-glow-card text-white rounded-3xl relative overflow-hidden max-w-6xl mx-auto animate-fade-in">
+      <div className="absolute inset-0 bg-shine opacity-5 pointer-events-none"></div>
       <div className="relative z-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center">
@@ -189,20 +189,20 @@ const CoinDetails = () => {
               />
             )}
             <div>
-              <h2 className="text-4xl font-extrabold text-teal-400 tracking-tight leading-tight">
-                {coinDetails.name}
+              <h2 className="text-4xl font-extrabold tracking-tight leading-tight">
+                <span className="premium-text-gradient-primary">{coinDetails.name}</span>
               </h2>
-              <span className="text-xs text-gray-500 font-mono font-bold uppercase">
+              <span className="text-xs text-[#a1a7bb] font-mono font-bold uppercase">
                 {coinDetails.symbol?.toUpperCase() ?? "N/A"}
               </span>
             </div>
           </div>
           <button
             onClick={toggleWatchlist}
-            className={`font-bold py-2.5 px-6 rounded-full transition duration-300 ease-in-out transform hover:-translate-y-0.5 hover:shadow-lg shadow-teal-500/10 ${
+            className={`font-bold py-2.5 px-6 rounded-full transition duration-305 ${
               isInWatchlist
-                ? "bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white"
-                : "bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white"
+                ? "bg-[#ea3943]/10 border border-[#ea3943]/30 text-[#ea3943] hover:bg-[#ea3943] hover:text-white"
+                : "premium-btn text-white"
             }`}
           >
             {isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
@@ -211,29 +211,29 @@ const CoinDetails = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gray-900 bg-opacity-40 p-5 rounded-2xl border border-gray-850 shadow-md">
-            <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Current Price</p>
+          <div className="bg-[#0e0f17]/50 p-5 rounded-2xl border border-[#2e324d]/85 shadow-inner">
+            <p className="text-[#a1a7bb] text-xs font-semibold uppercase tracking-wider mb-1">Current Price</p>
             <p className="text-2xl font-black font-mono text-white">
               $
               {coinDetails.market_data?.current_price?.usd?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) ||
                 "N/A"}
             </p>
           </div>
-          <div className="bg-gray-900 bg-opacity-40 p-5 rounded-2xl border border-gray-850 shadow-md">
-            <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Market Cap</p>
+          <div className="bg-[#0e0f17]/50 p-5 rounded-2xl border border-[#2e324d]/85 shadow-inner">
+            <p className="text-[#a1a7bb] text-xs font-semibold uppercase tracking-wider mb-1">Market Cap</p>
             <p className="text-2xl font-black font-mono text-white">
               $
               {coinDetails.market_data?.market_cap?.usd?.toLocaleString() ||
                 "N/A"}
             </p>
           </div>
-          <div className="bg-gray-900 bg-opacity-40 p-5 rounded-2xl border border-gray-850 shadow-md">
-            <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">24h Change</p>
+          <div className="bg-[#0e0f17]/50 p-5 rounded-2xl border border-[#2e324d]/85 shadow-inner">
+            <p className="text-[#a1a7bb] text-xs font-semibold uppercase tracking-wider mb-1">24h Change</p>
             <p
               className={`text-2xl font-black font-mono ${
                 (coinDetails.market_data?.price_change_percentage_24h ?? 0) >= 0
-                  ? "text-emerald-400"
-                  : "text-rose-400"
+                  ? "text-[#16c784]"
+                  : "text-[#ea3943]"
               }`}
             >
               {(coinDetails.market_data?.price_change_percentage_24h ?? 0) >= 0 ? "+" : ""}
@@ -246,16 +246,16 @@ const CoinDetails = () => {
         </div>
 
         {/* Chart Area */}
-        <div className="bg-gray-900 bg-opacity-40 p-6 rounded-2xl border border-gray-850 shadow-xl">
+        <div className="bg-[#0e0f17]/50 p-6 rounded-2xl border border-[#2e324d]/85 shadow-inner">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <h3 className="text-2xl font-bold text-teal-400 tracking-tight">
-              Price Chart
+            <h3 className="text-2xl font-bold tracking-tight">
+              <span className="premium-text-gradient-primary">Price Chart</span>
             </h3>
             <div className="relative w-full sm:w-auto">
               <select
                 value={JSON.stringify(selectedRange)}
                 onChange={(e) => setSelectedRange(JSON.parse(e.target.value))}
-                className="w-full sm:w-auto bg-gray-950 border border-gray-800 text-gray-300 font-semibold px-4 py-2 rounded-xl focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer"
+                className="w-full sm:w-auto text-[#a1a7bb] font-semibold px-4 py-2 rounded-xl focus:outline-none premium-input cursor-pointer"
               >
                 {timeRanges.map((range) => (
                   <option key={range.days} value={JSON.stringify(range)}>

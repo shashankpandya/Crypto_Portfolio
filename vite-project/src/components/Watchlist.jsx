@@ -3,17 +3,6 @@ import { Link } from "react-router-dom";
 import { TransactionContext } from "../context/TransactionContext";
 import { searchCoins } from "../api";
 import { debounce } from "../utils/debounce";
-import {
-  FaSearch,
-  FaCoins,
-  FaDollarSign,
-  FaChartLine,
-  FaTrash,
-  FaThLarge,
-  FaList,
-  FaChevronRight,
-  FaInfoCircle,
-} from "react-icons/fa";
 import { gsap } from "gsap";
 
 // Lightweight SVG Sparkline component representing 7d price trends
@@ -37,7 +26,7 @@ const Sparkline = ({ data, positive }) => {
     <svg className="w-[120px] h-[35px]" viewBox={`0 0 ${width} ${height}`}>
       <polyline
         fill="none"
-        stroke={positive ? "#34d399" : "#f87171"}
+        stroke={positive ? "#16c784" : "#ea3943"}
         strokeWidth="1.5"
         points={points}
       />
@@ -162,47 +151,47 @@ const Watchlist = ({ coins }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#3861fb] shadow-md shadow-blue-500/20"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-8 bg-gray-950 text-white rounded-3xl shadow-2xl border border-gray-800 backdrop-filter backdrop-blur-md relative overflow-hidden">
-      <div className="absolute inset-0 bg-shine opacity-10 pointer-events-none"></div>
+    <div className="p-8 premium-glow-card text-white rounded-3xl relative overflow-hidden max-w-6xl mx-auto animate-fade-in">
+      <div className="absolute inset-0 bg-shine opacity-5 pointer-events-none"></div>
 
       {/* Header section with toggle buttons */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h2 className="text-4xl font-extrabold text-teal-400 tracking-tight">Your Crypto Watchlist</h2>
-          <p className="text-sm text-gray-400 mt-1">Explore, monitor, and manage your preferred tokens</p>
+          <h2 className="text-4xl font-extrabold tracking-tight">
+            <span className="premium-text-gradient-primary">Your Watchlist</span>
+          </h2>
+          <p className="text-sm text-[#a1a7bb] mt-1">Explore, monitor, and manage your preferred tokens</p>
         </div>
 
-        <div className="flex items-center space-x-2 bg-gray-900 p-1 rounded-xl border border-gray-800 self-end md:self-auto">
+        <div className="flex items-center space-x-2 bg-[#0e0f17]/50 p-1 rounded-xl border border-[#2e324d]/85 self-end md:self-auto font-bold text-xs select-none">
           <button
             onClick={() => setViewMode("grid")}
-            className={`p-2.5 rounded-lg transition duration-200 ${
-              viewMode === "grid" ? "bg-teal-500 text-white shadow-lg shadow-teal-500/20" : "text-gray-400 hover:text-white"
+            className={`px-3 py-1.5 rounded-lg transition duration-200 ${
+              viewMode === "grid" ? "premium-btn text-white" : "text-gray-400 hover:text-white"
             }`}
-            aria-label="Grid View"
           >
-            <FaThLarge />
+            Grid
           </button>
           <button
             onClick={() => setViewMode("list")}
-            className={`p-2.5 rounded-lg transition duration-200 ${
-              viewMode === "list" ? "bg-teal-500 text-white shadow-lg shadow-teal-500/20" : "text-gray-400 hover:text-white"
+            className={`px-3 py-1.5 rounded-lg transition duration-200 ${
+              viewMode === "list" ? "premium-btn text-white" : "text-gray-400 hover:text-white"
             }`}
-            aria-label="List View"
           >
-            <FaList />
+            List
           </button>
         </div>
       </div>
 
       {/* Autocomplete Search suggestions dropdown */}
       <div className="mb-8 relative z-30">
-        <label htmlFor="watchlistSearchInput" className="block text-gray-400 text-sm font-semibold mb-2">
+        <label htmlFor="watchlistSearchInput" className="block text-[#a1a7bb] text-sm font-semibold mb-2">
           Add Coin to Watchlist
         </label>
         <div className="relative">
@@ -213,16 +202,15 @@ const Watchlist = ({ coins }) => {
             placeholder="Type token name or symbol (e.g. bitcoin, eth)..."
             value={searchTerm}
             onChange={handleSearchChange}
-            className="w-full p-4 pl-12 bg-gray-900 rounded-2xl text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-300 shadow-inner placeholder-gray-500"
+            className="w-full p-4 rounded-2xl text-white focus:outline-none premium-input placeholder-gray-550"
           />
-          <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500" />
           {searchTerm && (
             <button
               onClick={() => {
                 setSearchTerm("");
                 setSearchResults([]);
               }}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs bg-[#12131a] hover:bg-[#1a1c27] px-3 py-2 rounded-lg border border-[#2e324d] transition-all duration-200 text-gray-300 font-bold"
             >
               Clear
             </button>
@@ -231,12 +219,12 @@ const Watchlist = ({ coins }) => {
 
         {/* Suggestion Dropdown Panel */}
         {searchResults.length > 0 && (
-          <div className="absolute left-0 right-0 mt-2 bg-gray-900 bg-opacity-95 border border-gray-850 rounded-2xl shadow-2xl overflow-hidden backdrop-filter backdrop-blur-md">
+          <div className="absolute left-0 right-0 mt-2 bg-[#12131a]/95 border border-[#2e324d] rounded-2xl shadow-2xl overflow-hidden backdrop-filter backdrop-blur-md">
             {searchResults.map((coin) => (
               <button
                 key={coin.id}
                 onClick={() => memoizedAddToWatchlist(coin)}
-                className="w-full flex justify-between items-center px-6 py-4 hover:bg-gray-850 transition duration-200 border-b border-gray-850 text-left"
+                className="w-full flex justify-between items-center px-6 py-4 hover:bg-[#1f2233]/70 transition duration-200 border-b border-[#2e324d]/30 text-left"
               >
                 <span className="flex items-center">
                   <img
@@ -246,11 +234,11 @@ const Watchlist = ({ coins }) => {
                   />
                   <span>
                     <span className="font-bold text-white">{coin.name}</span>
-                    <span className="text-gray-400 text-xs font-mono ml-2">({coin.symbol.toUpperCase()})</span>
+                    <span className="text-[#a1a7bb] text-xs font-mono ml-2">({coin.symbol.toUpperCase()})</span>
                   </span>
                 </span>
-                <span className="text-teal-400 font-bold text-sm flex items-center hover:underline">
-                  Add <FaChevronRight className="ml-1 text-xs" />
+                <span className="text-[#3861fb] font-bold text-sm">
+                  Add +
                 </span>
               </button>
             ))}
@@ -258,24 +246,21 @@ const Watchlist = ({ coins }) => {
         )}
         {isSearching && (
           <div className="absolute right-14 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-teal-500 border-t-transparent"></div>
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#3861fb] border-t-transparent"></div>
           </div>
         )}
       </div>
 
       {watchlist.length === 0 ? (
         /* Styled Empty State */
-        <div className="text-center py-16 px-4 bg-gray-900 bg-opacity-50 border border-gray-800 rounded-3xl max-w-xl mx-auto backdrop-filter backdrop-blur-sm shadow-xl">
-          <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-700 shadow-inner">
-            <FaCoins className="text-teal-400 text-3xl" />
-          </div>
-          <h3 className="text-2xl font-bold mb-2">No Coins Tracked</h3>
-          <p className="text-gray-400 mb-6 max-w-md mx-auto">
+        <div className="text-center py-16 px-4 bg-[#141520]/40 border border-[#2c2f45]/80 rounded-3xl max-w-xl mx-auto backdrop-filter backdrop-blur-sm shadow-xl">
+          <h3 className="text-2xl font-bold mb-2 text-white">No Coins Tracked</h3>
+          <p className="text-[#a1a7bb] mb-6 max-w-md mx-auto text-sm">
             Your watchlist is currently empty. Connect your wallet or search above to add assets and monitor prices.
           </p>
           <button
             onClick={() => document.getElementById("watchlistSearchInput")?.focus()}
-            className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-bold py-2.5 px-6 rounded-full transition duration-250 shadow-lg shadow-teal-500/10"
+            className="premium-btn text-white font-bold py-2.5 px-6 rounded-full transition duration-250"
           >
             Find Coins
           </button>
@@ -293,7 +278,7 @@ const Watchlist = ({ coins }) => {
                 return (
                   <div
                     key={coinId}
-                    className="watchlist-item bg-gray-900 bg-opacity-50 border border-gray-800 p-5 rounded-2xl hover:border-teal-500/40 hover:shadow-[0_15px_35px_rgba(20,184,166,0.08)] transition-all duration-300 flex flex-col justify-between"
+                    className="watchlist-item premium-glow-card-interactive p-5 rounded-2xl flex flex-col justify-between"
                   >
                     <div>
                       {/* Token Logo & Info */}
@@ -305,10 +290,10 @@ const Watchlist = ({ coins }) => {
                             className="w-10 h-10 mr-3 rounded-full shadow-lg"
                           />
                           <div>
-                            <h4 className="font-bold text-white group-hover:text-teal-400 transition duration-200">
+                            <h4 className="font-bold text-white group-hover:text-[#3861fb] transition duration-200">
                               {coin.name}
                             </h4>
-                            <span className="text-xs text-gray-400 font-mono font-bold uppercase">
+                            <span className="text-xs text-[#a1a7bb] font-mono font-bold uppercase">
                               {coin.symbol}
                             </span>
                           </div>
@@ -316,10 +301,10 @@ const Watchlist = ({ coins }) => {
 
                         <button
                           onClick={() => memoizedRemoveFromWatchlist(coinId)}
-                          className="text-gray-500 hover:text-rose-400 p-2 rounded-full hover:bg-rose-500/10 transition duration-200"
+                          className="text-[#ea3943] hover:text-white p-1 px-2.5 text-xs font-bold bg-[#ea3943]/10 hover:bg-[#ea3943] border border-[#ea3943]/20 rounded-lg transition duration-200"
                           aria-label={`Remove ${coin.name} from watchlist`}
                         >
-                          <FaTrash className="text-sm" />
+                          Remove
                         </button>
                       </div>
 
@@ -330,7 +315,7 @@ const Watchlist = ({ coins }) => {
                         </p>
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold font-mono ${
-                            change24h >= 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
+                            change24h >= 0 ? "bg-emerald-500/10 text-[#16c784]" : "bg-rose-500/10 text-[#ea3943]"
                           }`}
                         >
                           {change24h >= 0 ? "+" : ""}
@@ -340,9 +325,9 @@ const Watchlist = ({ coins }) => {
                     </div>
 
                     {/* Sparkline & Details */}
-                    <div className="mt-4 pt-4 border-t border-gray-850 flex justify-between items-center">
+                    <div className="mt-4 pt-4 border-t border-[#2e324d]/30 flex justify-between items-center">
                       <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-500 uppercase font-extrabold tracking-wider mb-1">
+                        <span className="text-[10px] text-[#a1a7bb] uppercase font-extrabold tracking-wider mb-1">
                           7d Trend
                         </span>
                         <Sparkline
@@ -352,9 +337,9 @@ const Watchlist = ({ coins }) => {
                       </div>
                       <Link
                         to={`/coin/${coinId}`}
-                        className="bg-gray-800 hover:bg-gray-700 text-teal-400 font-bold text-xs py-2 px-4 rounded-xl border border-gray-750 flex items-center transition duration-200"
+                        className="premium-btn-secondary text-[#3861fb] font-bold text-xs py-2 px-4 rounded-xl flex items-center transition duration-200"
                       >
-                        Details <FaChevronRight className="ml-1 text-[8px]" />
+                        Details
                       </Link>
                     </div>
                   </div>
@@ -363,10 +348,10 @@ const Watchlist = ({ coins }) => {
             </div>
           ) : (
             /* List View */
-            <div className="overflow-x-auto rounded-2xl border border-gray-800 shadow-2xl">
-              <table className="min-w-full bg-gray-900 bg-opacity-40 border-collapse">
+            <div className="overflow-x-auto rounded-2xl border border-[#2e324d]/85 shadow-2xl">
+              <table className="min-w-full bg-[#181a26]/40 border-collapse">
                 <thead>
-                  <tr className="bg-gray-900 bg-opacity-80 text-gray-400 text-xs font-bold uppercase border-b border-gray-800">
+                  <tr className="bg-[#13141f] text-[#a1a7bb] text-xs font-bold uppercase border-b border-[#2e324d]">
                     <th className="px-6 py-4 text-left">Token</th>
                     <th className="px-6 py-4 text-right">Price</th>
                     <th className="px-6 py-4 text-right">24h Change</th>
@@ -374,7 +359,7 @@ const Watchlist = ({ coins }) => {
                     <th className="px-6 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-850">
+                <tbody className="divide-y divide-[#2e324d]/30">
                   {watchlist.map((coinId) => {
                     const coin = coins.find((c) => c.id === coinId);
                     if (!coin) return null;
@@ -382,13 +367,13 @@ const Watchlist = ({ coins }) => {
                     return (
                       <tr
                         key={coinId}
-                        className="watchlist-item hover:bg-gray-850 hover:bg-opacity-40 transition duration-200"
+                        className="watchlist-item hover:bg-[#1f2233]/50 transition duration-200"
                       >
                         {/* Token info */}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <Link
                             to={`/coin/${coinId}`}
-                            className="flex items-center text-teal-400 hover:text-teal-300 group"
+                            className="flex items-center text-[#3861fb] hover:text-[#2b52e2] group"
                           >
                             <img
                               src={coin.image}
@@ -396,10 +381,10 @@ const Watchlist = ({ coins }) => {
                               className="w-8 h-8 mr-3 rounded-full"
                             />
                             <div>
-                              <div className="font-bold text-white group-hover:text-teal-400 transition duration-200">
+                              <div className="font-bold text-white group-hover:text-[#3861fb] transition duration-200">
                                 {coin.name}
                               </div>
-                              <div className="text-xs text-gray-500 font-mono font-bold uppercase">
+                              <div className="text-xs text-[#a1a7bb] font-mono font-bold uppercase">
                                 {coin.symbol}
                               </div>
                             </div>
@@ -414,7 +399,7 @@ const Watchlist = ({ coins }) => {
                         {/* 24h change */}
                         <td
                           className={`px-6 py-4 whitespace-nowrap text-right font-mono font-bold text-sm ${
-                            change24h >= 0 ? "text-emerald-400" : "text-rose-400"
+                            change24h >= 0 ? "text-[#16c784]" : "text-[#ea3943]"
                           }`}
                         >
                           {change24h >= 0 ? "+" : ""}
@@ -436,16 +421,16 @@ const Watchlist = ({ coins }) => {
                           <div className="flex items-center justify-center space-x-3">
                             <Link
                               to={`/coin/${coinId}`}
-                              className="text-xs bg-gray-800 hover:bg-gray-700 hover:text-teal-400 font-bold px-3 py-1.5 rounded-lg border border-gray-750 transition duration-200"
+                              className="text-xs premium-btn-secondary text-[#3861fb] font-bold px-3 py-1.5 rounded-lg transition duration-200"
                             >
                               View
                             </Link>
                             <button
                               onClick={() => memoizedRemoveFromWatchlist(coinId)}
-                              className="text-gray-500 hover:text-rose-400 p-2 rounded-lg hover:bg-rose-500/10 transition duration-200"
+                              className="text-[#ea3943] hover:text-white text-xs font-bold px-3 py-1.5 bg-[#ea3943]/10 hover:bg-[#ea3943] border border-[#ea3943]/20 rounded-lg transition duration-200"
                               aria-label={`Remove ${coin.name}`}
                             >
-                              <FaTrash className="text-sm" />
+                              Remove
                             </button>
                           </div>
                         </td>
