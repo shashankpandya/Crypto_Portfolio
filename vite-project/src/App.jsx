@@ -10,6 +10,7 @@ import {
   CoinDetails,
   ErrorBoundary,
   AdminPanel,
+  TourGuide,
 } from "./components";
 import { TransactionProvider } from "./context/TransactionContext";
 import "./App.css";
@@ -41,8 +42,9 @@ const App = () => {
   return (
     <Router>
       <TransactionProvider>
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-700 to-black text-white">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-700 to-black text-white relative">
           <Navbar />
+          <TourGuide />
           <div className="container mx-auto px-4 py-8">
             <ErrorBoundary>
               <Routes>

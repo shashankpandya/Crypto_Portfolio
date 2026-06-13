@@ -9,3 +9,4 @@ export { default as TokenTable } from "./TokenTable";
 export { default as TokenDetails } from "./TokenDetails";
 export { default as ErrorBoundary } from "./ErrorBoundary";
 export { default as AdminPanel } from "./AdminPanel";
+export { default as TourGuide } from "./TourGuide";
