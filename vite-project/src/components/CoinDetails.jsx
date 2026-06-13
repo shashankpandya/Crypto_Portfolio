@@ -83,10 +83,10 @@ const CoinDetails = () => {
       if (currentAccount) {
         await removeFromWatchlistDB(currentAccount, id);
         const watchlist =
-          JSON.parse(localStorage.getItem(`watchlist_${currentAccount}`)) || [];
+          JSON.parse(localStorage.getItem(`watchlist_${currentAccount.toLowerCase()}`)) || [];
         const updatedWatchlist = watchlist.filter((coinId) => coinId !== id);
         localStorage.setItem(
-          `watchlist_${currentAccount}`,
+          `watchlist_${currentAccount.toLowerCase()}`,
           JSON.stringify(updatedWatchlist)
         );
       } else {
@@ -103,11 +103,11 @@ const CoinDetails = () => {
       if (currentAccount) {
         await addToWatchlistDB(currentAccount, id);
         const watchlist =
-          JSON.parse(localStorage.getItem(`watchlist_${currentAccount}`)) || [];
+          JSON.parse(localStorage.getItem(`watchlist_${currentAccount.toLowerCase()}`)) || [];
         if (!watchlist.includes(id)) {
           watchlist.push(id);
           localStorage.setItem(
-            `watchlist_${currentAccount}`,
+            `watchlist_${currentAccount.toLowerCase()}`,
             JSON.stringify(watchlist)
           );
         }

@@ -112,7 +112,7 @@ const Watchlist = ({ coins }) => {
         if (currentAccount) {
           await addToWatchlistDB(currentAccount, coin.id);
           localStorage.setItem(
-            `watchlist_${currentAccount}`,
+            `watchlist_${currentAccount.toLowerCase()}`,
             JSON.stringify(updatedWatchlist)
           );
         } else {
@@ -135,7 +135,7 @@ const Watchlist = ({ coins }) => {
       if (currentAccount) {
         await removeFromWatchlistDB(currentAccount, coinId);
         localStorage.setItem(
-          `watchlist_${currentAccount}`,
+          `watchlist_${currentAccount.toLowerCase()}`,
           JSON.stringify(updatedWatchlist)
         );
       } else {
@@ -157,7 +157,7 @@ const Watchlist = ({ coins }) => {
   }
 
   return (
-    <div className="p-8 premium-glow-card text-white rounded-3xl relative overflow-hidden max-w-6xl mx-auto animate-fade-in">
+    <div className="page-container premium-glow-card text-white rounded-3xl relative overflow-hidden">
       <div className="absolute inset-0 bg-shine opacity-5 pointer-events-none"></div>
 
       {/* Header section with toggle buttons */}

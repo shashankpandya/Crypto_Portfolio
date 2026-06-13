@@ -8,6 +8,7 @@
 
 const axios   = require('axios');
 const PriceCache = require('../models/PriceCache');
+const { dbState } = require('../config/db');
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -32,23 +33,29 @@ class MarketService {
   // -------------------------------------------------------------------------
   async getCoins(limit = 100) {
     // -----------------------------------------------------------------------
-    // 1. Check the cache.
+    // 1. Check the cache (only if MongoDB is connected).
     // -----------------------------------------------------------------------
-    const cacheThreshold = new Date(Date.now() - CACHE_TTL_MS);
+    if (dbState && dbState.connected) {
+      try {
+        const cacheThreshold = new Date(Date.now() - CACHE_TTL_MS);
 
-    const cachedCoins = await PriceCache.find(
-      { updatedAt: { $gte: cacheThreshold } },
-      null,
-      { sort: { market_cap_rank: 1 }, limit },
-    ).lean();
+        const cachedCoins = await PriceCache.find(
+          { updatedAt: { $gte: cacheThreshold } },
+          null,
+          { sort: { market_cap_rank: 1 }, limit },
+        ).lean();
 
-    if (cachedCoins.length >= limit) {
-      console.log(`[MarketService] Serving ${cachedCoins.length} coins from cache.`);
-      return cachedCoins;
+        if (cachedCoins.length >= limit) {
+          console.log(`[MarketService] Serving ${cachedCoins.length} coins from cache.`);
+          return cachedCoins;
+        }
+      } catch (err) {
+        console.error('[MarketService] Failed to read from PriceCache (non-fatal):', err.message);
+      }
     }
 
     // -----------------------------------------------------------------------
-    // 2. Cache miss (or stale) – fetch from CoinGecko.
+    // 2. Cache miss (or stale, or DB offline) – fetch from CoinGecko.
     // -----------------------------------------------------------------------
     console.log('[MarketService] Cache miss – fetching from CoinGecko…');
 
@@ -88,59 +95,61 @@ class MarketService {
     }
 
     // -----------------------------------------------------------------------
-    // 3. Upsert fresh data into the PriceCache collection.
+    // 3. Upsert fresh data into the PriceCache collection (only if DB connected).
     // -----------------------------------------------------------------------
-    const now = new Date();
+    if (dbState && dbState.connected) {
+      const now = new Date();
 
-    const ops = coins.map((coin) => ({
-      updateOne: {
-        filter: { coinId: coin.id },
-        update: {
-          $set: {
-            coinId:                              coin.id,
-            symbol:                              coin.symbol,
-            name:                                coin.name,
-            image:                               coin.image,
-            current_price:                       coin.current_price,
-            market_cap:                          coin.market_cap,
-            market_cap_rank:                     coin.market_cap_rank,
-            fully_diluted_valuation:             coin.fully_diluted_valuation,
-            total_volume:                        coin.total_volume,
-            high_24h:                            coin.high_24h,
-            low_24h:                             coin.low_24h,
-            price_change_24h:                    coin.price_change_24h,
-            price_change_percentage_24h:         coin.price_change_percentage_24h,
-            price_change_percentage_1h_in_currency:  coin.price_change_percentage_1h_in_currency,
-            price_change_percentage_24h_in_currency: coin.price_change_percentage_24h_in_currency,
-            price_change_percentage_7d_in_currency:  coin.price_change_percentage_7d_in_currency,
-            market_cap_change_24h:               coin.market_cap_change_24h,
-            market_cap_change_percentage_24h:    coin.market_cap_change_percentage_24h,
-            circulating_supply:                  coin.circulating_supply,
-            total_supply:                        coin.total_supply,
-            max_supply:                          coin.max_supply,
-            ath:                                 coin.ath,
-            ath_change_percentage:               coin.ath_change_percentage,
-            ath_date:                            coin.ath_date,
-            atl:                                 coin.atl,
-            atl_change_percentage:               coin.atl_change_percentage,
-            atl_date:                            coin.atl_date,
-            last_updated:                        coin.last_updated,
-            updatedAt:                           now,
+      const ops = coins.map((coin) => ({
+        updateOne: {
+          filter: { coinId: coin.id },
+          update: {
+            $set: {
+              coinId:                              coin.id,
+              symbol:                              coin.symbol,
+              name:                                coin.name,
+              image:                               coin.image,
+              current_price:                       coin.current_price,
+              market_cap:                          coin.market_cap,
+              market_cap_rank:                     coin.market_cap_rank,
+              fully_diluted_valuation:             coin.fully_diluted_valuation,
+              total_volume:                        coin.total_volume,
+              high_24h:                            coin.high_24h,
+              low_24h:                             coin.low_24h,
+              price_change_24h:                    coin.price_change_24h,
+              price_change_percentage_24h:         coin.price_change_percentage_24h,
+              price_change_percentage_1h_in_currency:  coin.price_change_percentage_1h_in_currency,
+              price_change_percentage_24h_in_currency: coin.price_change_percentage_24h_in_currency,
+              price_change_percentage_7d_in_currency:  coin.price_change_percentage_7d_in_currency,
+              market_cap_change_24h:               coin.market_cap_change_24h,
+              market_cap_change_percentage_24h:    coin.market_cap_change_percentage_24h,
+              circulating_supply:                  coin.circulating_supply,
+              total_supply:                        coin.total_supply,
+              max_supply:                          coin.max_supply,
+              ath:                                 coin.ath,
+              ath_change_percentage:               coin.ath_change_percentage,
+              ath_date:                            coin.ath_date,
+              atl:                                 coin.atl,
+              atl_change_percentage:               coin.atl_change_percentage,
+              atl_date:                            coin.atl_date,
+              last_updated:                        coin.last_updated,
+              updatedAt:                           now,
+            },
           },
+          upsert: true,
         },
-        upsert: true,
-      },
-    }));
+      }));
 
-    try {
-      const result = await PriceCache.bulkWrite(ops, { ordered: false });
-      console.log(
-        `[MarketService] Cache updated – ` +
-        `upserted: ${result.upsertedCount}, modified: ${result.modifiedCount}`,
-      );
-    } catch (err) {
-      // Non-fatal: we still have fresh data to return even if the cache write fails.
-      console.error('[MarketService] Failed to update PriceCache:', err);
+      try {
+        const result = await PriceCache.bulkWrite(ops, { ordered: false });
+        console.log(
+          `[MarketService] Cache updated – ` +
+          `upserted: ${result.upsertedCount}, modified: ${result.modifiedCount}`,
+        );
+      } catch (err) {
+        // Non-fatal: we still have fresh data to return even if the cache write fails.
+        console.error('[MarketService] Failed to update PriceCache:', err);
+      }
     }
 
     return coins;
