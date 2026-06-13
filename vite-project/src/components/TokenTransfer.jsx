@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { TransactionContext } from "../context/TransactionContext";
-import { FaEthereum, FaPaperPlane, FaPlus, FaTrash, FaListUl, FaUser } from "react-icons/fa";
+import { FaEthereum, FaPlus, FaTrash, FaListUl, FaUser } from "react-icons/fa";
 
 // TokenTransfer component allows the user to transfer tokens or perform batch transfers
 function TokenTransfer() {
@@ -104,233 +104,234 @@ function TokenTransfer() {
   };
 
   return (
-    <div className="min-h-screen rounded-xl bg-gradient-to-br from-gray-900 via-gray-700 to-black text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-shine"></div>
-      <div className="relative z-10 p-8 max-w-2xl mx-auto">
-        <div className="bg-gray-800 bg-opacity-80 rounded-2xl shadow-2xl p-8 backdrop-filter backdrop-blur-sm">
-          {/* Header */}
-          <h2 className="text-3xl font-extrabold mb-6 text-teal-400 flex items-center justify-center">
-            <FaEthereum className="mr-2 text-4xl animate-bounce" /> Token Transfer Center
-          </h2>
+    <div className="p-8 bg-gray-950 text-white rounded-3xl shadow-2xl border border-gray-800 backdrop-filter backdrop-blur-md relative overflow-hidden max-w-2xl mx-auto">
+      <div className="absolute inset-0 bg-shine opacity-10 pointer-events-none"></div>
+      <div className="relative z-10">
+        {/* Header */}
+        <h2 className="text-4xl font-extrabold mb-6 text-teal-400 flex items-center justify-center tracking-tight">
+          <FaEthereum className="mr-2 text-teal-500 animate-pulse" /> Token Transfer Center
+        </h2>
+        <p className="text-center text-sm text-gray-400 mb-8">
+          Send ERC20 custom tokens to single or multiple destination addresses
+        </p>
 
-          {/* Tab Selector */}
-          <div className="flex border-b border-gray-700 mb-8">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("single");
-                setErrorMessage("");
-                setSuccessMessage("");
-              }}
-              className={`flex-1 py-3 text-center font-bold text-lg border-b-2 transition duration-300 ${
-                activeTab === "single"
-                  ? "border-teal-400 text-teal-400"
-                  : "border-transparent text-gray-400 hover:text-white"
-              }`}
-            >
-              Single Transfer
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab("batch");
-                setErrorMessage("");
-                setSuccessMessage("");
-              }}
-              className={`flex-1 py-3 text-center font-bold text-lg border-b-2 transition duration-300 ${
-                activeTab === "batch"
-                  ? "border-teal-400 text-teal-400"
-                  : "border-transparent text-gray-400 hover:text-white"
-              }`}
-            >
-              Batch Transfer
-            </button>
-          </div>
-
-          {/* Error and Success Messages */}
-          {errorMessage && (
-            <div className="bg-red-500 bg-opacity-80 text-white px-4 py-3 rounded-lg mb-6 animate-fade-in" role="alert">
-              <p className="font-bold">Error</p>
-              <p className="text-sm">{errorMessage}</p>
-            </div>
-          )}
-          {successMessage && (
-            <div className="bg-green-500 bg-opacity-80 text-white px-4 py-3 rounded-lg mb-6 animate-fade-in" role="alert">
-              <p className="font-bold">Success</p>
-              <p className="text-sm break-all">{successMessage}</p>
-            </div>
-          )}
-
-          {/* Single Transfer Form */}
-          {activeTab === "single" && (
-            <form onSubmit={handleSingleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="addressToInput" className="block text-gray-400 text-sm font-semibold mb-2">
-                  Recipient Wallet Address
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    id="addressToInput"
-                    placeholder="0x..."
-                    name="addressTo"
-                    value={formData.addressTo || ""}
-                    onChange={(e) => handleChange(e, "addressTo")}
-                    className="w-full px-4 py-3 pl-10 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent placeholder-gray-400 text-white transition duration-300"
-                    required
-                  />
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <FaUser className="text-gray-400" />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="amountInput" className="block text-gray-400 text-sm font-semibold mb-2">
-                  Amount (MTK)
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    step="any"
-                    min="0"
-                    id="amountInput"
-                    placeholder="0.0"
-                    name="amount"
-                    value={formData.amount || ""}
-                    onChange={(e) => handleChange(e, "amount")}
-                    className="w-full px-4 py-3 pl-10 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent placeholder-gray-400 text-white transition duration-300"
-                    required
-                  />
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <FaEthereum className="text-gray-400" />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="messageInput" className="block text-gray-400 text-sm font-semibold mb-2">
-                  Message (Optional)
-                </label>
-                <textarea
-                  id="messageInput"
-                  placeholder="What's this transaction for?"
-                  name="message"
-                  value={formData.message || ""}
-                  onChange={(e) => handleChange(e, "message")}
-                  className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent placeholder-gray-400 text-white transition duration-300 resize-none h-24"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full px-6 py-3 rounded-lg font-semibold text-white transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg ${
-                  loading
-                    ? "bg-gray-600 cursor-not-allowed"
-                    : "bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
-                }`}
-              >
-                {loading ? "Processing..." : "Transfer Tokens"}
-              </button>
-            </form>
-          )}
-
-          {/* Batch Transfer Form */}
-          {activeTab === "batch" && (
-            <form onSubmit={handleBatchSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300 font-bold text-lg flex items-center">
-                    <FaListUl className="mr-2 text-teal-400" /> Recipients List
-                  </span>
-                  <button
-                    type="button"
-                    onClick={addBatchRow}
-                    className="bg-teal-500 hover:bg-teal-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center transition duration-200"
-                  >
-                    <FaPlus className="mr-1" /> Add Recipient
-                  </button>
-                </div>
-
-                <div className="max-h-60 overflow-y-auto space-y-3 pr-2 border-t border-b border-gray-700 py-4">
-                  {batchRecipients.map((recipient, index) => (
-                    <div key={index} className="flex space-x-3 items-end bg-gray-700 bg-opacity-40 p-3 rounded-lg relative">
-                      <div className="flex-1">
-                        <label htmlFor={`batchAddressInput_${index}`} className="block text-gray-400 text-xs font-semibold mb-1">
-                          #{index + 1} Recipient Wallet Address
-                        </label>
-                        <input
-                          type="text"
-                          id={`batchAddressInput_${index}`}
-                          placeholder="0x..."
-                          name={`batchAddress_${index}`}
-                          value={recipient.address}
-                          onChange={(e) => handleBatchChange(index, "address", e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-600 focus:outline-none focus:ring-1 focus:ring-teal-400 text-sm text-white placeholder-gray-500"
-                          required
-                        />
-                      </div>
-                      <div className="w-1/3">
-                        <label htmlFor={`batchAmountInput_${index}`} className="block text-gray-400 text-xs font-semibold mb-1">
-                          Amount (MTK)
-                        </label>
-                        <input
-                          type="number"
-                          step="any"
-                          min="0"
-                          id={`batchAmountInput_${index}`}
-                          placeholder="0.0"
-                          name={`batchAmount_${index}`}
-                          value={recipient.amount}
-                          onChange={(e) => handleBatchChange(index, "amount", e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-600 focus:outline-none focus:ring-1 focus:ring-teal-400 text-sm text-white placeholder-gray-500"
-                          required
-                        />
-                      </div>
-                      {batchRecipients.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeBatchRow(index)}
-                          className="bg-red-500 hover:bg-red-600 text-white p-2.5 rounded-lg transition duration-200"
-                          aria-label={`Remove recipient ${index + 1}`}
-                        >
-                          <FaTrash className="text-sm" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="batchMessageInput" className="block text-gray-400 text-sm font-semibold mb-2">
-                  Common Message (Optional)
-                </label>
-                <textarea
-                  id="batchMessageInput"
-                  placeholder="Reason for this batch transfer..."
-                  name="batchMessage"
-                  value={batchMessage}
-                  onChange={(e) => setBatchMessage(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent placeholder-gray-400 text-white transition duration-300 resize-none h-24"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full px-6 py-3 rounded-lg font-semibold text-white transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg ${
-                  loading
-                    ? "bg-gray-600 cursor-not-allowed"
-                    : "bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
-                }`}
-              >
-                {loading ? "Processing Batch..." : `Send Batch (${batchRecipients.length} transfers)`}
-              </button>
-            </form>
-          )}
+        {/* Tab Selector */}
+        <div className="flex border-b border-gray-800 mb-8 bg-gray-900 bg-opacity-40 p-1 rounded-2xl border">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("single");
+              setErrorMessage("");
+              setSuccessMessage("");
+            }}
+            className={`flex-1 py-3 text-center font-bold text-base rounded-xl transition duration-300 ${
+              activeTab === "single"
+                ? "bg-teal-500 text-white shadow-lg shadow-teal-500/20"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Single Transfer
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("batch");
+              setErrorMessage("");
+              setSuccessMessage("");
+            }}
+            className={`flex-1 py-3 text-center font-bold text-base rounded-xl transition duration-300 ${
+              activeTab === "batch"
+                ? "bg-teal-500 text-white shadow-lg shadow-teal-500/20"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Batch Transfer
+          </button>
         </div>
+
+        {/* Error and Success Messages */}
+        {errorMessage && (
+          <div className="bg-red-500 bg-opacity-10 border border-red-500/30 text-red-400 px-4 py-3 rounded-2xl mb-6 animate-fade-in" role="alert">
+            <p className="font-bold">Error</p>
+            <p className="text-sm">{errorMessage}</p>
+          </div>
+        )}
+        {successMessage && (
+          <div className="bg-green-500 bg-opacity-10 border border-green-500/30 text-emerald-400 px-4 py-3 rounded-2xl mb-6 animate-fade-in" role="alert">
+            <p className="font-bold">Success</p>
+            <p className="text-sm break-all">{successMessage}</p>
+          </div>
+        )}
+
+        {/* Single Transfer Form */}
+        {activeTab === "single" && (
+          <form onSubmit={handleSingleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="addressToInput" className="block text-gray-400 text-sm font-semibold mb-2">
+                Recipient Wallet Address
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="addressToInput"
+                  placeholder="0x..."
+                  name="addressTo"
+                  value={formData.addressTo || ""}
+                  onChange={(e) => handleChange(e, "addressTo")}
+                  className="w-full px-4 py-3 pl-11 rounded-2xl bg-gray-900 border border-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder-gray-500 text-white transition duration-300 shadow-inner"
+                  required
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                  <FaUser className="text-gray-500 text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="amountInput" className="block text-gray-400 text-sm font-semibold mb-2">
+                Amount (MTK)
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="any"
+                  min="0"
+                  id="amountInput"
+                  placeholder="0.0"
+                  name="amount"
+                  value={formData.amount || ""}
+                  onChange={(e) => handleChange(e, "amount")}
+                  className="w-full px-4 py-3 pl-11 rounded-2xl bg-gray-900 border border-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder-gray-500 text-white transition duration-300 shadow-inner"
+                  required
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                  <FaEthereum className="text-gray-500 text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="messageInput" className="block text-gray-400 text-sm font-semibold mb-2">
+                Message (Optional)
+              </label>
+              <textarea
+                id="messageInput"
+                placeholder="What's this transaction for?"
+                name="message"
+                value={formData.message || ""}
+                onChange={(e) => handleChange(e, "message")}
+                className="w-full px-4 py-3 rounded-2xl bg-gray-900 border border-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder-gray-500 text-white transition duration-300 resize-none h-24 shadow-inner"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full px-6 py-3 rounded-full font-bold text-white transition duration-300 ease-in-out transform hover:-translate-y-0.5 hover:shadow-lg shadow-teal-500/10 ${
+                loading
+                  ? "bg-gray-850 text-gray-500 cursor-not-allowed border border-gray-800"
+                  : "bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
+              }`}
+            >
+              {loading ? "Processing..." : "Transfer Tokens"}
+            </button>
+          </form>
+        )}
+
+        {/* Batch Transfer Form */}
+        {activeTab === "batch" && (
+          <form onSubmit={handleBatchSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300 font-bold text-base flex items-center">
+                  <FaListUl className="mr-2 text-teal-400" /> Recipients List
+                </span>
+                <button
+                  type="button"
+                  onClick={addBatchRow}
+                  className="bg-teal-500/10 border border-teal-500/30 hover:bg-teal-500 hover:text-white text-teal-400 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center transition duration-200"
+                >
+                  <FaPlus className="mr-1" /> Add Recipient
+                </button>
+              </div>
+
+              <div className="max-h-60 overflow-y-auto space-y-3 pr-2 border-t border-b border-gray-850 py-4">
+                {batchRecipients.map((recipient, index) => (
+                  <div key={index} className="flex space-x-3 items-end bg-gray-900 bg-opacity-30 p-3.5 rounded-2xl border border-gray-850 relative">
+                    <div className="flex-1">
+                      <label htmlFor={`batchAddressInput_${index}`} className="block text-gray-400 text-xs font-semibold mb-1">
+                        #{index + 1} Recipient Wallet Address
+                      </label>
+                      <input
+                        type="text"
+                        id={`batchAddressInput_${index}`}
+                        placeholder="0x..."
+                        name={`batchAddress_${index}`}
+                        value={recipient.address}
+                        onChange={(e) => handleBatchChange(index, "address", e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-850 focus:outline-none focus:ring-1 focus:ring-teal-400 text-sm text-white placeholder-gray-500"
+                        required
+                      />
+                    </div>
+                    <div className="w-1/3">
+                      <label htmlFor={`batchAmountInput_${index}`} className="block text-gray-400 text-xs font-semibold mb-1">
+                        Amount (MTK)
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        min="0"
+                        id={`batchAmountInput_${index}`}
+                        placeholder="0.0"
+                        name={`batchAmount_${index}`}
+                        value={recipient.amount}
+                        onChange={(e) => handleBatchChange(index, "amount", e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-850 focus:outline-none focus:ring-1 focus:ring-teal-400 text-sm text-white placeholder-gray-500"
+                        required
+                      />
+                    </div>
+                    {batchRecipients.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeBatchRow(index)}
+                        className="bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 p-2.5 rounded-xl transition duration-200 border border-rose-500/25"
+                        aria-label={`Remove recipient ${index + 1}`}
+                      >
+                        <FaTrash className="text-xs" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="batchMessageInput" className="block text-gray-400 text-sm font-semibold mb-2">
+                Common Message (Optional)
+              </label>
+              <textarea
+                id="batchMessageInput"
+                placeholder="Reason for this batch transfer..."
+                name="batchMessage"
+                value={batchMessage}
+                onChange={(e) => setBatchMessage(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl bg-gray-900 border border-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder-gray-500 text-white transition duration-300 resize-none h-24 shadow-inner"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full px-6 py-3 rounded-full font-bold text-white transition duration-300 ease-in-out transform hover:-translate-y-0.5 hover:shadow-lg shadow-teal-500/10 ${
+                loading
+                  ? "bg-gray-850 text-gray-500 cursor-not-allowed border border-gray-800"
+                  : "bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
+              }`}
+            >
+              {loading ? "Processing Batch..." : `Send Batch (${batchRecipients.length} transfers)`}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
