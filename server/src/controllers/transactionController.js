@@ -1,6 +1,21 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const Transaction = require('../models/Transaction');
+
+const DATA_DIR = path.resolve(__dirname, '../../data');
+const TRANSACTIONS_FILE = path.join(DATA_DIR, 'transactions.json');
+
+function getLocalTransactions() {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(TRANSACTIONS_FILE)) return [];
+  try {
+    return JSON.parse(fs.readFileSync(TRANSACTIONS_FILE, 'utf8'));
+  } catch (e) {
+    return [];
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -43,34 +58,58 @@ async function getByAddress(req, res) {
 
     const { page, limit, skip } = parsePagination(req.query);
 
-    const filter = {
-      $or: [
-        { sender:    address },
-        { recipient: address },
-      ],
-    };
+    const { dbState } = req.app.locals;
+    if (dbState && dbState.connected) {
+      const filter = {
+        $or: [
+          { sender:    address },
+          { recipient: address },
+        ],
+      };
 
-    // Run count and data queries in parallel for performance.
-    const [total, transactions] = await Promise.all([
-      Transaction.countDocuments(filter),
-      Transaction.find(filter)
-        .sort({ timestamp: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-    ]);
+      // Run count and data queries in parallel for performance.
+      const [total, transactions] = await Promise.all([
+        Transaction.countDocuments(filter),
+        Transaction.find(filter)
+          .sort({ timestamp: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+      ]);
 
-    return res.status(200).json({
-      success: true,
-      data: transactions,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-        hasNextPage: page * limit < total,
-      },
-    });
+      return res.status(200).json({
+        success: true,
+        data: transactions,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasNextPage: page * limit < total,
+        },
+      });
+    } else {
+      const txs = getLocalTransactions();
+      const filtered = txs.filter((t) => t.sender === address || t.recipient === address);
+      
+      // Sort desc by timestamp
+      filtered.sort((a, b) => b.timestamp - a.timestamp);
+
+      const total = filtered.length;
+      const paginated = filtered.slice(skip, skip + limit);
+
+      return res.status(200).json({
+        success: true,
+        data: paginated,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasNextPage: page * limit < total,
+        },
+      });
+    }
   } catch (err) {
     console.error('[transactionController.getByAddress]', err);
     return res.status(500).json({ success: false, message: 'Internal server error.' });
@@ -84,8 +123,14 @@ async function getByAddress(req, res) {
 // ---------------------------------------------------------------------------
 async function getCount(req, res) {
   try {
-    const count = await Transaction.countDocuments();
-    return res.status(200).json({ success: true, count });
+    const { dbState } = req.app.locals;
+    if (dbState && dbState.connected) {
+      const count = await Transaction.countDocuments();
+      return res.status(200).json({ success: true, count });
+    } else {
+      const txs = getLocalTransactions();
+      return res.status(200).json({ success: true, count: txs.length });
+    }
   } catch (err) {
     console.error('[transactionController.getCount]', err);
     return res.status(500).json({ success: false, message: 'Internal server error.' });
