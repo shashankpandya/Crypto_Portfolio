@@ -304,7 +304,7 @@ export const TransactionProvider = ({ children }) => {
       // Request signature
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const message = "Connect to Crypto Portfolio";
+      const message = "Connect to ChainPulse";
       const signature = await signer.signMessage(message);
       setSignature(signature);
 

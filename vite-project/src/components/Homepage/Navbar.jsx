@@ -11,17 +11,17 @@ const NavBarItem = ({ title, path, active, closeMenu, classprops }) => (
     <Link
       to={path}
       onClick={closeMenu}
-      className={`text-base font-semibold transition duration-300 py-2 block ${
+      className={`text-sm font-semibold transition duration-300 py-2 block ${
         active
-          ? "text-teal-400 font-bold"
-          : "text-gray-300 hover:text-white"
+          ? "text-white font-bold"
+          : "text-[#a1a7bb] hover:text-white"
       }`}
     >
       {title}
     </Link>
     {/* Underline sliding indicator */}
     <span
-      className={`absolute bottom-0 left-0 h-[2px] bg-teal-400 transition-all duration-300 ${
+      className={`absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-[#3861fb] to-[#5b21b6] transition-all duration-300 ${
         active ? "w-full" : "w-0 group-hover:w-full"
       }`}
     ></span>
@@ -58,10 +58,19 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="sticky top-0 w-full flex md:justify-center justify-between items-center p-4 bg-gray-900 bg-opacity-70 backdrop-filter backdrop-blur-md border-b border-gray-800 shadow-xl z-50 transition-all duration-300">
-      <div className="md:flex-[0.5] flex-initial justify-center items-center text-teal-400 text-3xl font-extrabold tracking-wider filter drop-shadow-[0_2px_8px_rgba(20,184,166,0.2)]">
-        <Link to="/" className="hover:opacity-90 transition duration-300">
-          CRYPTO PORTFOLIO
+    <nav className="sticky top-0 w-full flex md:justify-center justify-between items-center p-4 premium-glass-nav z-50 transition-all duration-300">
+      {/* Brand logo: compact stacked layout */}
+      <div className="md:flex-[0.5] flex-initial justify-center items-center text-2xl font-black tracking-tight">
+        <Link to="/" className="flex items-center space-x-3 group">
+          <span className="p-2 rounded-xl bg-gradient-to-br from-[#3861fb] to-[#5b21b6] text-white shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-all duration-300">
+            <div className="w-4 h-4 rounded-full bg-white relative">
+              <div className="absolute inset-0.5 rounded-full bg-gradient-to-br from-[#3861fb] to-[#5b21b6]"></div>
+            </div>
+          </span>
+          <div className="flex flex-col leading-none text-left select-none">
+            <span className="text-[10px] uppercase tracking-widest text-[#a1a7bb] font-extrabold">Crypto</span>
+            <span className="text-base font-black tracking-tight text-white group-hover:text-[#3861fb] transition-colors duration-200">Portfolio</span>
+          </div>
         </Link>
       </div>
 
@@ -84,14 +93,14 @@ const Navbar = () => {
         {!toggleMenu ? (
           <HiMenuAlt4
             fontSize={28}
-            className="text-white md:hidden cursor-pointer hover:text-teal-400 transition duration-200"
+            className="text-white md:hidden cursor-pointer hover:text-[#3861fb] transition duration-200"
             onClick={() => setToggleMenu(true)}
             aria-label="Open menu"
           />
         ) : (
           <AiOutlineClose
             fontSize={28}
-            className="text-white md:hidden cursor-pointer hover:text-teal-400 transition duration-200"
+            className="text-white md:hidden cursor-pointer hover:text-[#3861fb] transition duration-200"
             onClick={() => setToggleMenu(false)}
             aria-label="Close menu"
           />
@@ -100,13 +109,13 @@ const Navbar = () => {
         {toggleMenu && (
           <ul
             className="z-50 fixed top-0 right-0 p-4 w-[75vw] h-screen shadow-2xl md:hidden list-none
-            flex flex-col justify-start items-end rounded-l-2xl bg-gray-950 bg-opacity-95 backdrop-filter backdrop-blur-lg border-l border-gray-800 text-white animate-slide-in animate-fade-in"
+            flex flex-col justify-start items-end rounded-l-2xl bg-[#141622] bg-opacity-98 border-l border-[#2e324d] text-white animate-slide-in"
           >
-            <li className="text-xl w-full my-2 flex justify-between items-center border-b border-gray-800 pb-4">
-              <span className="text-teal-400 font-extrabold tracking-wider">MENU</span>
+            <li className="text-xl w-full my-2 flex justify-between items-center border-b border-[#2e324d] pb-4">
+              <span className="text-[#3861fb] font-extrabold tracking-wider">MENU</span>
               <AiOutlineClose
                 onClick={() => setToggleMenu(false)}
-                className="cursor-pointer hover:text-teal-400 transition duration-200"
+                className="cursor-pointer hover:text-[#3861fb] transition duration-200"
                 aria-label="Close menu"
               />
             </li>
@@ -128,28 +137,28 @@ const Navbar = () => {
       {/* Wallet Connection Section */}
       <div className="flex items-center space-x-4 ml-4">
         {isConnectedToSite ? (
-          <div className="flex items-center space-x-3 bg-teal-950 bg-opacity-35 border border-teal-500/20 px-4 py-2 rounded-full shadow-lg shadow-teal-950/10 backdrop-filter backdrop-blur-sm">
+          <div className="flex items-center space-x-3 bg-[#0e0f17]/60 border border-[#2e324d]/80 px-4 py-2 rounded-full shadow-lg backdrop-filter backdrop-blur-sm">
             {/* Pulsating green dot */}
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#16c784] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#16c784]"></span>
             </span>
-            <p className="text-teal-400 font-mono text-sm font-bold tracking-tight">
+            <p className="text-[#a1a7bb] font-mono text-xs font-bold tracking-tight">
               {`${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`}
             </p>
             <button
-              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-1.5 px-3.5 rounded-full transition duration-200 hover:shadow-lg hover:shadow-rose-900/20"
+              className="bg-[#ea3943]/20 hover:bg-[#ea3943] hover:text-white border border-[#ea3943]/30 text-[#ea3943] text-xs font-bold py-1.5 px-3.5 rounded-full transition duration-200 hover:shadow-lg"
               onClick={handleDisconnect}
             >
               Disconnect
             </button>
           </div>
         ) : (
-          <div className="flex items-center space-x-3 bg-gray-900 bg-opacity-50 border border-gray-800 px-3 py-1.5 rounded-full">
+          <div className="flex items-center space-x-3 bg-[#0e0f17]/40 border border-[#2e324d]/40 px-3 py-1.5 rounded-full">
             {/* Grey dot */}
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-gray-600"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-650"></span>
             <button
-              className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-sm font-bold py-1.5 px-5 rounded-full transition duration-300 transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-teal-500/10"
+              className="premium-btn text-white text-xs font-bold py-2 px-5 rounded-full transition duration-300"
               onClick={handleConnect}
               data-tooltip-id="connect-wallet-tooltip"
               data-tooltip-content="Connect your Ethereum wallet to interact with the app"

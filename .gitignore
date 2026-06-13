@@ -53,5 +53,4 @@ coverage/
 .project
 *.sublime-workspace
 
-
-walkthrough.md
+.env.deployment.whole
