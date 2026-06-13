@@ -41,7 +41,7 @@ function ApproveAllowance() {
 
     try {
       if (!currentAccount) {
-        throw new Error("Please connect your wallet first using the 'Connect for experience' button.");
+        throw new Error("Please connect your wallet first using the 'Connect Wallet' button.");
       }
 
       if (!ethers.isAddress(spender)) {
@@ -74,122 +74,96 @@ function ApproveAllowance() {
   };
 
   return (
-    <div className="min-h-screen rounded-xl bg-gradient-to-br from-gray-900 via-gray-700 to-black text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-shine"></div>
-      <div className="relative z-10 p-8">
-        <div className="max-w-md mx-auto bg-gray-800 bg-opacity-80 rounded-2xl shadow-2xl p-8 backdrop-filter backdrop-blur-sm">
-          <h2 className="text-3xl font-bold mb-6 text-teal-400 flex items-center justify-center">
-            <FaCoins className="mr-2" /> Approve Allowance
-          </h2>
-          {currentAllowance !== "0" && (
-            <div className="mb-6 p-4 bg-gray-700 rounded-lg animate-fade-in">
-              <p className="text-lg font-semibold text-white flex items-center">
-                <FaInfoCircle className="mr-2 text-teal-400" />
-                Current Allowance:
-              </p>
-              <p className="text-2xl font-bold text-teal-400">
-                {currentAllowance} tokens
-              </p>
-            </div>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="spenderAddressInput" className="block text-gray-400 text-sm font-semibold mb-2">
-                Spender Wallet Address
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  id="spenderAddressInput"
-                  name="spenderAddress"
-                  placeholder="Spender Address"
-                  value={spender}
-                  onChange={(e) => setSpender(e.target.value)}
-                  className="w-full px-4 py-3 pl-10 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent placeholder-gray-400 transition duration-300"
-                  required
-                />
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <FaCheckCircle className="text-gray-400" />
-                </div>
+    <div className="p-8 bg-gray-950 text-white rounded-3xl shadow-2xl border border-gray-800 backdrop-filter backdrop-blur-md relative overflow-hidden max-w-md mx-auto">
+      <div className="absolute inset-0 bg-shine opacity-10 pointer-events-none"></div>
+      <div className="relative z-10">
+        <h2 className="text-3xl font-extrabold mb-6 text-teal-400 flex items-center justify-center tracking-tight">
+          <FaCoins className="mr-2 text-teal-500" /> Approve Allowance
+        </h2>
+        <p className="text-center text-sm text-gray-400 mb-8">
+          Grant permissions to external addresses to swap or transfer your custom tokens
+        </p>
+
+        {currentAllowance !== "0" && (
+          <div className="mb-6 p-4 bg-gray-900 bg-opacity-60 border border-gray-850 rounded-2xl animate-fade-in flex flex-col justify-center items-center">
+            <p className="text-sm font-semibold text-gray-400 flex items-center mb-1">
+              <FaInfoCircle className="mr-1.5 text-teal-400" /> Current Allowance:
+            </p>
+            <p className="text-2xl font-black text-teal-400 font-mono">
+              {currentAllowance} MTK
+            </p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="spenderAddressInput" className="block text-gray-400 text-sm font-semibold mb-2">
+              Spender Wallet Address
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="spenderAddressInput"
+                name="spenderAddress"
+                placeholder="Spender Address (0x...)"
+                value={spender}
+                onChange={(e) => setSpender(e.target.value)}
+                className="w-full px-4 py-3 pl-11 rounded-2xl bg-gray-900 border border-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder-gray-500 text-white transition duration-300 shadow-inner"
+                required
+              />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                <FaCheckCircle className="text-gray-500 text-sm" />
               </div>
             </div>
-            <div>
-              <label htmlFor="approveAmountInput" className="block text-gray-400 text-sm font-semibold mb-2">
-                Allowance Amount (MTK)
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  id="approveAmountInput"
-                  name="approveAmount"
-                  placeholder="Amount"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-4 py-3 pl-10 rounded-lg bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent placeholder-gray-400 transition duration-300"
-                  required
-                />
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <FaCoins className="text-gray-400" />
-                </div>
+          </div>
+
+          <div>
+            <label htmlFor="approveAmountInput" className="block text-gray-400 text-sm font-semibold mb-2">
+              Allowance Amount (MTK)
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="approveAmountInput"
+                name="approveAmount"
+                placeholder="Amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full px-4 py-3 pl-11 rounded-2xl bg-gray-900 border border-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent placeholder-gray-500 text-white transition duration-300 shadow-inner"
+                required
+              />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                <FaCoins className="text-gray-500 text-sm" />
               </div>
             </div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full px-6 py-3 rounded-lg font-semibold text-white ${
-                isLoading
-                  ? "bg-gray-600 cursor-not-allowed"
-                  : "bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
-              } transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg`}
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Processing...
-                </span>
-              ) : (
-                "Approve"
-              )}
-            </button>
-          </form>
-          {errorMessage && (
-            <div
-              className="bg-red-500 bg-opacity-80 text-white px-4 py-3 rounded-lg mt-6 animate-fade-in"
-              role="alert"
-            >
-              <p className="font-bold">Error</p>
-              <p className="text-sm">{errorMessage}</p>
-            </div>
-          )}
-          {successMessage && (
-            <div
-              className="bg-green-500 bg-opacity-80 text-white px-4 py-3 rounded-lg mt-6 animate-fade-in"
-              role="alert"
-            >
-              <p className="font-bold">Success</p>
-              <p className="text-sm break-words">{successMessage}</p>
-            </div>
-          )}
-        </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`w-full px-6 py-3 rounded-full font-bold text-white transition duration-350 ease-in-out transform hover:-translate-y-0.5 hover:shadow-lg shadow-teal-500/10 ${
+              isLoading
+                ? "bg-gray-850 text-gray-500 cursor-not-allowed border border-gray-800"
+                : "bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700"
+            }`}
+          >
+            {isLoading ? "Processing..." : "Approve Allowance"}
+          </button>
+        </form>
+
+        {errorMessage && (
+          <div className="bg-red-500 bg-opacity-10 border border-red-500/30 text-red-400 px-4 py-3 rounded-2xl mt-6 animate-fade-in" role="alert">
+            <p className="font-bold">Error</p>
+            <p className="text-sm">{errorMessage}</p>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="bg-green-500 bg-opacity-10 border border-green-500/30 text-emerald-400 px-4 py-3 rounded-2xl mt-6 animate-fade-in" role="alert">
+            <p className="font-bold">Success</p>
+            <p className="text-sm break-all leading-normal">{successMessage}</p>
+          </div>
+        )}
       </div>
     </div>
   );

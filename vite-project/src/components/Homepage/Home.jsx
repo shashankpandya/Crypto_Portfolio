@@ -79,8 +79,9 @@ const Home = ({ coins }) => {
   }, [currentAccount, checkTokenBalance]);
 
   return (
-    <div className="min-h-screen bg-gray-900 rounded-lg text-white">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="p-8 bg-gray-950 text-white rounded-3xl shadow-2xl border border-gray-800 backdrop-filter backdrop-blur-md relative overflow-hidden max-w-6xl mx-auto">
+      <div className="absolute inset-0 bg-shine opacity-10 pointer-events-none"></div>
+      <div className="relative z-10">
         <h1 className="text-5xl font-extrabold text-center text-teal-400 mb-12 gsap-fade-in">
           Your Crypto Dashboard
         </h1>
