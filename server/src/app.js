@@ -60,13 +60,7 @@ app.use(limiter);
 // load balancers and uptime monitors always receive a response.
 // ---------------------------------------------------------------------------
 app.use('/api', (req, res, next) => {
-  const { dbState } = req.app.locals;
-  if (!dbState || !dbState.connected) {
-    return res.status(503).json({
-      success: false,
-      message: 'Service temporarily unavailable. The database is not connected.',
-    });
-  }
+  // Database connection is optional; if disconnected, controllers will fallback to local file-based JSON storage.
   return next();
 });
 
