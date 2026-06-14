@@ -35,26 +35,12 @@ const TopCoins = ({ coins }) => {
   const getRankBadge = (rank) => {
     if (rank === 1) {
       return (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-gradient-to-r from-[#FF7B00] to-[#FF385C] text-white font-black text-xs">
+        <span className="text-amber-400 font-mono text-[11px] w-6 text-center block">
           1
         </span>
       );
     }
-    if (rank === 2) {
-      return (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-white/10 text-white font-black text-xs">
-          2
-        </span>
-      );
-    }
-    if (rank === 3) {
-      return (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-[#2563EB]/15 text-[#38BDF8] font-black text-xs border border-[#2563EB]/30">
-          3
-        </span>
-      );
-    }
-    return <span className="text-[#71717a] font-mono text-xs font-semibold pl-2">{rank}</span>;
+    return <span className="text-slate-500 font-mono text-[11px] w-6 text-center block">{rank}</span>;
   };
 
   return (
@@ -82,16 +68,19 @@ const TopCoins = ({ coins }) => {
         </div>
       </div>
 
-      <div className="overflow-x-auto border border-white/5 rounded-lg">
+      <div
+        className="overflow-x-auto border border-white/5 rounded-lg"
+        style={{ boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.04)' }}
+      >
         <table className="w-full table-auto border-collapse">
           <thead>
-            <tr className="bg-[#050811] text-[#a1a7bb] text-xs font-semibold border-b border-white/5 select-none">
-              <th className="px-4 py-2.5 text-left font-bold w-16">Rank</th>
-              <th className="px-4 py-2.5 text-left font-bold">Asset</th>
-              <th className="px-4 py-2.5 text-right font-bold">Price</th>
-              <th className="px-4 py-2.5 text-right font-bold w-24">Change (24h)</th>
-              <th className="px-4 py-2.5 text-center font-bold w-24">Trend</th>
-              <th className="px-4 py-2.5 text-right font-bold hidden md:table-cell">Market Cap</th>
+            <tr className="bg-transparent text-slate-600 text-[10px] tracking-[0.12em] uppercase font-semibold border-b border-white/5 select-none">
+              <th className="px-4 py-2.5 text-left w-16">Rank</th>
+              <th className="px-4 py-2.5 text-left">Asset</th>
+              <th className="px-4 py-2.5 text-right">Price</th>
+              <th className="px-4 py-2.5 text-right w-24">Change (24h)</th>
+              <th className="px-4 py-2.5 text-center w-24">Trend</th>
+              <th className="px-4 py-2.5 text-right hidden md:table-cell">Market Cap</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/[0.03]">
@@ -102,7 +91,7 @@ const TopCoins = ({ coins }) => {
                 return (
                   <tr
                     key={coin.id}
-                    className="coin-row hover:bg-white/[0.02] transition-colors duration-150 h-11"
+                    className="coin-row hover:bg-white/[0.025] transition-colors duration-100 cursor-pointer h-11 items-center"
                   >
                     <td className="px-4 py-2 font-bold text-xs">{getRankBadge(actualRank)}</td>
                     <td className="px-4 py-2">
@@ -129,12 +118,12 @@ const TopCoins = ({ coins }) => {
                     </td>
                     <td className="px-4 py-2 text-right">
                       <span
-                        className={`font-bold font-mono text-xs ${
+                        className={`tabular-nums text-xs font-medium ${
                           isPositive ? "text-[#10B981]" : "text-[#EF4444]"
                         }`}
                       >
-                        {isPositive ? "+" : ""}
-                        {coin.price_change_percentage_24h?.toFixed(2) ?? "0.00"}%
+                        {isPositive ? "▲ " : "▼ "}
+                        {Math.abs(coin.price_change_percentage_24h ?? 0).toFixed(2)}%
                       </span>
                     </td>
                     <td className="px-4 py-2">
@@ -142,7 +131,7 @@ const TopCoins = ({ coins }) => {
                         <svg className="w-16 h-6" viewBox="0 0 60 24" fill="none">
                           <path
                             d={generateSparklinePath(coin.id, coin.price_change_percentage_24h)}
-                            stroke={isPositive ? "#10B981" : "#EF4444"}
+                            stroke={isPositive ? "#10B981" : "#F43F5E"}
                             strokeWidth="1.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -151,7 +140,7 @@ const TopCoins = ({ coins }) => {
                         </svg>
                       </div>
                     </td>
-                    <td className="px-4 py-2 text-right font-mono text-[11px] text-[#71717a] hidden md:table-cell">
+                    <td className="px-4 py-2 text-right font-mono text-xs text-slate-500 hidden md:table-cell">
                       ${coin.market_cap?.toLocaleString() ?? "N/A"}
                     </td>
                   </tr>

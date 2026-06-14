@@ -133,14 +133,12 @@ const Home = ({ coins }) => {
   return (
     <div className="page-container text-white">
       <div className="relative z-10 w-full">
-        {/* Header Title */}
-        <div className="mb-6 flex flex-col items-center justify-center text-center gsap-fade-in">
-          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            <span className="premium-text-gradient-primary">Portfolio Overview</span>
-          </h1>
-          <p className="text-xs text-[#71717a] mt-1.5 max-w-md">
-            Monitor asset allocations, track live market values, and execute smart contract actions.
-          </p>
+        {/* Compact inline page header row */}
+        <div className="flex items-center justify-between mb-5 pt-6 gsap-fade-in">
+          <div>
+            <h1 className="text-base font-semibold text-white">Dashboard</h1>
+            <p className="text-xs text-slate-500 mt-0.5">Your portfolio at a glance</p>
+          </div>
         </div>
 
         {isConnectedToSite ? (
@@ -158,24 +156,18 @@ const Home = ({ coins }) => {
                     : "#0c1118",
                 }}
               >
-                <div className="flex justify-between items-start">
-                  <span className="text-[10px] uppercase tracking-widest bg-white/[0.04] border border-white/5 px-2.5 py-1 rounded text-white font-bold">
-                    Connected Wallet
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] tracking-widest text-slate-600 uppercase font-bold">
+                    Wallet
                   </span>
-                  {/* Hexagon Monogram */}
-                  <svg className="w-5 h-5 opacity-60" viewBox="0 0 100 100" fill="none">
-                    <path
-                      d="M30 15 L70 15 L90 50 L70 85 L30 85 L10 50 Z"
-                      stroke="#FF385C"
-                      strokeWidth="12"
-                      fill="none"
-                    />
-                  </svg>
+                  {/* Network Dot */}
+                  <span className={`w-1.5 h-1.5 rounded-full ${isTestnet ? 'bg-[#FF7B00]' : 'bg-[#2563EB]'}`}></span>
                 </div>
-                <div>
-                  <div className="flex items-center space-x-1.5 mb-1.5">
-                    <p className="text-[#a1a7bb] text-xs font-mono">
-                      {`${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`}
+                
+                <div className="flex flex-col flex-1 justify-center mt-2">
+                  <div className="flex items-center space-x-1.5">
+                    <p className="text-slate-400 text-xs font-mono break-all select-all">
+                      {currentAccount}
                     </p>
                     <button
                       onClick={copyToClipboard}
@@ -183,7 +175,7 @@ const Home = ({ coins }) => {
                       title="Copy Address"
                     >
                       {copied ? (
-                        <span className="text-[10px] text-[#10B981] font-bold">Copied!</span>
+                        <span className="text-[10px] text-[#10B981] font-bold">✓</span>
                       ) : (
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
@@ -191,9 +183,12 @@ const Home = ({ coins }) => {
                       )}
                     </button>
                   </div>
-                  <h3 className="text-white text-lg font-bold tracking-tight">
-                    Ethereum Identity
-                  </h3>
+                </div>
+
+                <div>
+                  <span className="text-[10px] uppercase tracking-widest bg-white/[0.04] border border-white/5 px-2.5 py-1 rounded text-white font-bold inline-block font-mono">
+                    {network}
+                  </span>
                 </div>
               </div>
             </div>
@@ -201,19 +196,19 @@ const Home = ({ coins }) => {
             {/* Wallet Info Grid */}
             <div className="lg:col-span-2 bg-[#0c1118] border border-white/5 rounded-lg p-5 flex flex-col justify-between gsap-fade-in shadow-lg">
               <div>
-                <h2 className="text-lg font-bold text-white mb-4 tracking-tight">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
                   Asset Details
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-[#050811] p-3.5 rounded border border-white/5">
                     <p className="text-[#71717a] text-[10px] font-bold uppercase tracking-wider mb-1">Ether Balance</p>
-                    <p className="text-white text-2xl font-bold font-mono">
+                    <p className="text-white text-2xl font-bold font-mono animate-fade-in-300">
                       <CountUp value={balance} decimals={4} /> <span className="text-xs text-[#71717a] font-normal font-sans ml-1">ETH</span>
                     </p>
                   </div>
                   <div className="bg-[#050811] p-3.5 rounded border border-white/5 flex flex-col justify-between">
                     <div>
-                      <p className="text-[#71717a] text-[10px] font-bold uppercase tracking-wider mb-1">Network State</p>
+                      <p className="text-[#71717a] text-[10px] font-bold uppercase tracking-wider mb-1">Network</p>
                       <div className="flex items-center space-x-2">
                         {/* Dot indicator */}
                         <span className={`h-2 w-2 rounded-full ${isTestnet ? 'bg-[#FF7B00]' : 'bg-[#2563EB]'}`}></span>
@@ -223,8 +218,8 @@ const Home = ({ coins }) => {
                   </div>
                 </div>
               </div>
-              <div className="mt-4 border-t border-white/5 pt-3.5 flex justify-between items-center text-xs">
-                <span className="text-[#71717a]">Security Check</span>
+              <div className="mt-4 border-t border-white/5 pt-3 flex justify-between items-center text-[11px] text-[#71717a]">
+                <span>Security Check</span>
                 <span className="text-[#10B981] font-semibold flex items-center">
                   <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -255,6 +250,9 @@ const Home = ({ coins }) => {
             </button>
           </div>
         )}
+
+        {/* Divider */}
+        <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-6" />
 
         {/* Top Cryptocurrencies Table List */}
         <div className="gsap-fade-in">

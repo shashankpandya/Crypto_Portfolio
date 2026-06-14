@@ -11,17 +11,17 @@ const NavBarItem = ({ title, path, active, closeMenu, classprops }) => (
     <Link
       to={path}
       onClick={closeMenu}
-      className={`text-sm font-semibold transition duration-300 py-4 block ${
+      className={`text-sm transition duration-300 py-4 block ${
         active
-          ? "text-white font-bold"
-          : "text-[#a1a7bb] hover:text-white"
+          ? "text-white font-medium"
+          : "text-slate-400 hover:text-slate-200"
       }`}
     >
       {title}
     </Link>
-    {/* Coral sliding underline indicator */}
+    {/* White sliding underline indicator */}
     <span
-      className={`absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-[#FF385C] to-[#FF7B00] transition-all duration-300 ${
+      className={`absolute bottom-0 left-0 h-[2px] bg-white transition-all duration-300 ${
         active ? "w-full" : "w-0 group-hover:w-full"
       }`}
     ></span>
@@ -84,17 +84,16 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="sticky top-0 w-full h-14 flex items-center justify-between px-6 premium-glass-nav z-50">
-      {/* Brand logo: compact stacked layout */}
-      <div className="flex items-center text-xl font-black tracking-tight">
-        <Link to="/" className="flex items-center space-x-3.5 group">
+    <nav className="sticky top-0 w-full h-14 flex items-center justify-between px-6 backdrop-blur-md bg-[#050811]/90 border-b border-white/5 z-50">
+      {/* Brand logo: compact layout */}
+      <div className="flex items-center text-xl font-semibold tracking-tight">
+        <Link to="/" className="flex items-center space-x-3 group">
           <div className="group-hover:scale-105 transition-all duration-300">
             <CPLogo />
           </div>
-          <div className="flex flex-col leading-none text-left select-none">
-            <span className="text-[9px] uppercase tracking-widest text-[#a1a7bb] font-extrabold">Crypto</span>
-            <span className="text-sm font-black tracking-tight text-white group-hover:text-[#FF385C] transition-colors duration-200">Portfolio</span>
-          </div>
+          <span className="text-sm font-semibold tracking-tight text-white group-hover:text-[#FF385C] transition-colors duration-200 select-none">
+            Crypto Portfolio
+          </span>
         </Link>
       </div>
 

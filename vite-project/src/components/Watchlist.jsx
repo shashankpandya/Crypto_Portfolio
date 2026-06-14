@@ -138,14 +138,12 @@ const Watchlist = ({ coins }) => {
 
   return (
     <div className="page-container text-white">
-      {/* Header section */}
-      <div className="mb-6 flex flex-col items-center justify-center text-center">
-        <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-          <span className="premium-text-gradient-primary">Token Watchlist</span>
-        </h1>
-        <p className="text-xs text-[#71717a] mt-1.5 max-w-md">
-          Track and manage your target cryptocurrencies in one information-dense dashboard.
-        </p>
+      {/* Compact inline page header row */}
+      <div className="flex items-center justify-between mb-5 pt-6">
+        <div>
+          <h1 className="text-base font-semibold text-white">Watchlist</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Track your favorite assets</p>
+        </div>
       </div>
 
       {/* Autocomplete Search suggestions dropdown */}
@@ -208,31 +206,23 @@ const Watchlist = ({ coins }) => {
       </div>
 
       {watchlist.length === 0 ? (
-        /* Styled Empty State */
-        <div className="text-center py-12 px-4 bg-[#0c1118] border border-white/5 rounded-lg max-w-sm mx-auto shadow-xl">
+        /* Styled Empty State - Inline */
+        <div className="text-center py-16">
           <TelescopeIcon />
-          <h3 className="text-sm font-bold text-white mb-1">No coins tracked yet</h3>
-          <p className="text-[#71717a] text-[11px] mb-5 max-w-xs mx-auto leading-relaxed">
-            Search above to add assets and monitor prices in real-time.
-          </p>
-          <button
-            onClick={() => document.getElementById("watchlistSearchInput")?.focus()}
-            className="premium-btn text-white font-bold py-1.5 px-4 rounded-lg text-xs"
-          >
-            Find Coins
-          </button>
+          <p className="text-slate-600 text-sm mt-3 font-medium">No coins tracked yet</p>
+          <p className="text-slate-700 text-xs mt-1">Search above to add your first asset</p>
         </div>
       ) : (
         /* Dense Table View */
         <div className="overflow-x-auto border border-white/5 rounded-lg bg-[#0c1118] shadow-lg max-w-3xl mx-auto">
           <table className="w-full table-auto border-collapse">
             <thead>
-              <tr className="bg-[#050811] text-[#a1a7bb] text-xs font-semibold border-b border-white/5 select-none">
-                <th className="px-4 py-2.5 text-left font-bold">Asset</th>
-                <th className="px-4 py-2.5 text-right font-bold">Price</th>
-                <th className="px-4 py-2.5 text-right font-bold w-24">Change (24h)</th>
-                <th className="px-4 py-2.5 text-center font-bold w-24">Trend</th>
-                <th className="px-4 py-2.5 text-right font-bold w-16">Remove</th>
+              <tr className="bg-transparent text-slate-600 text-[10px] tracking-[0.12em] uppercase font-semibold border-b border-white/5 select-none">
+                <th className="px-4 py-2.5 text-left">Asset</th>
+                <th className="px-4 py-2.5 text-right">Price</th>
+                <th className="px-4 py-2.5 text-right w-24">Change (24h)</th>
+                <th className="px-4 py-2.5 text-center w-24">Trend</th>
+                <th className="px-4 py-2.5 text-right w-16">Remove</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.03]">
@@ -244,7 +234,7 @@ const Watchlist = ({ coins }) => {
                 return (
                   <tr
                     key={coinId}
-                    className="group hover:bg-white/[0.02] transition-colors duration-150 h-11"
+                    className="group hover:bg-white/[0.025] transition-colors duration-100 cursor-pointer h-11 items-center"
                   >
                     <td className="px-4 py-2">
                       <Link to={`/coin/${coinId}`} className="flex items-center">
@@ -268,12 +258,12 @@ const Watchlist = ({ coins }) => {
                     </td>
                     <td className="px-4 py-2 text-right">
                       <span
-                        className={`font-bold font-mono text-xs ${
+                        className={`tabular-nums text-xs font-medium ${
                           isPositive ? "text-[#10B981]" : "text-[#EF4444]"
                         }`}
                       >
-                        {isPositive ? "+" : ""}
-                        {change24h.toFixed(2)}%
+                        {isPositive ? "▲ " : "▼ "}
+                        {Math.abs(change24h).toFixed(2)}%
                       </span>
                     </td>
                     <td className="px-4 py-2">
@@ -281,7 +271,7 @@ const Watchlist = ({ coins }) => {
                         <svg className="w-16 h-6" viewBox="0 0 50 24" fill="none">
                           <path
                             d={generateSparklinePath(coin.id, change24h)}
-                            stroke={isPositive ? "#10B981" : "#EF4444"}
+                            stroke={isPositive ? "#10B981" : "#F43F5E"}
                             strokeWidth="1.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
