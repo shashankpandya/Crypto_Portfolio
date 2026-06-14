@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <!-- Background Glow Gradient -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#14b8a6" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#111827" stop-opacity="0" />
+    </radialGradient>
+    <!-- Ring Border Gradient -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14b8a6" />
+      <stop offset="50%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <!-- Inner Symbol Gradient -->
+    <linearGradient id="symbolGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#cbd5e1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Ambient Glow -->
+  <circle cx="64" cy="64" r="64" fill="url(#bgGlow)" />
+
+  <!-- Base Dark Circular Background -->
+  <circle cx="64" cy="64" r="54" fill="#111827" stroke="url(#ringGrad)" stroke-width="4" />
+
+  <!-- Portfolio Line Chart & Node Motif (Web3 theme) -->
+  <g transform="translate(26, 26)">
+    <!-- Stylized Monogram "CP" merged with growth chart -->
+    <!-- C shape -->
+    <path d="M42,20 C28,20 20,28 20,42 C20,56 28,64 42,64 M42,48 C36,48 34,44 34,42 C34,40 36,36 42,36" 
+          fill="none" stroke="url(#symbolGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- P shape / Chart arrow -->
+    <path d="M48,64 L48,20 C48,20 62,20 62,32 C62,44 48,44 48,44 M48,32 L56,32" 
+          fill="none" stroke="url(#symbolGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>

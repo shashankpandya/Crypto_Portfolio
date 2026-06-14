@@ -1,20 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Homepage/Navbar";
-import {
-  Watchlist,
-  TokenTransfer,
-  ApproveAllowance,
-  AllowanceCheck,
-  Home,
-  CoinDetails,
-  ErrorBoundary,
-  AdminPanel,
-  TourGuide,
-} from "./components";
+import ErrorBoundary from "./components/ErrorBoundary";
+import TourGuide from "./components/TourGuide";
 import { TransactionProvider } from "./context/TransactionContext";
 import "./App.css";
 import { fetchCoins } from "./api";
+
+// Lazy load components directly from their source directories to avoid eager bundling via index.js
+const Home = React.lazy(() => import("./components/Homepage/Home"));
+const Watchlist = React.lazy(() => import("./components/Watchlist"));
+const TokenTransfer = React.lazy(() => import("./components/TokenTransfer"));
+const ApproveAllowance = React.lazy(() => import("./components/ApproveAllowance"));
+const AllowanceCheck = React.lazy(() => import("./components/AllowanceCheck"));
+const CoinDetails = React.lazy(() => import("./components/CoinDetails"));
+const AdminPanel = React.lazy(() => import("./components/AdminPanel"));
+
+const SuspenseFallback = () => (
+  <div className="flex flex-col items-center justify-center py-20">
+    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#14b8a6] shadow-md shadow-teal-500/20"></div>
+    <p className="mt-4 text-[#a1a7bb] text-sm font-medium tracking-wide">Loading component...</p>
+  </div>
+);
 
 const App = () => {
   const [coins, setCoins] = useState([]);
@@ -103,26 +110,28 @@ const App = () => {
             <TourGuide />
             <div className="container mx-auto px-4 py-8">
               <ErrorBoundary>
-                <Routes>
-                  <Route path="/" element={<Home coins={coins} />} />
-                  <Route path="/watchlist" element={<Watchlist coins={coins} />} />
-                  <Route
-                    path="/approveallowance"
-                    element={<ApproveAllowance />}
-                  />
-                  <Route path="/allowancecheck" element={<AllowanceCheck />} />
-                  <Route path="/transfer" element={<TokenTransfer />} />
-                  <Route path="/admin" element={<AdminPanel />} />
-                  <Route
-                    path="/coin/:id"
-                    element={
-                      <CoinDetails
-                        coins={coins}
-                      />
-                    }
-                  />
-                  <Route path="*" element={<div>Page not found</div>} />
-                </Routes>
+                <React.Suspense fallback={<SuspenseFallback />}>
+                  <Routes>
+                    <Route path="/" element={<Home coins={coins} />} />
+                    <Route path="/watchlist" element={<Watchlist coins={coins} />} />
+                    <Route
+                      path="/approveallowance"
+                      element={<ApproveAllowance />}
+                    />
+                    <Route path="/allowancecheck" element={<AllowanceCheck />} />
+                    <Route path="/transfer" element={<TokenTransfer />} />
+                    <Route path="/admin" element={<AdminPanel />} />
+                    <Route
+                      path="/coin/:id"
+                      element={
+                        <CoinDetails
+                          coins={coins}
+                        />
+                      }
+                    />
+                    <Route path="*" element={<div>Page not found</div>} />
+                  </Routes>
+                </React.Suspense>
               </ErrorBoundary>
             </div>
           </div>
