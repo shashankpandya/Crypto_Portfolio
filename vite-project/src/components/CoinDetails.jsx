@@ -128,14 +128,14 @@ const CoinDetails = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#14b8a6] shadow-md shadow-teal-500/20"></div>
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FF385C]"></div>
       </div>
     );
   }
-  if (error) return <div className="text-[#ea3943] p-8 text-center bg-[#ea3943]/10 border border-[#ea3943]/30 rounded-3xl max-w-xl mx-auto">{error}</div>;
+  if (error) return <div className="text-[#EF4444] p-5 text-center bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg max-w-lg mx-auto">{error}</div>;
   if (!coinDetails || !coinHistory)
-    return <div className="text-white p-8 text-center bg-[#111827]/40 border border-[#374151] rounded-3xl max-w-xl mx-auto">No data available for this coin.</div>;
+    return <div className="text-white p-5 text-center bg-[#0c1118] border border-white/5 rounded-lg max-w-lg mx-auto text-xs">No data available for this coin.</div>;
 
   const chartData = {
     labels: (coinHistory || []).map((price) => new Date(price[0]).toLocaleDateString()),
@@ -144,7 +144,7 @@ const CoinDetails = () => {
         label: "Price",
         data: (coinHistory || []).map((price) => price[1]),
         fill: false,
-        borderColor: "#14b8a6",
+        borderColor: "#2563EB",
         tension: 0.1,
       },
     ],
@@ -160,48 +160,48 @@ const CoinDetails = () => {
     scales: {
       x: {
         type: "category",
-        title: { display: true, text: "Date", color: "#9ca3af" },
-        ticks: { maxTicksLimit: 8, color: "#9ca3af" },
-        grid: { color: "rgba(20, 184, 166, 0.08)" }
+        title: { display: true, text: "Date", color: "#71717a" },
+        ticks: { maxTicksLimit: 8, color: "#71717a", font: { size: 10 } },
+        grid: { color: "rgba(255, 255, 255, 0.03)" }
       },
       y: {
-        title: { display: true, text: "Price (USD)", color: "#9ca3af" },
+        title: { display: true, text: "Price (USD)", color: "#71717a" },
         ticks: {
-          color: "#9ca3af",
+          color: "#71717a",
+          font: { size: 10 },
           callback: (value) => "$" + value.toLocaleString(),
         },
-        grid: { color: "rgba(56, 97, 251, 0.08)" }
+        grid: { color: "rgba(255, 255, 255, 0.03)" }
       },
     },
   };
 
   return (
-    <div className="p-8 premium-glow-card text-white rounded-3xl relative overflow-hidden max-w-6xl mx-auto animate-fade-in">
-      <div className="absolute inset-0 bg-shine opacity-5 pointer-events-none"></div>
+    <div className="page-container text-white max-w-4xl animate-fade-in">
       <div className="relative z-10">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center">
             {coinDetails.image && (
               <img
                 src={coinDetails.image.large}
                 alt={coinDetails.name}
-                className="w-16 h-16 mr-4 rounded-full shadow-lg"
+                className="w-12 h-12 mr-3 rounded-full"
               />
             )}
-            <div>
-              <h2 className="text-4xl font-extrabold tracking-tight leading-tight">
-                <span className="premium-text-gradient-primary">{coinDetails.name}</span>
+            <div className="leading-tight">
+              <h2 className="text-2xl font-extrabold tracking-tight text-white">
+                {coinDetails.name}
               </h2>
-              <span className="text-xs text-[#a1a7bb] font-mono font-bold uppercase">
+              <span className="text-[10px] text-[#71717a] font-mono font-bold uppercase">
                 {coinDetails.symbol?.toUpperCase() ?? "N/A"}
               </span>
             </div>
           </div>
           <button
             onClick={toggleWatchlist}
-            className={`font-bold py-2.5 px-6 rounded-full transition duration-305 ${
+            className={`font-bold py-1.5 px-4 rounded-lg text-xs transition duration-200 ${
               isInWatchlist
-                ? "bg-[#ea3943]/10 border border-[#ea3943]/30 text-[#ea3943] hover:bg-[#ea3943] hover:text-white"
+                ? "bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] hover:bg-[#EF4444] hover:text-white"
                 : "premium-btn text-white"
             }`}
           >
@@ -210,52 +210,49 @@ const CoinDetails = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-[#111827]/50 p-5 rounded-2xl border border-[#374151]/85 shadow-inner">
-            <p className="text-[#a1a7bb] text-xs font-semibold uppercase tracking-wider mb-1">Current Price</p>
-            <p className="text-2xl font-black font-mono text-white">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="bg-[#0c1118] p-4 rounded-lg border border-white/5">
+            <p className="text-[#71717a] text-[10px] font-semibold uppercase tracking-wider mb-1">Current Price</p>
+            <p className="text-xl font-bold font-mono text-white">
               $
               {coinDetails.market_data?.current_price?.usd?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) ||
                 "N/A"}
             </p>
           </div>
-          <div className="bg-[#111827]/50 p-5 rounded-2xl border border-[#374151]/85 shadow-inner">
-            <p className="text-[#a1a7bb] text-xs font-semibold uppercase tracking-wider mb-1">Market Cap</p>
-            <p className="text-2xl font-black font-mono text-white">
+          <div className="bg-[#0c1118] p-4 rounded-lg border border-white/5">
+            <p className="text-[#71717a] text-[10px] font-semibold uppercase tracking-wider mb-1">Market Cap</p>
+            <p className="text-xl font-bold font-mono text-white">
               $
               {coinDetails.market_data?.market_cap?.usd?.toLocaleString() ||
                 "N/A"}
             </p>
           </div>
-          <div className="bg-[#111827]/50 p-5 rounded-2xl border border-[#374151]/85 shadow-inner">
-            <p className="text-[#a1a7bb] text-xs font-semibold uppercase tracking-wider mb-1">24h Change</p>
+          <div className="bg-[#0c1118] p-4 rounded-lg border border-white/5">
+            <p className="text-[#71717a] text-[10px] font-semibold uppercase tracking-wider mb-1">24h Change</p>
             <p
-              className={`text-2xl font-black font-mono ${
+              className={`text-xl font-bold font-mono ${
                 (coinDetails.market_data?.price_change_percentage_24h ?? 0) >= 0
-                  ? "text-[#16c784]"
-                  : "text-[#ea3943]"
+                  ? "text-[#10B981]"
+                  : "text-[#EF4444]"
               }`}
             >
               {(coinDetails.market_data?.price_change_percentage_24h ?? 0) >= 0 ? "+" : ""}
-              {coinDetails.market_data?.price_change_percentage_24h?.toFixed(
-                2
-              ) || "N/A"}
-              %
+              {coinDetails.market_data?.price_change_percentage_24h?.toFixed(2) || "N/A"}%
             </p>
           </div>
         </div>
 
         {/* Chart Area */}
-        <div className="bg-[#111827]/50 p-6 rounded-2xl border border-[#374151]/85 shadow-inner">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <h3 className="text-2xl font-bold tracking-tight">
-              <span className="premium-text-gradient-primary">Price Chart</span>
+        <div className="bg-[#0c1118] p-5 rounded-lg border border-white/5">
+          <div className="flex justify-between items-center gap-4 mb-4">
+            <h3 className="text-sm font-bold text-white">
+              Historical Price
             </h3>
-            <div className="relative w-full sm:w-auto">
+            <div className="relative">
               <select
                 value={JSON.stringify(selectedRange)}
                 onChange={(e) => setSelectedRange(JSON.parse(e.target.value))}
-                className="w-full sm:w-auto text-[#a1a7bb] font-semibold px-4 py-2 rounded-xl focus:outline-none premium-input cursor-pointer"
+                className="text-xs text-[#a1a7bb] font-semibold px-3 py-1.5 rounded bg-[#050811] border border-white/5 cursor-pointer focus:outline-none"
               >
                 {timeRanges.map((range) => (
                   <option key={range.days} value={JSON.stringify(range)}>
@@ -265,7 +262,7 @@ const CoinDetails = () => {
               </select>
             </div>
           </div>
-          <div style={{ height: "400px" }}>
+          <div style={{ height: "300px" }}>
             <Line data={chartData} options={chartOptions} />
           </div>
         </div>

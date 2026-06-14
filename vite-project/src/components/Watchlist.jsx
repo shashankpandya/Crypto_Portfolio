@@ -3,36 +3,28 @@ import { Link } from "react-router-dom";
 import { TransactionContext } from "../context/TransactionContext";
 import { searchCoins } from "../api";
 import { debounce } from "../utils/debounce";
-import { gsap } from "gsap";
 
-// Lightweight SVG Sparkline component representing 7d price trends
-const Sparkline = ({ data, positive }) => {
-  if (!data || data.length === 0) return null;
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const range = max - min === 0 ? 1 : max - min;
-  const height = 35;
-  const width = 120;
-  
-  const points = data
-    .map((val, index) => {
-      const x = (index / (data.length - 1)) * width;
-      const y = height - ((val - min) / range) * height;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  return (
-    <svg className="w-[120px] h-[35px]" viewBox={`0 0 ${width} ${height}`}>
-      <polyline
-        fill="none"
-        stroke={positive ? "#16c784" : "#ea3943"}
-        strokeWidth="1.5"
-        points={points}
-      />
-    </svg>
-  );
+const generateSparklinePath = (id, change24h) => {
+  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const points = [];
+  const count = 10;
+  for (let i = 0; i < count; i++) {
+    const x = (i / (count - 1)) * 50;
+    let y = 12 + Math.sin((hash + i) * 1.1) * 7;
+    y += (change24h > 0 ? (count - i) * 0.4 : (i - count) * 0.4);
+    y = Math.max(3, Math.min(21, y));
+    points.push(`${x},${y}`);
+  }
+  return `M ${points.join(" L ")}`;
 };
+
+const TelescopeIcon = () => (
+  <svg className="w-10 h-10 text-[#71717a] mb-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10.08 9.08l-5.66 5.66M14.32 4.84l4.95 4.95M11.5 7.67l2.83-2.83" />
+    <path d="M19 19l-4-4M10 21l3-6M4 21l8-8" />
+    <circle cx="12.2" cy="6.2" r="1.5" />
+  </svg>
+);
 
 const Watchlist = ({ coins }) => {
   const { currentAccount, fetchWatchlistDB, addToWatchlistDB, removeFromWatchlistDB } =
@@ -43,7 +35,6 @@ const Watchlist = ({ coins }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
-  const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
 
   // Load watchlist on connect
   useEffect(() => {
@@ -62,17 +53,6 @@ const Watchlist = ({ coins }) => {
     loadWatchlist();
   }, [currentAccount, fetchWatchlistDB]);
 
-  // Stagger animate watchlist items on load or view mode change
-  useEffect(() => {
-    if (!isLoading && watchlist.length > 0) {
-      gsap.fromTo(
-        ".watchlist-item",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: "power2.out" }
-      );
-    }
-  }, [isLoading, watchlist, viewMode]);
-
   const handleSearch = useCallback(
     async (term) => {
       if (term.trim() === "") {
@@ -82,7 +62,7 @@ const Watchlist = ({ coins }) => {
       setIsSearching(true);
       try {
         const results = await searchCoins(term, coins);
-        setSearchResults(results.slice(0, 5)); // Limit dropdown suggestions to 5 results
+        setSearchResults(results.slice(0, 5));
       } catch (error) {
         console.error("Error searching for coins:", error);
         setSearchResults([]);
@@ -150,50 +130,26 @@ const Watchlist = ({ coins }) => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#14b8a6] shadow-md shadow-teal-500/20"></div>
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FF385C]"></div>
       </div>
     );
   }
 
   return (
-    <div className="page-container premium-glow-card text-white rounded-3xl relative overflow-hidden">
-      <div className="absolute inset-0 bg-shine opacity-5 pointer-events-none"></div>
-
-      {/* Header section with toggle buttons */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <h2 className="text-4xl font-extrabold tracking-tight">
-            <span className="premium-text-gradient-primary">Your Watchlist</span>
-          </h2>
-          <p className="text-sm text-[#a1a7bb] mt-1">Explore, monitor, and manage your preferred tokens</p>
-        </div>
-
-        <div className="flex items-center space-x-2 bg-[#111827]/50 p-1 rounded-xl border border-[#374151]/85 self-end md:self-auto font-bold text-xs select-none">
-          <button
-            onClick={() => setViewMode("grid")}
-            className={`px-3 py-1.5 rounded-lg transition duration-200 ${
-              viewMode === "grid" ? "premium-btn text-white" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            Grid
-          </button>
-          <button
-            onClick={() => setViewMode("list")}
-            className={`px-3 py-1.5 rounded-lg transition duration-200 ${
-              viewMode === "list" ? "premium-btn text-white" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            List
-          </button>
-        </div>
+    <div className="page-container text-white">
+      {/* Header section */}
+      <div className="mb-6 flex flex-col items-center justify-center text-center">
+        <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          <span className="premium-text-gradient-primary">Token Watchlist</span>
+        </h1>
+        <p className="text-xs text-[#71717a] mt-1.5 max-w-md">
+          Track and manage your target cryptocurrencies in one information-dense dashboard.
+        </p>
       </div>
 
       {/* Autocomplete Search suggestions dropdown */}
-      <div className="mb-8 relative z-30">
-        <label htmlFor="watchlistSearchInput" className="block text-[#a1a7bb] text-sm font-semibold mb-2">
-          Add Coin to Watchlist
-        </label>
+      <div className="mb-6 relative max-w-lg mx-auto w-full z-30">
         <div className="relative">
           <input
             type="text"
@@ -202,7 +158,7 @@ const Watchlist = ({ coins }) => {
             placeholder="Type token name or symbol (e.g. bitcoin, eth)..."
             value={searchTerm}
             onChange={handleSearchChange}
-            className="w-full p-4 rounded-2xl text-white focus:outline-none premium-input placeholder-gray-550"
+            className="w-full h-10 px-3 pr-10 text-xs rounded bg-[#060912] border border-white/5 text-white placeholder-[#71717a] focus:outline-none focus:border-[#2563EB] transition-colors"
           />
           {searchTerm && (
             <button
@@ -210,238 +166,145 @@ const Watchlist = ({ coins }) => {
                 setSearchTerm("");
                 setSearchResults([]);
               }}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs bg-[#111827] hover:bg-[#1f2937] px-3 py-2 rounded-lg border border-[#374151] transition-all duration-200 text-gray-300 font-bold"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[10px] text-[#71717a] hover:text-white"
             >
               Clear
             </button>
+          )}
+          {isSearching && (
+            <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+              <div className="animate-spin rounded-full h-3 w-3 border border-[#FF385C] border-t-transparent"></div>
+            </div>
           )}
         </div>
 
         {/* Suggestion Dropdown Panel */}
         {searchResults.length > 0 && (
-          <div className="absolute left-0 right-0 mt-2 bg-[#111827]/95 border border-[#374151] rounded-2xl shadow-2xl overflow-hidden backdrop-filter backdrop-blur-md">
+          <div className="absolute left-0 right-0 mt-1.5 bg-[#0c1118] border border-white/5 rounded-lg shadow-2xl overflow-hidden">
             {searchResults.map((coin) => (
               <button
                 key={coin.id}
                 onClick={() => memoizedAddToWatchlist(coin)}
-                className="w-full flex justify-between items-center px-6 py-4 hover:bg-[#1f2937]/70 transition duration-200 border-b border-[#374151]/30 text-left"
+                className="w-full flex justify-between items-center px-4 py-2.5 hover:bg-white/[0.02] transition-colors border-b border-white/[0.03] text-left text-xs"
               >
                 <span className="flex items-center">
                   <img
                     src={coin.image}
                     alt={coin.name}
-                    className="w-8 h-8 mr-3 rounded-full"
+                    className="w-5 h-5 mr-2 rounded-full"
                   />
                   <span>
                     <span className="font-bold text-white">{coin.name}</span>
-                    <span className="text-[#a1a7bb] text-xs font-mono ml-2">({coin.symbol.toUpperCase()})</span>
+                    <span className="text-[#71717a] text-[10px] font-mono ml-1.5 uppercase">({coin.symbol})</span>
                   </span>
                 </span>
-                <span className="text-[#14b8a6] font-bold text-sm">
-                  Add +
+                <span className="text-[#38BDF8] font-bold text-[11px] hover:text-[#2563EB]">
+                  + Add
                 </span>
               </button>
             ))}
-          </div>
-        )}
-        {isSearching && (
-          <div className="absolute right-14 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#14b8a6] border-t-transparent"></div>
           </div>
         )}
       </div>
 
       {watchlist.length === 0 ? (
         /* Styled Empty State */
-        <div className="text-center py-16 px-4 bg-[#141520]/40 border border-[#2c2f45]/80 rounded-3xl max-w-xl mx-auto backdrop-filter backdrop-blur-sm shadow-xl">
-          <h3 className="text-2xl font-bold mb-2 text-white">No Coins Tracked</h3>
-          <p className="text-[#a1a7bb] mb-6 max-w-md mx-auto text-sm">
-            Your watchlist is currently empty. Connect your wallet or search above to add assets and monitor prices.
+        <div className="text-center py-12 px-4 bg-[#0c1118] border border-white/5 rounded-lg max-w-sm mx-auto shadow-xl">
+          <TelescopeIcon />
+          <h3 className="text-sm font-bold text-white mb-1">No coins tracked yet</h3>
+          <p className="text-[#71717a] text-[11px] mb-5 max-w-xs mx-auto leading-relaxed">
+            Search above to add assets and monitor prices in real-time.
           </p>
           <button
             onClick={() => document.getElementById("watchlistSearchInput")?.focus()}
-            className="premium-btn text-white font-bold py-2.5 px-6 rounded-full transition duration-250"
+            className="premium-btn text-white font-bold py-1.5 px-4 rounded-lg text-xs"
           >
             Find Coins
           </button>
         </div>
       ) : (
-        /* Watchlist display modes */
-        <>
-          {viewMode === "grid" ? (
-            /* Grid View */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        /* Dense Table View */
+        <div className="overflow-x-auto border border-white/5 rounded-lg bg-[#0c1118] shadow-lg max-w-3xl mx-auto">
+          <table className="w-full table-auto border-collapse">
+            <thead>
+              <tr className="bg-[#050811] text-[#a1a7bb] text-xs font-semibold border-b border-white/5 select-none">
+                <th className="px-4 py-2.5 text-left font-bold">Asset</th>
+                <th className="px-4 py-2.5 text-right font-bold">Price</th>
+                <th className="px-4 py-2.5 text-right font-bold w-24">Change (24h)</th>
+                <th className="px-4 py-2.5 text-center font-bold w-24">Trend</th>
+                <th className="px-4 py-2.5 text-right font-bold w-16">Remove</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.03]">
               {watchlist.map((coinId) => {
                 const coin = coins.find((c) => c.id === coinId);
                 if (!coin) return null;
                 const change24h = coin.price_change_percentage_24h ?? 0;
+                const isPositive = change24h >= 0;
                 return (
-                  <div
+                  <tr
                     key={coinId}
-                    className="watchlist-item premium-glow-card-interactive p-5 rounded-2xl flex flex-col justify-between"
+                    className="group hover:bg-white/[0.02] transition-colors duration-150 h-11"
                   >
-                    <div>
-                      {/* Token Logo & Info */}
-                      <div className="flex justify-between items-start mb-4">
-                        <Link to={`/coin/${coinId}`} className="flex items-center group">
-                          <img
-                            src={coin.image}
-                            alt={coin.name}
-                            className="w-10 h-10 mr-3 rounded-full shadow-lg"
-                          />
-                          <div>
-                            <h4 className="font-bold text-white group-hover:text-[#14b8a6] transition duration-200">
-                              {coin.name}
-                            </h4>
-                            <span className="text-xs text-[#a1a7bb] font-mono font-bold uppercase">
-                              {coin.symbol}
-                            </span>
-                          </div>
-                        </Link>
-
-                        <button
-                          onClick={() => memoizedRemoveFromWatchlist(coinId)}
-                          className="text-[#ea3943] hover:text-white p-1 px-2.5 text-xs font-bold bg-[#ea3943]/10 hover:bg-[#ea3943] border border-[#ea3943]/20 rounded-lg transition duration-200"
-                          aria-label={`Remove ${coin.name} from watchlist`}
-                        >
-                          Remove
-                        </button>
-                      </div>
-
-                      {/* Prices & Changes */}
-                      <div className="flex justify-between items-baseline mb-3">
-                        <p className="text-2xl font-black font-mono">
-                          ${coin.current_price?.toLocaleString() ?? "N/A"}
-                        </p>
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold font-mono ${
-                            change24h >= 0 ? "bg-emerald-500/10 text-[#16c784]" : "bg-rose-500/10 text-[#ea3943]"
-                          }`}
-                        >
-                          {change24h >= 0 ? "+" : ""}
-                          {change24h.toFixed(2)}%
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Sparkline & Details */}
-                    <div className="mt-4 pt-4 border-t border-[#374151]/30 flex justify-between items-center">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-[#a1a7bb] uppercase font-extrabold tracking-wider mb-1">
-                          7d Trend
-                        </span>
-                        <Sparkline
-                          data={coin.sparkline_in_7d?.price || []}
-                          positive={change24h >= 0}
+                    <td className="px-4 py-2">
+                      <Link to={`/coin/${coinId}`} className="flex items-center">
+                        <img
+                          src={coin.image}
+                          alt={coin.name}
+                          className="w-6 h-6 mr-2 rounded-full"
                         />
-                      </div>
-                      <Link
-                        to={`/coin/${coinId}`}
-                        className="premium-btn-secondary text-[#14b8a6] font-bold text-xs py-2 px-4 rounded-xl flex items-center transition duration-200"
-                      >
-                        Details
+                        <div className="leading-tight">
+                          <span className="font-bold text-xs text-white group-hover:text-[#FF385C] transition-colors duration-150">
+                            {coin.name}
+                          </span>
+                          <span className="text-[10px] text-[#71717a] font-mono uppercase ml-1.5">
+                            {coin.symbol}
+                          </span>
+                        </div>
                       </Link>
-                    </div>
-                  </div>
+                    </td>
+                    <td className="px-4 py-2 text-right font-mono font-bold text-xs text-white">
+                      ${coin.current_price?.toLocaleString() ?? "N/A"}
+                    </td>
+                    <td className="px-4 py-2 text-right">
+                      <span
+                        className={`font-bold font-mono text-xs ${
+                          isPositive ? "text-[#10B981]" : "text-[#EF4444]"
+                        }`}
+                      >
+                        {isPositive ? "+" : ""}
+                        {change24h.toFixed(2)}%
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <div className="flex justify-center items-center">
+                        <svg className="w-16 h-6" viewBox="0 0 50 24" fill="none">
+                          <path
+                            d={generateSparklinePath(coin.id, change24h)}
+                            stroke={isPositive ? "#10B981" : "#EF4444"}
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="animate-sparkline"
+                          />
+                        </svg>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2 text-center">
+                      <button
+                        onClick={() => memoizedRemoveFromWatchlist(coinId)}
+                        className="text-[#EF4444] hover:text-white p-1 rounded font-bold text-sm leading-none transition duration-150 inline-flex items-center justify-center w-6 h-6 hover:bg-[#EF4444]/15"
+                        title={`Remove ${coin.name}`}
+                      >
+                        &times;
+                      </button>
+                    </td>
+                  </tr>
                 );
               })}
-            </div>
-          ) : (
-            /* List View */
-            <div className="overflow-x-auto rounded-2xl border border-[#374151]/85 shadow-2xl">
-              <table className="min-w-full bg-[#1f2937]/40 border-collapse">
-                <thead>
-                  <tr className="bg-[#111827] text-[#a1a7bb] text-xs font-bold uppercase border-b border-[#374151]">
-                    <th className="px-6 py-4 text-left">Token</th>
-                    <th className="px-6 py-4 text-right">Price</th>
-                    <th className="px-6 py-4 text-right">24h Change</th>
-                    <th className="px-6 py-4 text-center">7d Sparkline</th>
-                    <th className="px-6 py-4 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#374151]/30">
-                  {watchlist.map((coinId) => {
-                    const coin = coins.find((c) => c.id === coinId);
-                    if (!coin) return null;
-                    const change24h = coin.price_change_percentage_24h ?? 0;
-                    return (
-                      <tr
-                        key={coinId}
-                        className="watchlist-item hover:bg-[#1f2937]/50 transition duration-200"
-                      >
-                        {/* Token info */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <Link
-                            to={`/coin/${coinId}`}
-                            className="flex items-center text-[#14b8a6] hover:text-[#0d9488] group"
-                          >
-                            <img
-                              src={coin.image}
-                              alt={coin.name}
-                              className="w-8 h-8 mr-3 rounded-full"
-                            />
-                            <div>
-                              <div className="font-bold text-white group-hover:text-[#14b8a6] transition duration-200">
-                                {coin.name}
-                              </div>
-                              <div className="text-xs text-[#a1a7bb] font-mono font-bold uppercase">
-                                {coin.symbol}
-                              </div>
-                            </div>
-                          </Link>
-                        </td>
-                        
-                        {/* Price */}
-                        <td className="px-6 py-4 whitespace-nowrap text-right font-mono font-bold text-base">
-                          ${coin.current_price?.toLocaleString() ?? "N/A"}
-                        </td>
-
-                        {/* 24h change */}
-                        <td
-                          className={`px-6 py-4 whitespace-nowrap text-right font-mono font-bold text-sm ${
-                            change24h >= 0 ? "text-[#16c784]" : "text-[#ea3943]"
-                          }`}
-                        >
-                          {change24h >= 0 ? "+" : ""}
-                          {change24h.toFixed(2)}%
-                        </td>
-
-                        {/* Sparkline */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex justify-center">
-                            <Sparkline
-                              data={coin.sparkline_in_7d?.price || []}
-                              positive={change24h >= 0}
-                            />
-                          </div>
-                        </td>
-
-                        {/* Actions */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center justify-center space-x-3">
-                            <Link
-                              to={`/coin/${coinId}`}
-                              className="text-xs premium-btn-secondary text-[#14b8a6] font-bold px-3 py-1.5 rounded-lg transition duration-200"
-                            >
-                              View
-                            </Link>
-                            <button
-                              onClick={() => memoizedRemoveFromWatchlist(coinId)}
-                              className="text-[#ea3943] hover:text-white text-xs font-bold px-3 py-1.5 bg-[#ea3943]/10 hover:bg-[#ea3943] border border-[#ea3943]/20 rounded-lg transition duration-200"
-                              aria-label={`Remove ${coin.name}`}
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
