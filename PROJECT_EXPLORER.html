@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Portfolio — Project Explorer</title>
+<style>
+:root{
+  --bg:#050811; --bg2:#0a0f1e; --panel:#0d1424; --panel2:#111a2e;
+  --line:#1c2740; --line2:#2a3category;
+  --coral:#FF385C; --coral2:#FF7B00; --cobalt:#2563EB; --cyan:#22d3ee;
+  --txt:#e8ecf5; --dim:#a1a7bb; --dim2:#6b7488;
+  --ok:#16c784; --warn:#f0b90b; --bad:#ea3943;
+  --mono:'SF Mono',Menlo,Consolas,'Roboto Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--txt); font:15px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  display:flex; min-height:100vh;
+}
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(600px 600px at 88% -8%, rgba(255,56,92,.07), transparent 60%),
+    radial-gradient(600px 600px at -8% 108%, rgba(37,99,235,.08), transparent 60%);
+}
+/* ---------- sidebar ---------- */
+aside{
+  width:250px; flex:0 0 250px; background:var(--bg2); border-right:1px solid var(--line);
+  position:sticky; top:0; height:100vh; overflow-y:auto; z-index:5; padding:22px 0 40px;
+}
+.brand{display:flex;align-items:center;gap:11px;padding:0 20px 20px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--coral),var(--coral2));display:grid;place-items:center;flex:0 0 34px;box-shadow:0 4px 16px rgba(255,56,92,.3)}
+.logo i{width:13px;height:13px;border-radius:50%;background:#fff;display:block}
+.brand b{display:block;font-size:15px;letter-spacing:-.3px;line-height:1.2}
+.brand span{font-size:9.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--dim2);font-weight:700}
+nav a{
+  display:flex;align-items:center;gap:10px;padding:9px 20px;color:var(--dim);text-decoration:none;
+  font-size:13.5px;font-weight:500;border-left:2px solid transparent;transition:.15s;
+}
+nav a:hover{color:var(--txt);background:rgba(255,255,255,.03)}
+nav a.on{color:#fff;border-left-color:var(--coral);background:linear-gradient(90deg,rgba(255,56,92,.12),transparent)}
+nav a em{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--dim2);width:16px}
+nav a.on em{color:var(--coral)}
+.navgap{height:1px;background:var(--line);margin:12px 20px}
+.sidefoot{padding:14px 20px 0;font-size:11px;color:var(--dim2);line-height:1.7}
+.sidefoot code{font-family:var(--mono);color:var(--dim)}
+/* ---------- main ---------- */
+main{flex:1;min-width:0;padding:38px 44px 100px;position:relative;z-index:1;max-width:1240px}
+section{scroll-margin-top:24px;margin-bottom:64px;display:none}
+section.on{display:block;animation:fade .3s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1{font-size:30px;font-weight:800;letter-spacing:-.9px;margin-bottom:6px}
+h1 .n{font-family:var(--mono);font-size:15px;color:var(--coral);margin-right:10px;font-weight:600;vertical-align:middle}
+.sub{color:var(--dim);font-size:14px;margin-bottom:30px;max-width:74ch}
+h2{font-size:15px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--dim);margin:34px 0 14px;display:flex;align-items:center;gap:10px}
+h2::after{content:'';flex:1;height:1px;background:var(--line)}
+h3{font-size:15.5px;font-weight:700;margin-bottom:8px}
+p{color:var(--dim);font-size:14px}
+code{font-family:var(--mono);font-size:12.5px;background:rgba(255,255,255,.05);padding:1.5px 6px;border-radius:4px;color:#ffb3c1;white-space:nowrap}
+a.f{color:var(--cyan);text-decoration:none;font-family:var(--mono);font-size:12.5px;border-bottom:1px dotted rgba(34,211,238,.4)}
+a.f:hover{border-bottom-style:solid}
+/* ---------- cards / grid ---------- */
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px;transition:.2s}
+.card.hov:hover{border-color:rgba(255,56,92,.35);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.stat{background:linear-gradient(160deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:13px;padding:16px 18px}
+.stat .k{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;color:var(--dim2);font-weight:800;margin-bottom:7px}
+.stat .v{font-size:22px;font-weight:800;letter-spacing:-.6px}
+.stat .d{font-size:11.5px;color:var(--dim);margin-top:3px}
+.tag{display:inline-block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;padding:3px 9px;border-radius:20px;margin-right:5px}
+.t-ok{background:rgba(22,199,132,.14);color:var(--ok)}
+.t-warn{background:rgba(240,185,11,.14);color:var(--warn)}
+.t-bad{background:rgba(234,57,67,.14);color:var(--bad)}
+.t-info{background:rgba(37,99,235,.18);color:#7ba3f5}
+.t-coral{background:rgba(255,56,92,.14);color:var(--coral)}
+/* ---------- table ---------- */
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:6px 0 4px}
+th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1.1px;color:var(--dim2);font-weight:800;padding:9px 12px;border-bottom:1px solid var(--line)}
+td{padding:10px 12px;border-bottom:1px solid rgba(28,39,64,.55);color:var(--dim);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.018)}
+td b{color:var(--txt);font-weight:600}
+/* ---------- arch map ---------- */
+.layers{display:flex;flex-direction:column;gap:0;margin-bottom:20px}
+.lnode{
+  background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--c,var(--cobalt));
+  border-radius:11px;padding:14px 18px;cursor:pointer;transition:.18s;display:flex;align-items:center;gap:14px;
+}
+.lnode:hover{background:var(--panel2);transform:translateX(4px)}
+.lnode.on{background:var(--panel2);border-color:var(--c);box-shadow:0 0 0 1px var(--c),0 8px 26px rgba(0,0,0,.4)}
+.lnode .ic{width:38px;height:38px;flex:0 0 38px;border-radius:10px;display:grid;place-items:center;font-size:17px;background:rgba(255,255,255,.04)}
+.lnode .tt{flex:1}
+.lnode .tt b{display:block;font-size:14.5px}
+.lnode .tt small{color:var(--dim2);font-size:11.5px}
+.lnode .ar{color:var(--dim2);font-size:18px;transition:.2s}
+.lnode.on .ar{transform:rotate(90deg);color:var(--c)}
+.arrow{text-align:center;color:var(--dim2);font-size:15px;line-height:1;padding:5px 0;letter-spacing:2px}
+.ldetail{display:none;margin:8px 0 4px 24px;padding:16px 18px;background:var(--bg2);border:1px solid var(--line);border-left:2px solid var(--c);border-radius:0 11px 11px 0}
+.ldetail.on{display:block;animation:fade .25s}
+.ldetail dl{display:grid;grid-template-columns:112px 1fr;gap:8px 14px;font-size:13px}
+.ldetail dt{color:var(--dim2);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:800;padding-top:2px}
+.ldetail dd{color:var(--dim)}
+.ldetail dd ul{list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.ldetail dd li{background:rgba(255,255,255,.04);border:1px solid var(--line);padding:2px 9px;border-radius:6px;font-family:var(--mono);font-size:11.5px;color:var(--txt)}
+/* ---------- tree ---------- */
+.tree{font-family:var(--mono);font-size:13px}
+.tdir{padding:7px 10px;cursor:pointer;border-radius:7px;color:#8fb4ff;font-weight:600;display:flex;align-items:center;gap:8px;transition:.15s}
+.tdir:hover{background:rgba(255,255,255,.04)}
+.tdir .cx{color:var(--dim2);font-size:10px;width:10px;transition:.2s;display:inline-block}
+.tdir.open .cx{transform:rotate(90deg)}
+.tdir small{font-family:-apple-system,sans-serif;color:var(--dim2);font-size:11px;font-weight:400;margin-left:auto}
+.tkids{display:none;margin-left:15px;padding-left:13px;border-left:1px solid var(--line)}
+.tkids.open{display:block}
+.tfile{padding:6px 10px;cursor:pointer;border-radius:7px;color:var(--dim);display:flex;align-items:center;gap:8px;transition:.15s}
+.tfile:hover{background:rgba(255,255,255,.04);color:var(--txt)}
+.tfile.on{background:rgba(255,56,92,.1);color:#fff}
+.tfile .dot{width:5px;height:5px;border-radius:50%;background:var(--dim2);flex:0 0 5px}
+.tfile.on .dot,.tfile.star .dot{background:var(--coral)}
+.tfile.star{color:#ffd0d9}
+.fdetail{position:sticky;top:24px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:20px;max-height:78vh;overflow-y:auto}
+.fdetail .path{font-family:var(--mono);font-size:11.5px;color:var(--cyan);word-break:break-all;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.fdetail h4{font-size:10px;text-transform:uppercase;letter-spacing:1.1px;color:var(--dim2);font-weight:800;margin:16px 0 7px}
+.fdetail ul{list-style:none;font-size:13px;color:var(--dim)}
+.fdetail ul li{padding:3px 0 3px 14px;position:relative}
+.fdetail ul li::before{content:'▸';position:absolute;left:0;color:var(--coral);font-size:10px;top:5px}
+.fdetail .fn{font-family:var(--mono);font-size:12px;color:#ffb3c1}
+/* ---------- feature cards ---------- */
+.fcard{background:var(--panel);border:1px solid var(--line);border-radius:13px;overflow:hidden;transition:.2s}
+.fcard.open{border-color:rgba(255,56,92,.35)}
+.fhead{padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:13px}
+.fhead:hover{background:rgba(255,255,255,.02)}
+.fhead .ic{width:36px;height:36px;flex:0 0 36px;border-radius:10px;display:grid;place-items:center;font-size:16px;background:linear-gradient(135deg,rgba(255,56,92,.16),rgba(37,99,235,.16))}
+.fhead .tt{flex:1;min-width:0}
+.fhead .tt b{font-size:15px;display:block}
+.fhead .tt small{color:var(--dim2);font-size:12px}
+.fbody{display:none;padding:0 20px 20px;border-top:1px solid var(--line)}
+.fbody.open{display:block}
+.fsec{margin-top:15px}
+.fsec>b{font-size:10px;text-transform:uppercase;letter-spacing:1.1px;color:var(--dim2);font-weight:800;display:block;margin-bottom:6px}
+.fsec p,.fsec ul{font-size:13.5px;color:var(--dim)}
+.fsec ul{list-style:none}
+.fsec ul li{padding:2.5px 0 2.5px 15px;position:relative}
+.fsec ul li::before{content:'▪';position:absolute;left:2px;color:var(--coral)}
+.steps{display:flex;flex-wrap:wrap;gap:7px;align-items:center;font-size:12px}
+.steps .s{background:var(--bg2);border:1px solid var(--line);padding:5px 11px;border-radius:7px;font-family:var(--mono);font-size:11.5px}
+.steps .a{color:var(--coral);font-weight:700}
+/* ---------- flow ---------- */
+.tabs{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+.tab{padding:7px 15px;border-radius:8px;background:var(--panel);border:1px solid var(--line);cursor:pointer;font-size:12.5px;font-weight:600;color:var(--dim);transition:.15s}
+.tab:hover{color:var(--txt);border-color:var(--dim2)}
+.tab.on{background:linear-gradient(135deg,var(--coral),var(--coral2));color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(255,56,92,.28)}
+.flowbox{display:none}
+.flowbox.on{display:block;animation:fade .25s}
+.fl{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid rgba(28,39,64,.55)}
+.fl:last-child{border-bottom:none}
+.fl .num{width:26px;height:26px;flex:0 0 26px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:11px;color:var(--coral);font-weight:700}
+.fl .c b{display:block;font-size:14px;margin-bottom:3px}
+.fl .c small{color:var(--dim);font-size:12.8px;display:block;line-height:1.55}
+.fl .c .where{font-family:var(--mono);font-size:11px;color:var(--cyan);margin-top:4px;display:block}
+pre.ascii{background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:18px;overflow-x:auto;font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--dim);white-space:pre}
+pre.ascii b{color:var(--coral);font-weight:600}
+pre.ascii i{color:var(--cyan);font-style:normal}
+pre.ascii u{color:var(--ok);text-decoration:none}
+/* ---------- debt ---------- */
+.filters{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap}
+.debt{border-left:3px solid var(--sc);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--sc);border-radius:0 11px 11px 0;padding:15px 18px;margin-bottom:11px}
+.debt .top{display:flex;align-items:center;gap:10px;margin-bottom:7px;flex-wrap:wrap}
+.debt .top b{font-size:14.5px}
+.debt p{font-size:13.3px;margin-bottom:5px}
+.debt .fix{font-size:12.5px;color:var(--dim2);padding-left:12px;border-left:2px solid var(--line)}
+.debt .fix b{color:var(--ok);font-weight:600}
+/* ---------- modification ---------- */
+.mod{background:var(--panel);border:1px solid var(--line);border-radius:11px;margin-bottom:10px;overflow:hidden}
+.mhead{padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:11px;font-weight:600;font-size:14px}
+.mhead:hover{background:rgba(255,255,255,.02)}
+.mhead .q{color:var(--coral);font-family:var(--mono);font-size:13px}
+.mhead .ar{margin-left:auto;color:var(--dim2);transition:.2s}
+.mod.open .mhead .ar{transform:rotate(90deg)}
+.mbody{display:none;padding:0 18px 16px;font-size:13.5px}
+.mod.open .mbody{display:block}
+.mbody ol{margin-left:18px;color:var(--dim)}
+.mbody ol li{padding:4px 0}
+.warnbox{background:rgba(234,57,67,.07);border:1px solid rgba(234,57,67,.25);border-radius:9px;padding:11px 14px;margin-top:11px;font-size:12.8px;color:#ffb0b5}
+.warnbox b{color:var(--bad)}
+.okbox{background:rgba(22,199,132,.06);border:1px solid rgba(22,199,132,.22);border-radius:9px;padding:11px 14px;margin-top:11px;font-size:12.8px;color:#8fe3c0}
+/* ---------- memory ---------- */
+.mem{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px;margin-bottom:14px}
+.mem>b{font-size:14.5px;display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.mem ul{list-style:none;font-size:13.5px;color:var(--dim)}
+.mem ul li{padding:6px 0 6px 18px;position:relative;border-bottom:1px solid rgba(28,39,64,.4)}
+.mem ul li:last-child{border-bottom:none}
+.mem ul li::before{content:'—';position:absolute;left:0;color:var(--coral)}
+.mem ul li b{color:var(--txt)}
+.bar{height:6px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--coral),var(--coral2))}
+@media(max-width:960px){
+  body{flex-direction:column}
+  aside{width:100%;flex:none;height:auto;position:relative}
+  nav{display:flex;flex-wrap:wrap;padding:0 12px}
+  nav a{border-left:none;border-bottom:2px solid transparent;padding:8px 12px}
+  nav a.on{border-left:none;border-bottom-color:var(--coral);background:none}
+  .navgap{display:none}
+  main{padding:24px 18px 80px}
+  .split{grid-template-columns:1fr!important}
+  .fdetail{position:relative;top:0}
+}
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="brand">
+    <div class="logo"><i></i></div>
+    <div><b>Project Explorer</b><span>Crypto Portfolio</span></div>
+  </div>
+  <nav id="nav">
+    <a href="#brain" class="on"><em>01</em> Project Brain</a>
+    <a href="#arch"><em>02</em> Architecture Map</a>
+    <a href="#code"><em>03</em> Codebase Navigator</a>
+    <a href="#feat"><em>04</em> Feature Cards</a>
+    <a href="#flow"><em>05</em> Flow Diagrams</a>
+    <div class="navgap"></div>
+    <a href="#mem"><em>06</em> Developer Memory</a>
+    <a href="#debt"><em>07</em> Tech Debt Radar</a>
+    <a href="#mod"><em>08</em> Modification Guide</a>
+  </nav>
+  <div class="sidefoot">
+    Companion docs:<br>
+    <code>PROJECT_MEMORY.md</code><br>
+    <code>ARCHITECTURE.md</code><br>
+    <code>PROJECT_OVERVIEW.md</code>
+  </div>
+</aside>
+
+<main>
+
+<!-- ══════════════ 1. BRAIN ══════════════ -->
+<section id="brain" class="on">
+  <h1><span class="n">01</span>Project Brain</h1>
+  <p class="sub">Crypto portfolio dashboard fused with a Web3 token dApp. Two halves that share a shell but almost no plumbing — market data is read-only and serverless-capable; the chain half is wallet-driven and indexed by a Node backend.</p>
+
+  <div class="grid g4">
+    <div class="stat"><div class="k">Packages</div><div class="v">3</div><div class="d">server · vite-project · smart_contract</div></div>
+    <div class="stat"><div class="k">Chain</div><div class="v">Sepolia</div><div class="d">ERC20 "MyToken" (MTK)</div></div>
+    <div class="stat"><div class="k">Auth</div><div class="v" style="color:var(--bad)">None</div><div class="d">Signature is decorative</div></div>
+    <div class="stat"><div class="k">Fallbacks</div><div class="v" style="color:var(--ok)">3 layers</div><div class="d">DB · API · chain all optional</div></div>
+  </div>
+
+  <h2>Why It Exists</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3>The problem</h3>
+      <p>Standard portfolio trackers show prices. Standard wallets send tokens. Neither records <em>why</em> a transfer happened.</p>
+    </div>
+    <div class="card">
+      <h3>The bet</h3>
+      <p>Put transfer metadata (message, category, tags) <b style="color:var(--txt)">on-chain</b> inside a custom ERC20, then index the emitted events server-side so history is queryable without hammering RPC.</p>
+    </div>
+  </div>
+
+  <h2>Maturity</h2>
+  <div class="card">
+    <div class="grid g2" style="gap:22px">
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:13px"><b>Feature completeness</b><span style="color:var(--dim)">~80%</span></div>
+        <div class="bar"><i style="width:80%"></i></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:14px"><b>Production readiness</b><span style="color:var(--dim)">~30%</span></div>
+        <div class="bar"><i style="width:30%;background:linear-gradient(90deg,var(--bad),var(--warn))"></i></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:14px"><b>Test coverage</b><span style="color:var(--dim)">~5%</span></div>
+        <div class="bar"><i style="width:5%;background:var(--bad)"></i></div>
+      </div>
+      <div>
+        <p style="font-size:13.5px;line-height:1.75">
+        <span class="tag t-ok">works</span> Market browsing, watchlist, wallet connect, single + batch transfer, allowance manager, admin fee panel, event indexing, offline fallbacks.<br><br>
+        <span class="tag t-warn">rough</span> No tests beyond a Hardhat stub. Manual ABI sync. Port config mismatch.<br><br>
+        <span class="tag t-bad">blocking prod</span> Zero API auth. Unbounded on-chain array. localStorage session spoofable.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Tech Stack — and why each piece is here</h2>
+  <table>
+    <thead><tr><th style="width:110px">Layer</th><th style="width:220px">Choice</th><th>Reason it's in the repo</th></tr></thead>
+    <tbody>
+      <tr><td><b>UI</b></td><td>React 18 + Vite 5</td><td>Fast HMR; lazy routes keep the ethers-heavy bundle off the landing page</td></tr>
+      <tr><td><b>Style</b></td><td>Tailwind 3 + custom <code>premium-*</code></td><td>"Coral &amp; Cobalt" dark theme — <code>#FF385C</code> / <code>#2563EB</code> on <code>#050811</code></td></tr>
+      <tr><td><b>Motion</b></td><td>GSAP + framer-motion</td><td>Card entrance + counters on Home/TopCoins. Chunked separately in Vite config</td></tr>
+      <tr><td><b>Charts</b></td><td>Chart.js + react-chartjs-2</td><td>Coin price history line chart in CoinDetails</td></tr>
+      <tr><td><b>Web3 client</b></td><td>ethers <b>v6</b> + MetaMask</td><td><code>BrowserProvider</code> → signer → contract. All writes originate in the browser</td></tr>
+      <tr><td><b>Backend</b></td><td>Express 4 (CommonJS)</td><td>REST + helmet/cors/rate-limit. Deliberately boring</td></tr>
+      <tr><td><b>DB</b></td><td>MongoDB / Mongoose 9</td><td>Price cache + tx index + watchlists. <b>Optional</b> — JSON files take over</td></tr>
+      <tr><td><b>Web3 server</b></td><td>ethers v6 + Alchemy RPC</td><td>Read-only: event subscription + boot-time historical reconcile</td></tr>
+      <tr><td><b>Contract</b></td><td>Solidity 0.8.27, OZ ERC20+Ownable, Hardhat (ethers <b>v5</b>)</td><td>Battle-tested token base; owner-controlled basis-point fee</td></tr>
+      <tr><td><b>Deploy</b></td><td>Netlify (<code>netlify.toml</code>)</td><td>base <code>vite-project</code>, publish <code>dist</code>, SPA redirect. <b>Frontend only</b> — server isn't deployed by this config</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Architecture at a Glance</h2>
+  <pre class="ascii">                          ┌───────────────────────────┐
+                          │        <b>BROWSER</b>            │
+                          │  React SPA (Netlify/dist)  │
+                          └──┬────────────┬───────────┬┘
+            direct fetch     │            │           │   MetaMask
+        ┌────────────────────┘            │           └──────────────┐
+        ▼                                 │ /api proxy               ▼
+┌────────────────┐                        ▼                 ┌────────────────┐
+│ <i>CoinGecko API</i>  │              ┌──────────────┐        │ <b>Sepolia</b>         │
+│ markets/charts │              │ <b>Express srv</b>  │        │ Transactions   │
+└────────────────┘              │ :3000        │        │ .sol (ERC20)   │
+     ▲ (also, unused path)      │              │        └───────┬────────┘
+     └────────────────────────  │ market svc   │                │ emits
+                                │ watchlist    │                │ TransactionAdded
+                                │ tx history   │                ▼
+                                │ blockchain ──┼──── Alchemy RPC listener
+                                └──────┬───────┘
+                                       ▼
+                          ┌────────────────────────┐
+                          │ <u>MongoDB</u>  ── or ──  <u>JSON</u> │
+                          │ PriceCache · Transaction · Watchlist │
+                          └────────────────────────┘
+
+  <b>KEY INSIGHT:</b> the browser talks to CoinGecko and the chain <i>directly</i>.
+  The server is an <i>optional accelerator</i>, not a gateway. Kill it and the app still runs.</pre>
+
+  <h2>Jump To</h2>
+  <div class="grid g3">
+    <div class="card hov" onclick="go('arch')" style="cursor:pointer"><h3>🗺️ Architecture Map</h3><p>Layer-by-layer nodes: purpose, files, deps.</p></div>
+    <div class="card hov" onclick="go('code')" style="cursor:pointer"><h3>📂 Codebase Navigator</h3><p>Meaningful files, when to touch each.</p></div>
+    <div class="card hov" onclick="go('feat')" style="cursor:pointer"><h3>🧩 Feature Cards</h3><p>7 features: journey → reality → limits.</p></div>
+    <div class="card hov" onclick="go('flow')" style="cursor:pointer"><h3>🔀 Flow Diagrams</h3><p>Lifecycle, auth, data movement, business logic.</p></div>
+    <div class="card hov" onclick="go('mem')" style="cursor:pointer"><h3>🧠 Developer Memory</h3><p>Why the code looks like this. Don't-break list.</p></div>
+    <div class="card hov" onclick="go('debt')" style="cursor:pointer"><h3>⚠️ Tech Debt Radar</h3><p>Critical → low, with fixes.</p></div>
+  </div>
+</section>
+
+<!-- ══════════════ 2. ARCH MAP ══════════════ -->
+<section id="arch">
+  <h1><span class="n">02</span>Interactive Architecture Map</h1>
+  <p class="sub">Click any layer to expand its contract: what it owns, which files implement it, what it depends on, and what breaks downstream if you change it.</p>
+  <div class="layers" id="layers"></div>
+  <div class="card" style="margin-top:22px;border-color:rgba(37,99,235,.3)">
+    <h3>🔑 The one thing to remember about this architecture</h3>
+    <p><b style="color:var(--txt)">There is no single request path.</b> Three independent pipelines share a UI shell: (1) market data browser→CoinGecko, (2) chain writes browser→MetaMask→contract, (3) chain reads server→Alchemy→Mongo→REST. Debugging means first asking <em>which pipeline</em>.</p>
+  </div>
+</section>
+
+<!-- ══════════════ 3. CODE NAV ══════════════ -->
+<section id="code">
+  <h1><span class="n">03</span>Codebase Navigator</h1>
+  <p class="sub">Only files that carry meaning. Boilerplate, artifacts, and generated output omitted. <span class="tag t-coral" style="margin-left:6px">★ = high-traffic file</span></p>
+  <div class="grid split" style="grid-template-columns:1fr 1.15fr;gap:20px;align-items:start">
+    <div class="card" style="padding:12px"><div class="tree" id="tree"></div></div>
+    <div class="fdetail" id="fdetail"></div>
+  </div>
+</section>
+
+<!-- ══════════════ 4. FEATURES ══════════════ -->
+<section id="feat">
+  <h1><span class="n">04</span>Feature Knowledge Cards</h1>
+  <p class="sub">Each card separates <b style="color:var(--txt)">what it's supposed to do</b> from <b style="color:var(--txt)">what the code actually does today</b>. The gap between those two is where the bugs live.</p>
+  <div class="grid" id="feats" style="gap:11px"></div>
+</section>
+
+<!-- ══════════════ 5. FLOWS ══════════════ -->
+<section id="flow">
+  <h1><span class="n">05</span>System Flow Diagrams</h1>
+  <p class="sub">Step-by-step traces with the file that owns each step.</p>
+  <div class="tabs" id="flowtabs"></div>
+  <div id="flows"></div>
+</section>
+
+<!-- ══════════════ 6. MEMORY ══════════════ -->
+<section id="mem">
+  <h1><span class="n">06</span>Developer Memory</h1>
+  <p class="sub">The context that isn't in the code and isn't in git history.</p>
+  <div id="memzone"></div>
+</section>
+
+<!-- ══════════════ 7. DEBT ══════════════ -->
+<section id="debt">
+  <h1><span class="n">07</span>Technical Debt Radar</h1>
+  <p class="sub">Prioritized by blast radius, not effort.</p>
+  <div class="filters" id="dfilters"></div>
+  <div id="debts"></div>
+</section>
+
+<!-- ══════════════ 8. MODIFICATION ══════════════ -->
+<section id="mod">
+  <h1><span class="n">08</span>Modification Guide</h1>
+  <p class="sub">"If I want to change X…" — the exact files, in order, plus the traps.</p>
+  <div id="mods"></div>
+</section>
+
+</main>
+
+<script>
+/* ═══════════════ DATA ═══════════════ */
+
+const LAYERS = [
+  { id:'user', ic:'👤', c:'#a1a7bb', t:'User', s:'Browser + MetaMask extension',
+    purpose:'Human with a wallet. Two personas: read-only visitor (no wallet) and connected holder. A third, the contract owner, unlocks the admin route.',
+    files:['MetaMask (external)','localStorage'],
+    resp:['Approve tx signatures','Hold MTK balance','Own localStorage watchlist state'],
+    deps:['window.ethereum injected provider'],
+    rel:'Frontend Shell, Auth flow' },
+
+  { id:'fe', ic:'⚛️', c:'#61dafb', t:'Frontend Shell', s:'React 18 + Vite · routing, layout, global market fetch',
+    purpose:'Owns routing, theming, the ErrorBoundary, and the ONE global CoinGecko fetch whose result is prop-drilled into every market view.',
+    files:['App.jsx','components/Homepage/Navbar.jsx','components/ErrorBoundary.jsx','App.css'],
+    resp:['Lazy-load all 6 route components','Fetch 100 coins once on mount, hold in state','Render loading / error shells','Redirect deprecated /approveallowance + /allowancecheck → /allowance'],
+    deps:['api.js','TransactionContext','react-router-dom v6'],
+    rel:'State Hub, Market Service' },
+
+  { id:'state', ic:'🧠', c:'#FF385C', t:'State Management', s:'TransactionContext.jsx — single React Context, ~540 lines',
+    purpose:'The god-object. Every wallet interaction, contract call, admin check, and watchlist REST call lives here. There is no Redux/Zustand — deliberately.',
+    files:['context/TransactionContext.jsx','utils/constant.js'],
+    resp:['connectWallet / disconnectWallet / checkIfWalletIsConnect','sendTransaction + sendBatchTransaction','checkAllowance / approveAllowance / checkTokenBalance','checkAdminStatus + updateFeePercentage','fetch/add/remove watchlist via REST','syncLocalWatchlistToDB on connect','Persist account+signature to localStorage'],
+    deps:['ethers v6','window.ethereum','axios → /api/watchlist','VITE_CONTRACT_ADDRESS'],
+    rel:'ALL components consume this. Change it and everything moves.' },
+
+  { id:'svc', ic:'🔌', c:'#22d3ee', t:'Client Services / APIs', s:'api.js (CoinGecko) + constant.js (contract glue)',
+    purpose:'Thin adapters. api.js wraps CoinGecko with an in-memory Map cache, 429 backoff, and a hardcoded MOCK_COINS dataset so the UI never shows an empty state.',
+    files:['api.js','utils/constant.js','utils/debounce.js','abis/ERC20_ABI.json','utils/Transactions.json'],
+    resp:['5-min TTL cache keyed by JSON({url,params})','3× retry with 2s delay on HTTP 429','MOCK_COINS fallback (10 coins) on total failure','verifyContract() boot check w/ exponential retry','Standalone checkAllowance/approveAllowance helpers'],
+    deps:['axios','CoinGecko v3 API','VITE_COINGECKO_API_KEY (optional)'],
+    rel:'Frontend Shell, CoinDetails, Watchlist' },
+
+  { id:'be', ic:'🖥️', c:'#16c784', t:'Backend (Express)', s:'server/ — REST API + chain indexer',
+    purpose:'An optional accelerator, not a gateway. Serves paginated tx history, watchlists, and a cached market endpoint. Also runs the on-chain event listener.',
+    files:['index.js','src/app.js','src/routes/*','src/controllers/*','src/services/*'],
+    resp:['Boot: env → connectDB → historical sync → event listener → listen','helmet + cors + json(10kb) + rateLimit(100/15min)','GET /api/transactions/:address (paginated), /count','GET|POST|DELETE /api/watchlist/:address[/coins]','GET /api/market/coins[/:coinId]','GET /health (reports dbState)'],
+    deps:['MongoDB (optional)','Alchemy RPC (optional)','CoinGecko (optional)'],
+    rel:'Every controller branches on dbState → Mongo or JSON file' },
+
+  { id:'data', ic:'🗄️', c:'#f0b90b', t:'Persistence', s:'MongoDB · or · server/data/*.json',
+    purpose:'Dual-mode storage. dbState.connected decides which. Response shapes are identical so callers never know which one answered.',
+    files:['src/config/db.js','src/models/{Transaction,Watchlist,PriceCache,User}.js','data/watchlist.json','data/transactions.json'],
+    resp:['Transaction: sender/recipient indexed+lowercased, amount as String (wei-safe), txHash unique+sparse','Watchlist: per-wallet coin array','PriceCache: CoinGecko snapshot, 5-min freshness','User: DEFINED BUT UNUSED — no route references it'],
+    deps:['mongoose 9','fs (sync writes for JSON mode)'],
+    rel:'db.js forces DNS 8.8.8.8 to defeat querySrv ECONNREFUSED' },
+
+  { id:'chain', ic:'⛓️', c:'#9d7bff', t:'Blockchain', s:'Transactions.sol on Sepolia',
+    purpose:'ERC20 "MyToken"/MTK that also acts as a metadata ledger. Owner takes a basis-point fee on every transfer.',
+    files:['contracts/Transactions.sol','scripts/deploy.js','hardhat.config.js'],
+    resp:['addToBlockchain / addToBlockchainBatch → _processTransaction','fee = amount * feePercentage / 10000, default 100 bp (1%), cap 1000 (10%)','Push TransferStruct + emit TransactionAdded','getAllTransactions() returns the ENTIRE array','setFeePercentage onlyOwner — the only real access control in the system'],
+    deps:['OpenZeppelin ERC20 + Ownable','Solidity 0.8.27','ethers v5 tooling (hardhat)'],
+    rel:'Frontend calls it directly; server only reads it' },
+
+  { id:'ext', ic:'🌐', c:'#7ba3f5', t:'External Systems', s:'CoinGecko · Alchemy · Etherscan · Netlify',
+    purpose:'Third-party dependencies. Every one is degradable.',
+    files:['—'],
+    resp:['CoinGecko: called from BOTH browser and server, independently','Alchemy: server-side RPC for event listener + historical read; also hardhat deploy network','Etherscan: fetchContractABI() exists in context but is effectively dead code','Netlify: builds vite-project → dist, SPA redirect. Backend NOT deployed here'],
+    deps:['VITE_COINGECKO_API_KEY / COINGECKO_API_KEY','ALCHEMY_URL','VITE_ETHERSCAN_API_KEY'],
+    rel:'Missing any key degrades but never crashes' },
+];
+
+const TREE = [
+  { d:'/ (root)', note:'orchestrator', kids:[
+    { f:'package.json', star:0, p:'Runs server + client concurrently. install:all bootstraps all 4 package dirs.', fn:['npm run dev','npm run install:all','npm run build'], conn:['server/package.json','vite-project/package.json'], when:'Adding a workspace-level script or changing dev orchestration.' },
+    { f:'netlify.toml', star:0, p:'Frontend-only deploy config: base vite-project, publish dist, SPA catch-all redirect.', fn:['[build] base/command/publish','[[redirects]] /* → /index.html 200'], conn:['vite-project/vite.config.js'], when:'Changing deploy target, adding env to build, or adding server-side functions.' },
+    { f:'.env  (root — NOT committed)', star:1, p:'Vite reads env from HERE, not vite-project/, because vite.config sets envDir:"../".', fn:['VITE_CONTRACT_ADDRESS','VITE_COINGECKO_API_KEY','VITE_ETHERSCAN_API_KEY'], conn:['vite-project/vite.config.js','utils/constant.js'], when:'After redeploying the contract, or rotating API keys. Easy to forget it lives at ROOT.' },
+  ]},
+  { d:'server/', note:'Express API + chain indexer', kids:[
+    { f:'index.js', star:1, p:'Boot orchestrator. Loads dotenv FIRST, then DB, then historical sync, then event listener, then listen. Every chain/DB step is wrapped try/catch and non-fatal by design.', fn:['start()','shutdown(signal) — SIGTERM/SIGINT, 10s force-kill'], conn:['src/app.js','src/config/db.js','src/services/blockchainService.js'], when:'Changing boot order, adding a startup job, or changing graceful-shutdown behavior.' },
+    { f:'src/app.js', star:0, p:'Express assembly. Note: the /api "DB health guard" middleware is a NO-OP stub — it calls next() unconditionally. The real fallback logic lives in each controller.', fn:['helmet → cors → json(10kb) → rateLimit(100/15min)','GET /health (503 when DB down)','404 handler','global error handler (4-arg)'], conn:['routes/*','config/db.js (via app.locals.dbState)'], when:'Adding routes, changing CORS/rate limits, or re-enabling the 503 guard.' },
+    { f:'src/config/db.js', star:1, p:'Mongo connect with 5 retries × 5s. Exports the MUTABLE dbState singleton that the entire fallback system reads. Also globally overrides Node DNS to 8.8.8.8/8.8.4.4/1.1.1.1.', fn:['connectDB() → boolean, never process.exit','dbState.connected (mutate, never reassign)','on disconnected/reconnected listeners'], conn:['index.js','all controllers','marketService','blockchainService'], when:'Changing retry policy or removing the DNS hack. ⚠️ DNS override affects the WHOLE Node process.' },
+    { f:'src/services/blockchainService.js', star:1, p:'Owns a HAND-WRITTEN minimal ABI (TransactionAdded + getAllTransactions) so the server never imports hardhat artifacts. Lazy _init() validates ALCHEMY_URL protocol before ethers sees it.', fn:['startEventListener() → contract.on(TransactionAdded)','syncHistoricalTransactions() → bulk upsert','normalizeTx() → lowercase addrs, amount→String','validateAlchemyUrl()','stopEventListener()'], conn:['models/Transaction.js','config/db.js','data/transactions.json'], when:'⚠️ EVERY contract event/signature change. The ABI here does NOT auto-sync.' },
+    { f:'src/services/marketService.js', star:0, p:'CoinGecko → PriceCache with 5-min freshness. Cache hit requires cachedCoins.length >= limit, so a partial cache always re-fetches.', fn:['getCoins(limit=100)','bulkWrite upsert keyed on coinId'], conn:['models/PriceCache.js','controllers/marketController.js'], when:'Changing cache TTL, adding coin fields, or wiring the frontend to use the server cache.' },
+    { f:'src/controllers/transactionController.js', star:0, p:'Paginated history. Filters sender OR recipient. Mongo path runs count+find in parallel; JSON path filters in memory. Identical response envelopes.', fn:['getByAddress() — page/limit clamped to max 100','getCount()','parsePagination()'], conn:['routes/transactions.js','models/Transaction.js'], when:'Adding filters (category/date range) or changing pagination contract.' },
+    { f:'src/controllers/watchlistController.js', star:0, p:'CRUD on per-wallet coin lists. ⚠️ Zero auth — the wallet address comes straight from the URL param and is trusted.', fn:['get()','addCoin()','removeCoin()','getLocalWatchlists/saveLocalWatchlists'], conn:['models/Watchlist.js','data/watchlist.json','TransactionContext.jsx'], when:'Adding auth guards, or adding fields (notes, price alerts) to watchlist entries.' },
+    { f:'src/models/Transaction.js', star:0, p:'amount stored as String — wei exceeds JS Number precision. txHash unique+sparse so historical-sync docs (no hash) are still accepted.', fn:['index: {sender:1, timestamp:-1}','lowercase+trim on sender/recipient'], conn:['blockchainService.js','transactionController.js'], when:'Adding on-chain fields (category/tags are emitted but NOT stored today).' },
+    { f:'src/models/User.js', star:0, p:'⚠️ DEAD CODE. Defined with walletAddress + touch(), referenced by zero routes. Placeholder for the auth that was never built.', fn:['userSchema.methods.touch()'], conn:['(none)'], when:'When you implement SIWE sessions — this is your starting point.' },
+    { f:'data/watchlist.json · data/transactions.json', star:0, p:'JSON fallback store, written with fs.writeFileSync. Not concurrency-safe — last write wins.', fn:['—'], conn:['watchlistController','blockchainService','transactionController'], when:'Never edit by hand while the server is running.' },
+  ]},
+  { d:'vite-project/src/', note:'React SPA', kids:[
+    { f:'context/TransactionContext.jsx', star:1, p:'★★★ THE hub. 540 lines. Wallet lifecycle, all contract calls, admin detection, watchlist REST + localStorage migration. Every component consumes it.', fn:['connectWallet() — requestAccounts + signMessage','checkIfWalletIsConnect() — silent eth_accounts','sendTransaction() / sendBatchTransaction()','checkAdminStatus() — account vs contract.owner()','updateFeePercentage()','syncLocalWatchlistToDB() — anon merge + case migration','fetch/add/removeWatchlistDB()','getEthereumContract() (module-level helper)'], conn:['utils/constant.js','/api/watchlist','MetaMask','ALL components'], when:'Any wallet, contract, or watchlist-sync behavior change. Highest-blast-radius file in the repo.' },
+    { f:'App.jsx', star:1, p:'Router + the single global fetchCoins(100). Coins are prop-drilled to Home, Watchlist, CoinDetails. Full-screen loading and error shells live here too.', fn:['React.lazy × 6 routes','SuspenseFallback','deprecated-route <Navigate> redirects'], conn:['api.js','TransactionProvider','all route components'], when:'Adding a route, changing the global data-loading strategy, or the app shell.' },
+    { f:'api.js', star:1, p:'CoinGecko client. Map cache (5-min), 429 → 2s backoff × 3, then MOCK_COINS. Mock coin-details and mock price history are synthesized too, so the UI degrades invisibly.', fn:['cachedRequest()','fetchCoins / fetchAllCoins','getCoinDetails / getCoinHistory','fetchTokenData (search)','searchCoins (client-side filter)'], conn:['App.jsx','CoinDetails.jsx','Watchlist.jsx'], when:'Switching to the server /api/market cache, or adding new market endpoints.' },
+    { f:'utils/constant.js', star:1, p:'Contract glue: address from env + ABI from Transactions.json. Also holds standalone allowance helpers that AllowanceManager imports directly (bypassing context).', fn:['transactionsABI / transactionsAddress','verifyContract() — retry w/ exponential backoff','checkAllowance() / approveAllowance()','logContractMethods / logContractDetails (debug)'], conn:['Transactions.json','TransactionContext','AllowanceManager'], when:'After every redeploy (new address) or ABI change.' },
+    { f:'utils/Transactions.json', star:0, p:'Copy of the hardhat artifact ABI. Copy #2 of 3 (artifact → here → server hand-written ABI).', fn:['—'], conn:['smart_contract/artifacts/...','constant.js'], when:'⚠️ Every contract recompile. Manual copy — nothing automates this.' },
+    { f:'components/TokenTransfer.jsx', star:0, p:'398 lines. Two modes in one component: single transfer and dynamic batch rows.', fn:['handleSingleSubmit()','handleBatchSubmit()','addBatchRow / removeBatchRow / handleBatchChange'], conn:['TransactionContext'], when:'Changing transfer UX, adding category/tags inputs (contract already supports them).' },
+    { f:'components/AllowanceManager.jsx', star:0, p:'Merged check + approve UI (replaced the old two-route split). Imports helpers from constant.js rather than context — an inconsistency worth knowing.', fn:['handleCheck()','handleApprove()','handleAddressBlur()'], conn:['constant.js','TransactionContext'], when:'Changing allowance UX or unifying it back into context.' },
+    { f:'components/Watchlist.jsx', star:0, p:'Search + starred coins. Debounced search over the coins prop; falls back to MOCK_COINS if coins is empty.', fn:['handleSearch (debounced)','toggle add/remove → context DB calls'], conn:['TransactionContext','api.js searchCoins','utils/debounce.js'], when:'Adding watchlist columns, sorting, or price alerts.' },
+    { f:'components/CoinDetails.jsx', star:0, p:'Route /coin/:id. Chart.js line chart + market stats. Registers Chart.js components locally.', fn:['toggleWatchlist()','getCoinDetails + getCoinHistory on mount'], conn:['api.js','TransactionContext'], when:'Adding timeframes, indicators, or a different chart lib.' },
+    { f:'components/AdminPanel.jsx', star:0, p:'Route /admin. Fee editor. UI gate is cosmetic — onlyOwner on-chain is the real guard.', fn:['handleSubmit() → updateFeePercentage()'], conn:['TransactionContext'], when:'Adding owner-only contract functions (pause, mint, ownership transfer).' },
+    { f:'components/Homepage/{Home,Navbar}.jsx', star:0, p:'Landing hero + connect CTA + TopCoins embed; Navbar owns connect/disconnect buttons and mobile menu.', fn:['handleConnect() (both)','handleDisconnect() (Navbar)','CountUp animated balance'], conn:['TransactionContext','TopCoins.jsx'], when:'Changing the connect UX or nav structure.' },
+    { f:'vite.config.js', star:1, p:'Three critical settings: envDir "../" (env at ROOT), /api proxy → localhost:3000, and manualChunks splitting ethers/charts/gsap/vendor.', fn:['server.proxy["/api"].target','build.rollupOptions.output.manualChunks'], conn:['root .env','server (port must match!)'], when:'Changing server port, adding a proxy path, or tuning bundle splits.' },
+  ]},
+  { d:'smart_contract/', note:'Hardhat · Solidity 0.8.27', kids:[
+    { f:'contracts/Transactions.sol', star:1, p:'ERC20("MyToken","MTK") + Ownable + on-chain transfer ledger. 93 lines. Fee in basis points.', fn:['_processTransaction() — shared by single & batch','addToBlockchain() / addToBlockchainBatch()','setFeePercentage() onlyOwner, ≤1000 bp','getAllTransactions() — unbounded return','getTransactionCount()'], conn:['ABI copies in frontend + server','deploy.js'], when:'⚠️ Requires: recompile → copy ABI to vite-project → update server ABI → redeploy → update BOTH env addresses.' },
+    { f:'scripts/deploy.js', star:0, p:'Deploy to the configured network using DEPLOYER_PRIVATE_KEY.', fn:['—'], conn:['hardhat.config.js','.env'], when:'Redeploying. Print the address and update env immediately.' },
+    { f:'hardhat.config.js', star:0, p:'Network config (Sepolia via ALCHEMY_URL) + solidity version. Uses ethers v5-era plugins (@nomiclabs/hardhat-ethers, waffle).', fn:['networks.sepolia','solidity: 0.8.27'], conn:['.env','scripts/deploy.js'], when:'Adding a network or upgrading to hardhat-toolbox / ethers v6.' },
+    { f:'test/Transactions.js', star:0, p:'Stub only. No meaningful assertions on fees, batch behavior, or access control.', fn:['—'], conn:['contracts/Transactions.sol'], when:'Before ANY contract change — write the tests you never wrote.' },
+  ]},
+];
+
+const FEATURES = [
+  { ic:'📈', t:'Market Data & Coin Browsing', s:'CoinGecko → prop-drilled coins, with mock fallback',
+    journey:'Open app → full-screen "Syncing market data..." → top-100 grid on Home → click a coin → /coin/:id with chart + stats.',
+    entry:['App.jsx useEffect (global fetch)','TopCoins.jsx','CoinDetails.jsx'],
+    files:['api.js','App.jsx','components/TopCoins.jsx','components/CoinDetails.jsx'],
+    steps:['App mount','fetchCoins(100)','Map cache 5min','CoinGecko v3','coins state','props → views'],
+    logic:'Single fetch at app root; children never fetch the list themselves. CoinDetails does fetch its own detail + history. Cache key is JSON({url,params}), so different param sets never collide.',
+    reality:'Browser calls CoinGecko <b>directly</b>. The server has a fully working cached endpoint (<code>GET /api/market/coins</code>) that nothing calls. Two independent cache layers exist and never talk.',
+    limits:['Per-user rate limits — no shared cache across visitors','API key ships in the JS bundle (demo tier, low value)','MOCK_COINS silently replaces real data; user sees no warning','Whole app blocks on the initial fetch (no skeleton streaming)'],
+    future:['Point fetchCoins at /api/market/coins to get the server PriceCache','Surface a "showing cached/mock data" banner','Move to react-query for stale-while-revalidate'] },
+
+  { ic:'🔗', t:'Wallet Connect ("Auth")', s:'MetaMask + a signature that is never verified',
+    journey:'Click Connect (Navbar or Home) → MetaMask account picker → second popup asks to sign "Connect to Crypto Portfolio" → address shown in navbar → admin route appears if you own the contract.',
+    entry:['Navbar.jsx handleConnect','Home.jsx handleConnect'],
+    files:['context/TransactionContext.jsx'],
+    steps:['eth_requestAccounts','signMessage(static text)','localStorage.setItem','checkAdminStatus','syncLocalWatchlistToDB'],
+    logic:'connectWallet() stores account + signature in localStorage. On reload, one useEffect restores from localStorage without re-verification; another calls eth_accounts silently. checkAdminStatus compares the account to contract.owner().',
+    reality:'<b style="color:var(--bad)">This is not authentication.</b> The signature never leaves the browser, is never sent to the server, and is never verified. Any string in <code>localStorage.signature</code> produces a "connected" UI. Server APIs trust the address in the URL. The only genuine access control in the entire system is the contract\'s <code>onlyOwner</code> modifier.',
+    limits:['localStorage session is trivially spoofable','No accountsChanged / chainChanged listeners — switch accounts in MetaMask and the app keeps the stale one','No network check — you can be on mainnet and calls silently fail','User model exists in Mongo but is wired to nothing'],
+    future:['SIWE / EIP-4361: server nonce → sign → ethers.verifyMessage → JWT session','Guard watchlist routes with that session (token address must match :address param)','Subscribe to accountsChanged + chainChanged','Use the User model for lastActive tracking'] },
+
+  { ic:'💸', t:'Token Transfer (single)', s:'ERC20 transfer + on-chain metadata + owner fee',
+    journey:'/transfer → fill address, amount, message → Send → MetaMask confirm → tx mines → balance updates.',
+    entry:['components/TokenTransfer.jsx handleSingleSubmit'],
+    files:['TokenTransfer.jsx','TransactionContext.jsx','contracts/Transactions.sol'],
+    steps:['form','sendTransaction()','contract.addToBlockchain','fee split on-chain','emit TransactionAdded','server listener','Mongo/JSON'],
+    logic:'Frontend hardcodes category <code>"Transfer"</code> and an empty tags array. On-chain <code>_processTransaction</code> computes <code>fee = amount * feePercentage / 10000</code>, sends <code>amount - fee</code> to the receiver and <code>fee</code> to the owner, then pushes a struct and emits.',
+    reality:'The receiver gets <b>less than the amount you typed</b> — the fee is deducted from the send amount, not added on top. The UI does not preview this. Category and tags are supported end-to-end by the contract but hardcoded in the UI and <b>not persisted</b> by the server model (only <code>keyword</code> is mapped).',
+    limits:['No fee preview in the UI','category/tags emitted but dropped at the Mongo schema','No tx-status toast pipeline beyond isLoading','Requires MTK balance — this moves the custom token, not ETH'],
+    future:['Show "recipient receives X after Y fee" before signing','Add category/tags inputs and store them in the Transaction model','Wire a tx-history view to GET /api/transactions/:address (currently unused by the UI)'] },
+
+  { ic:'📦', t:'Batch Transfer', s:'N recipients in one signature',
+    journey:'/transfer → Batch tab → add rows (address + amount) → Send All → one MetaMask confirm → loop executes on-chain.',
+    entry:['TokenTransfer.jsx handleBatchSubmit'],
+    files:['TokenTransfer.jsx','TransactionContext.sendBatchTransaction','Transactions.sol addToBlockchainBatch'],
+    steps:['rows[]','parseEther each','addToBlockchainBatch','loop _processTransaction','N events'],
+    logic:'One transaction, but the contract loops <code>_processTransaction</code> per recipient — so N fee transfers, N struct pushes, N events. Category is hardcoded <code>"Batch Transfer"</code>.',
+    reality:'Works, but gas scales linearly and there is no cap on row count. A large batch can exceed the block gas limit and revert <b>after</b> the user has paid to attempt it.',
+    limits:['No client-side row limit or gas estimate','Whole batch reverts if any single recipient fails balance check','Same message applied to every recipient'],
+    future:['Cap rows (~20) + call estimateGas before submitting','Per-row message support','CSV import'] },
+
+  { ic:'🔓', t:'Allowance Manager', s:'ERC20 approve/allowance UI',
+    journey:'/allowance → enter spender → Check → see current allowance → enter amount → Approve → MetaMask.',
+    entry:['components/AllowanceManager.jsx'],
+    files:['AllowanceManager.jsx','utils/constant.js','TransactionContext.jsx'],
+    steps:['spender addr','contract.allowance(owner,spender)','formatUnits 18','approve(spender, parseUnits)'],
+    logic:'Standard ERC20 approve. Note the architectural inconsistency: this component imports <code>checkAllowance</code>/<code>approveAllowance</code> from <code>utils/constant.js</code>, while equivalents also exist in TransactionContext. Two implementations of the same thing.',
+    reality:'This route replaced two older routes (<code>/approveallowance</code>, <code>/allowancecheck</code>) which now <code>&lt;Navigate&gt;</code>-redirect here. Decimals are hardcoded to 18.',
+    limits:['Duplicate helper implementations (constant.js vs context)','Hardcoded 18 decimals','No approve-race protection (set-to-zero-first pattern)','No revoke shortcut'],
+    future:['Delete one of the duplicate implementations','Add "Revoke" (approve 0) button','Read decimals() from the contract'] },
+
+  { ic:'⭐', t:'Watchlist', s:'localStorage-first, DB-synced on connect',
+    journey:'Star a coin anywhere → saved locally immediately → connect wallet → local list merges up to the server → available on other devices.',
+    entry:['Watchlist.jsx','TopCoins.jsx','CoinDetails.jsx toggleWatchlist'],
+    files:['Watchlist.jsx','TransactionContext.jsx','server/src/controllers/watchlistController.js','server/src/models/Watchlist.js'],
+    steps:['star','localStorage watchlist_<addr>','POST /api/watchlist/:addr/coins','Mongo or watchlist.json'],
+    logic:'localStorage is the offline source of truth. On connect, <code>syncLocalWatchlistToDB()</code> does three things: migrates a legacy mixed-case key to lowercase, merges <code>watchlist_anonymous</code> into the user key, then POSTs any coin the DB is missing.',
+    reality:'Sync is <b>one-directional</b> (local → DB) and only fires at connect. A coin starred on device B never appears on device A. Deletions never propagate up. And the endpoint has <b>no auth</b> — any client can write to any wallet\'s list.',
+    limits:['One-way sync, connect-time only','Deletions not synced','Zero authorization on the REST endpoints','fs.writeFileSync in JSON mode = last-write-wins races'],
+    future:['Two-way merge with per-coin timestamps','Pull DB → local on connect as well','Auth guard once SIWE exists'] },
+
+  { ic:'👑', t:'Admin / Fee Control', s:'Owner-only basis-point fee',
+    journey:'Connect with the deployer wallet → /admin becomes meaningful → set fee % → MetaMask → on-chain update.',
+    entry:['components/AdminPanel.jsx'],
+    files:['AdminPanel.jsx','TransactionContext.checkAdminStatus/updateFeePercentage','Transactions.sol'],
+    steps:['contract.owner()','account===owner?','setFeePercentage(pct*100)','onlyOwner check on-chain'],
+    logic:'UI reads <code>owner()</code> and <code>feePercentage()</code> on connect. The panel converts percent → basis points (<code>x * 100</code>) before calling. Contract caps at 1000 bp (10%).',
+    reality:'The UI gate is <b>cosmetic only</b> — the /admin route isn\'t protected by a router guard, so anyone can navigate there. That\'s acceptable because <code>onlyOwner</code> reverts any non-owner transaction on-chain. Fees accrue to the owner address on every transfer.',
+    limits:['/admin route reachable by anyone (harmless but confusing)','No ownership-transfer or pause functions','Fee revenue is invisible — no accrual dashboard'],
+    future:['Router guard on /admin for clarity','Add pause / ownership transfer to the contract','Show accumulated fee balance'] },
+
+  { ic:'🔎', t:'Chain Indexing & History API', s:'Server-side event listener + REST history',
+    journey:'(Invisible to users.) Server boots → pulls all historical transactions → subscribes to new events → serves them at /api/transactions/:address.',
+    entry:['server/index.js start()'],
+    files:['services/blockchainService.js','controllers/transactionController.js','models/Transaction.js'],
+    steps:['syncHistoricalTransactions()','contract.on(TransactionAdded)','normalizeTx','upsert Mongo/JSON','GET /api/transactions/:addr'],
+    logic:'Boot-time sync calls <code>getAllTransactions()</code> and bulk-upserts using <code>{sender, timestamp}</code> as the key. The live listener upserts on <code>txHash</code> when available. Restarting the server reconciles anything the listener missed.',
+    reality:'<b>The frontend never calls this API.</b> The UI reads transaction history straight from the contract via <code>getAllTransactions()</code> in TransactionContext. So the entire indexing pipeline is currently write-only infrastructure.',
+    limits:['Built but unconsumed by the UI','Missed events only heal on server restart','No block-range backfill — relies on the contract\'s full array','category/tags dropped during normalization'],
+    future:['Wire a Transaction History page to GET /api/transactions/:address','Persist lastProcessedBlock and backfill by range','Store category/tags'] },
+];
+
+const FLOWS = [
+  { t:'Application Lifecycle', steps:[
+    ['Server boot','dotenv loads server/.env → connectDB() retries Mongo 5× → dbState.connected set','server/index.js'],
+    ['Historical reconcile','blockchainService.syncHistoricalTransactions() pulls the contract\'s full array and bulk-upserts. Non-fatal on failure.','services/blockchainService.js'],
+    ['Live subscription','contract.on("TransactionAdded") attaches via Alchemy. Guarded by _listenerAttached against double-binding.','services/blockchainService.js'],
+    ['HTTP listen','app.listen(PORT). Logs "[DB UNAVAILABLE — using local fallback]" when degraded.','server/index.js'],
+    ['Client boot','Vite serves SPA → App.jsx mounts → fetchCoins(100) → full-screen sync shell until resolved','vite-project/src/App.jsx'],
+    ['Context init','TransactionProvider runs two useEffects: silent eth_accounts check + localStorage session restore + verifyContract()','context/TransactionContext.jsx'],
+    ['Shutdown','SIGINT/SIGTERM → stopEventListener → server.close → mongoose.close → exit. 10s force-kill timer.','server/index.js'],
+  ]},
+  { t:'Authentication (such as it is)', steps:[
+    ['Click Connect','Navbar or Home handleConnect → context.connectWallet()','components/Homepage/Navbar.jsx'],
+    ['Request accounts','window.ethereum.request({method:"eth_requestAccounts"}) → MetaMask account picker','TransactionContext.jsx'],
+    ['Sign message','signer.signMessage("Connect to Crypto Portfolio") — a STATIC string, no nonce, no domain binding','TransactionContext.jsx'],
+    ['Persist','localStorage.currentAccount + localStorage.signature. ⚠️ The signature is never transmitted or verified.','TransactionContext.jsx'],
+    ['Admin probe','checkAdminStatus() → contract.owner() → case-insensitive compare → isAdmin + feePercentage','TransactionContext.jsx'],
+    ['Watchlist merge','syncLocalWatchlistToDB() migrates keys, merges anonymous list, POSTs missing coins','TransactionContext.jsx'],
+    ['Reload','useEffect reads localStorage and marks the session connected WITHOUT re-verifying anything','TransactionContext.jsx'],
+    ['Server side','Nothing. No session, no middleware, no token. Watchlist routes trust the URL param.','server/src/controllers/watchlistController.js'],
+  ]},
+  { t:'Data Movement (write path)', steps:[
+    ['UI intent','TokenTransfer form → context.sendTransaction()','components/TokenTransfer.jsx'],
+    ['Signer contract','BrowserProvider → getSigner() → new Contract(addr, ABI, signer)','TransactionContext.getEthereumContract'],
+    ['Submit','contract.addToBlockchain(to, parseEther(amt), message, "Transfer", []) → MetaMask','TransactionContext.jsx'],
+    ['On-chain','fee = amount*bp/10000 → _transfer(sender→receiver, amount-fee) → _transfer(sender→owner, fee) → push struct → emit','contracts/Transactions.sol'],
+    ['Server catch','contract.on handler receives args + event.log.transactionHash/blockNumber','services/blockchainService.js'],
+    ['Normalize','normalizeTx(): lowercase addresses, amount→String, category→keyword, tags DROPPED','services/blockchainService.js'],
+    ['Persist','dbState.connected ? Transaction.findOneAndUpdate({txHash}, upsert) : push into data/transactions.json','services/blockchainService.js'],
+  ]},
+  { t:'API Communication', steps:[
+    ['Dev proxy','Browser requests /api/* → Vite dev server proxies to http://localhost:3000. ⚠️ server/index.js defaults PORT to 5000 — .env must set 3000.','vite-project/vite.config.js'],
+    ['Middleware','helmet → cors(CORS_ORIGIN||*) → express.json(10kb) → rateLimit(100 req / 15 min / IP, includes /health)','server/src/app.js'],
+    ['Route match','/api/transactions · /api/market · /api/watchlist. Static /count declared before /:address.','server/src/routes/*'],
+    ['Fallback branch','Every controller reads req.app.locals.dbState.connected and picks Mongo or the JSON file. Response envelopes are identical either way.','server/src/controllers/*'],
+    ['Envelope','{ success, data, pagination? } on success; { success:false, message } on error. 429 passthrough for CoinGecko limits.','server/src/controllers/*'],
+    ['Errors','Unhandled throws hit the 4-arg global handler; stack included only when NODE_ENV=development','server/src/app.js'],
+  ]},
+  { t:'Business Logic — Fee Math', steps:[
+    ['Storage','feePercentage is uint256 in BASIS POINTS. Default 100 = 1%. Hard cap 1000 = 10%.','contracts/Transactions.sol'],
+    ['Calculation','fee = (amount * feePercentage) / 10000 — integer division, so dust rounds toward zero','Transactions.sol _processTransaction'],
+    ['Split','Receiver gets amount − fee. Owner gets fee. Sender is debited the FULL amount.','Transactions.sol'],
+    ['UI read','checkAdminStatus() divides by 100 for display: 100 bp → "1"','TransactionContext.jsx'],
+    ['UI write','AdminPanel multiplies by 100: "2.5" → 250 bp','TransactionContext.updateFeePercentage'],
+    ['Trap','Batch applies the fee PER RECIPIENT, not once per transaction.','Transactions.sol addToBlockchainBatch'],
+  ]},
+  { t:'Graceful Degradation', steps:[
+    ['Mongo down','connectDB() returns false after 5 retries. Server still starts. Every controller switches to server/data/*.json.','server/src/config/db.js'],
+    ['CoinGecko down','api.js retries 429 three times, then returns MOCK_COINS. Detail and history views synthesize mock data too.','vite-project/src/api.js'],
+    ['Alchemy missing','validateAlchemyUrl throws → caught in index.js → logged as non-fatal → no indexing, everything else runs.','services/blockchainService.js'],
+    ['Contract addr missing','verifyContract() warns; sendTransaction and getAllTransactions guard on ethers.isAddress and bail early.','utils/constant.js'],
+    ['No wallet','Market pages fully functional. Connect buttons alert "Please install MetaMask."','TransactionContext.jsx'],
+    ['Net effect','You can clone this repo with an empty .env and it boots. That is the design goal — and the reason for the fallback duplication in every controller.','—'],
+  ]},
+];
+
+const MEMORY = [
+  { ic:'🕳️', t:'Things I forgot but should know', items:[
+    '<b>Vite reads .env from the REPO ROOT</b>, not vite-project/ — because vite.config sets <code>envDir:"../"</code>. Losing an hour to this is a rite of passage.',
+    '<b>Server PORT default is 5000 in code, but the Vite proxy targets 3000.</b> server/.env must say PORT=3000 or every /api call fails in dev.',
+    '<b>The transaction-history REST API exists and works — and the UI never calls it.</b> The UI reads the chain directly.',
+    '<b>The server also has a working cached CoinGecko endpoint</b> (/api/market/coins) that nothing consumes.',
+    '<b>The /api DB guard middleware in app.js is a no-op stub</b> — it calls next() unconditionally. Real fallback logic is per-controller.',
+    '<b>User.js is dead code.</b> Zero routes reference it.',
+    '<b>fetchContractABI (Etherscan) in TransactionContext is never called.</b> Leftover from an earlier approach.',
+    '<b>AllowanceManager imports its helpers from constant.js</b>, not from the context — duplicate implementations exist.',
+  ]},
+  { ic:'🎯', t:'Important decisions I made', items:[
+    '<b>Fallback-first everywhere.</b> No MongoDB, no API key, no contract address — the app still boots. That is why every controller has two code paths.',
+    '<b>One React Context instead of Redux.</b> At this size a single provider is less ceremony; the cost is a 540-line god-object.',
+    '<b>Amount stored as String in Mongo.</b> wei exceeds JS Number precision — Number would silently corrupt large values.',
+    '<b>Fee in basis points.</b> Solidity has no floats; integer bp math is the standard workaround.',
+    '<b>Hand-written minimal ABI in blockchainService.</b> Keeps the server independent of hardhat artifacts — at the cost of manual sync.',
+    '<b>Metadata on-chain instead of off-chain.</b> Message/category/tags are written atomically with the transfer, so history can never desync from the money.',
+    '<b>Manual Vite chunks</b> (ethers/charts/gsap/vendor) + lazy routes, because ethers alone dwarfs the rest of the bundle.',
+    '<b>DNS forced to 8.8.8.8 in db.js.</b> Fixed <code>querySrv ECONNREFUSED</code> on a restrictive network. It was a real bug, not paranoia.',
+  ]},
+  { ic:'🧬', t:'Why the code looks like this', items:[
+    '<b>Duplicated Mongo/JSON branches in every controller</b> → the fallback-first decision. Not copy-paste laziness.',
+    '<b>Aggressive address.toLowerCase() everywhere</b> → EIP-55 checksums mean the same wallet arrives in different cases. Lowercasing is the normalization contract; localStorage keys, Mongo schemas, and event handlers all honor it.',
+    '<b>Everything on boot is wrapped in try/catch and logged "(non-fatal)"</b> → deliberate. A dead RPC must not stop the HTTP server.',
+    '<b>MOCK_COINS with realistic prices and sparklines</b> → so the UI is demoable offline and screenshots never show empty states.',
+    '<b>Deprecated routes redirect rather than 404</b> → /approveallowance and /allowancecheck were merged into /allowance; old bookmarks still work.',
+    '<b>getEthereumContract() is recreated per call</b> → the signer must be fresh; caching it across account switches caused stale-signer bugs.',
+  ]},
+  { ic:'🛑', t:'Do NOT break these things', items:[
+    '<b>dbState must be MUTATED, never reassigned.</b> Services hold the object by reference; reassigning silently disables every fallback.',
+    '<b>Keep /count declared before /:address</b> in routes/transactions.js, or Express treats "count" as a wallet address.',
+    '<b>Never store a wallet address without lowercasing it.</b> Lookups will silently return nothing.',
+    '<b>Never change the contract without updating all three ABI copies</b> (artifact → vite-project/src/utils/Transactions.json → hand-written in blockchainService.js) and both address env vars.',
+    '<b>Don\'t mix ethers v5 and v6 syntax.</b> Frontend/server = v6 (BrowserProvider, parseEther). Hardhat tooling = v5.',
+    '<b>Don\'t remove the 10kb JSON body limit or the rate limiter</b> without a replacement — they\'re the only request-level protection on an unauthenticated API.',
+    '<b>Don\'t hand-edit server/data/*.json while the server is running</b> — writeFileSync will overwrite you.',
+  ]},
+  { ic:'🔦', t:'Common debugging paths', items:[
+    '<b>"unsupported protocol" at boot</b> → ALCHEMY_URL missing or malformed. validateAlchemyUrl now catches it non-fatally.',
+    '<b>querySrv ECONNREFUSED</b> → network DNS blocking. db.js already forces public resolvers; if it persists, the network blocks 27017 entirely.',
+    '<b>/api calls 404 or ECONNREFUSED in dev</b> → port mismatch (5000 vs 3000). Check server/.env first.',
+    '<b>Contract calls silently do nothing</b> → VITE_CONTRACT_ADDRESS unset/invalid. Every call site guards with ethers.isAddress and returns early. Check the console for the verifyContract warning.',
+    '<b>UI history differs from API history</b> → the listener missed events. Restart the server; boot runs syncHistoricalTransactions.',
+    '<b>Prices look stale or fake</b> → you\'re on MOCK_COINS. Check the console for "using mock".',
+    '<b>Getting 429 from your OWN API</b> → the global limiter is 100 req/15min/IP and it counts /health too.',
+    '<b>Wrong account after switching in MetaMask</b> → no accountsChanged listener. Reload the page.',
+  ]},
+];
+
+const DEBT = [
+  { sev:'critical', t:'Watchlist API has zero authorization', where:'server/src/controllers/watchlistController.js',
+    p:'Wallet address is read straight from the URL param and trusted. Any client can read, add to, or delete any wallet\'s watchlist.',
+    fix:'Implement SIWE, then assert the session address matches <code>:walletAddress</code> on every write.' },
+  { sev:'critical', t:'localStorage "session" is spoofable', where:'context/TransactionContext.jsx',
+    p:'The connect signature is never sent anywhere or verified. Writing arbitrary values into <code>currentAccount</code> + <code>signature</code> yields a fully "connected" UI.',
+    fix:'Nonce-based SIWE with server-side <code>ethers.verifyMessage</code> and an httpOnly session cookie.' },
+  { sev:'critical', t:'getAllTransactions() is unbounded', where:'contracts/Transactions.sol',
+    p:'Returns the entire on-chain array. Gas and response size grow forever; it will eventually fail to execute — and both the server boot sync and the UI history depend on it.',
+    fix:'Add paginated <code>getTransactions(offset, limit)</code>; index by block range server-side instead.' },
+  { sev:'critical', t:'ABI duplicated in three places, synced by hand', where:'artifacts → utils/Transactions.json → blockchainService.js',
+    p:'A contract change that isn\'t mirrored in all three produces silent decode failures rather than loud errors.',
+    fix:'A postcompile script that copies the artifact ABI into both consumers; import it in the server instead of hand-writing.' },
+  { sev:'critical', t:'Port mismatch between server default and Vite proxy', where:'server/index.js vs vite-project/vite.config.js',
+    p:'Code defaults to 5000; the proxy targets 3000. Works only because .env overrides it — an undocumented invisible dependency.',
+    fix:'Change the code default to 3000, or read the proxy target from an env var. Then document it.' },
+
+  { sev:'medium', t:'TransactionContext is a 540-line god-object', where:'context/TransactionContext.jsx',
+    p:'Wallet, contract, admin, and watchlist concerns are entangled. Any change risks unrelated breakage, and every consumer re-renders on any state change.',
+    fix:'Split into useWallet / useContractActions / useWatchlist hooks behind the same provider.' },
+  { sev:'medium', t:'Two dead subsystems built and unused', where:'server market endpoint + tx history endpoint',
+    p:'<code>/api/market/coins</code> (with PriceCache) and <code>/api/transactions/:address</code> both work and neither is called by the UI. Maintenance cost with zero benefit today.',
+    fix:'Either wire them up (recommended — they solve real rate-limit and history problems) or delete them.' },
+  { sev:'medium', t:'JSON fallback storage has write races', where:'server/data/*.json',
+    p:'<code>fs.writeFileSync</code> with read-modify-write and no locking. Concurrent requests lose data.',
+    fix:'Serialize writes through a queue, or accept it as dev-only and refuse to start in production without Mongo.' },
+  { sev:'medium', t:'No MetaMask event listeners', where:'context/TransactionContext.jsx',
+    p:'Switching accounts or networks in MetaMask leaves the app on a stale account. Wrong-network calls fail cryptically.',
+    fix:'Subscribe to <code>accountsChanged</code> and <code>chainChanged</code>; assert the expected chainId.' },
+  { sev:'medium', t:'Duplicate allowance implementations', where:'utils/constant.js vs TransactionContext.jsx',
+    p:'Two copies of checkAllowance/approveAllowance; AllowanceManager uses the constant.js pair. Fixes must be applied twice.',
+    fix:'Keep the context versions; delete the constant.js copies.' },
+  { sev:'medium', t:'Essentially no tests', where:'smart_contract/test/Transactions.js',
+    p:'A contract that moves money and takes fees has a stub test file. No frontend or backend tests at all.',
+    fix:'Start with contract tests: fee math, the 10% cap, onlyOwner, batch length mismatch, insufficient balance.' },
+  { sev:'medium', t:'category / tags dropped in the pipeline', where:'blockchainService.normalizeTx + models/Transaction.js',
+    p:'The contract emits category and tags; normalizeTx maps category→keyword and discards tags entirely. On-chain richness is lost on the way to the DB.',
+    fix:'Add <code>tags: [String]</code> to the schema and stop collapsing category.' },
+  { sev:'medium', t:'Global DNS override', where:'server/src/config/db.js',
+    p:'<code>dns.setServers()</code> affects every DNS lookup in the process, not just Mongo. Surprising to a future reader and hostile to corporate split-horizon DNS.',
+    fix:'Gate behind an env flag like <code>FORCE_PUBLIC_DNS=true</code>.' },
+
+  { sev:'low', t:'No fee preview before signing', where:'components/TokenTransfer.jsx',
+    p:'The recipient receives amount − fee, but the UI never says so.', fix:'Show a live "recipient receives" line.' },
+  { sev:'low', t:'Batch has no row cap or gas estimate', where:'TokenTransfer + Transactions.sol',
+    p:'A large batch can exceed the block gas limit and revert after the user pays.', fix:'Cap rows and call estimateGas first.' },
+  { sev:'low', t:'/admin route is unguarded', where:'App.jsx',
+    p:'Anyone can navigate there. Harmless (onlyOwner reverts on-chain) but confusing.', fix:'Redirect non-owners home.' },
+  { sev:'low', t:'API key ships in the client bundle', where:'VITE_COINGECKO_API_KEY',
+    p:'Demo-tier key, low value — but it is public.', fix:'Route market calls through the server endpoint that already exists.' },
+  { sev:'low', t:'Watchlist sync is one-directional', where:'TransactionContext.syncLocalWatchlistToDB',
+    p:'local→DB only, at connect time. Cross-device additions and all deletions never propagate.', fix:'Two-way merge with per-coin timestamps.' },
+  { sev:'low', t:'Rate limiter covers /health', where:'server/src/app.js',
+    p:'An uptime monitor polling /health can exhaust the shared 100-req budget.', fix:'Mount /health before the limiter.' },
+  { sev:'low', t:'framer-motion + GSAP both included', where:'vite-project/package.json',
+    p:'Two animation libraries for overlapping jobs.', fix:'Pick one; drop the other from the bundle.' },
+];
+
+const MODS = [
+  { q:'Add a new page / feature', steps:[
+    'Create the component in <code>vite-project/src/components/</code>.',
+    'Add a <code>React.lazy()</code> import + <code>&lt;Route&gt;</code> in <a class="f">App.jsx</a>.',
+    'Add a nav entry in <code>components/Homepage/Navbar.jsx</code>.',
+    'Need wallet or contract access? Consume <code>TransactionContext</code> — do not create a second provider.',
+    'Need a new backend endpoint? See "Change the API" below.',
+  ], warn:'If the page needs market data, take <code>coins</code> as a prop from App.jsx rather than fetching again — a second fetch means a second rate-limit bucket.' },
+
+  { q:'Change the UI / theme', steps:[
+    'Palette lives inline as Tailwind arbitrary values: <code>#FF385C</code> (coral), <code>#2563EB</code> (cobalt), <code>#050811</code> (bg).',
+    'Shared effects (<code>premium-btn</code>, <code>premium-glow-card</code>, <code>premium-bg</code>) are in <code>src/App.css</code>.',
+    'The app shell, ambient glow blobs, loading screen, and error screen are all in <a class="f">App.jsx</a>.',
+    'Tailwind config: <code>vite-project/tailwind.config.js</code>.',
+  ], ok:'Changing a color means grepping the hex across components — colors were never tokenized. Consider promoting them to CSS variables while you\'re in there.' },
+
+  { q:'Change or add an API endpoint', steps:[
+    'Add the route in <code>server/src/routes/&lt;domain&gt;.js</code> — static paths BEFORE param paths.',
+    'Add the handler in <code>server/src/controllers/&lt;domain&gt;Controller.js</code>.',
+    '<b>Implement BOTH branches</b>: <code>dbState.connected</code> → Mongo, else the JSON-file path. Response shapes must be identical.',
+    'Mount the router in <code>server/src/app.js</code> if the domain is new.',
+    'Call it from <code>TransactionContext.jsx</code> (axios, relative <code>/api/...</code> so the Vite proxy handles it).',
+  ], warn:'Forgetting the JSON fallback branch means the endpoint silently 500s for anyone running without Mongo — which includes a fresh clone.' },
+
+  { q:'Change the database schema', steps:[
+    'Edit the schema in <code>server/src/models/</code>.',
+    'Update the writer: <code>blockchainService.normalizeTx()</code> for transactions, the controller for watchlists.',
+    'Update the JSON-fallback shape in the same controller so both paths still match.',
+    'Mongoose has no migrations here — decide whether existing docs need a backfill script.',
+    'Add an index if you will query the new field.',
+  ], warn:'<b>amount is a String on purpose</b> (wei > Number.MAX_SAFE_INTEGER). Never "fix" it to Number.' },
+
+  { q:'Change the smart contract', steps:[
+    'Edit <code>smart_contract/contracts/Transactions.sol</code>.',
+    'Write tests first — <code>test/Transactions.js</code> is currently a stub.',
+    '<code>npx hardhat compile</code>.',
+    'Copy the new ABI from <code>artifacts/contracts/Transactions.sol/Transactions.json</code> → <code>vite-project/src/utils/Transactions.json</code>.',
+    'Update the hand-written ABI in <code>server/src/services/blockchainService.js</code> if any event or read function changed.',
+    'Deploy: <code>npx hardhat run scripts/deploy.js --network sepolia</code>.',
+    'Update <code>VITE_CONTRACT_ADDRESS</code> (root .env) AND <code>CONTRACT_ADDRESS</code> (server/.env).',
+    'Restart both server and client.',
+  ], warn:'<b>Six places must agree.</b> Miss one and you get silent decode failures, not errors. This is the single most error-prone workflow in the repo.' },
+
+  { q:'Change how transactions work (fee, metadata, batching)', steps:[
+    'Fee math: <code>_processTransaction</code> in Transactions.sol (basis points, <code>/10000</code>).',
+    'Fee UI conversion: <code>checkAdminStatus</code> (÷100) and <code>updateFeePercentage</code> (×100) in TransactionContext.',
+    'Metadata: the contract already accepts <code>category</code> + <code>tags</code>; the frontend hardcodes them and the Mongo model drops tags.',
+    'To surface them: add form inputs in TokenTransfer.jsx → pass through sendTransaction → add fields to normalizeTx + the Transaction schema.',
+    'Batch behavior: <code>addToBlockchainBatch</code> loops per recipient — fee applies per recipient.',
+  ], ok:'Adding category/tags end-to-end is the highest-value low-risk improvement: the contract side already works.' },
+
+  { q:'Add real authentication', steps:[
+    'Server: add <code>POST /api/auth/nonce</code> returning a random nonce bound to the address.',
+    'Client: replace the static string in <code>connectWallet()</code> with a SIWE (EIP-4361) message containing that nonce + domain.',
+    'Server: <code>POST /api/auth/verify</code> → <code>ethers.verifyMessage(msg, sig)</code> → compare recovered address → issue an httpOnly session cookie or JWT.',
+    'Persist the session using the already-defined <code>server/src/models/User.js</code> (currently unused).',
+    'Add an auth middleware in <code>app.js</code> and guard all <code>/api/watchlist</code> writes with "session address === :walletAddress".',
+    'Client: send credentials with axios and handle 401 by clearing localStorage.',
+  ], warn:'Until this exists, treat <b>every</b> server endpoint as public and unauthenticated. Do not store anything sensitive in the watchlist collection.' },
+
+  { q:'Wire the frontend to the server\'s market cache', steps:[
+    'The endpoint already exists: <code>GET /api/market/coins?limit=100</code>, backed by PriceCache with a 5-min TTL.',
+    'In <code>api.js</code>, change <code>fetchCoins</code> to hit <code>/api/market/coins</code> and unwrap <code>res.data.data</code>.',
+    'Keep the MOCK_COINS fallback for when the server is down.',
+    'Removes the API key from the client bundle and gives all visitors one shared cache.',
+  ], ok:'Low risk, high value — the server side is already written and tested by hand.' },
+
+  { q:'Deploy / change hosting', steps:[
+    '<code>netlify.toml</code> builds <b>only the frontend</b> (base <code>vite-project</code>, publish <code>dist</code>).',
+    'The Express server is NOT deployed by that config — it needs its own host (Render/Railway/Fly) with MONGO_URI + ALCHEMY_URL set.',
+    'Once hosted separately, the relative <code>/api</code> calls break in production — add a base URL env var or a Netlify proxy redirect.',
+    'Set <code>CORS_ORIGIN</code> on the server to the Netlify domain (it currently defaults to <code>*</code>).',
+  ], warn:'In production today the frontend would call <code>/api/*</code> on the Netlify domain, where nothing is listening. Watchlist sync fails silently — the catch blocks only console.error.' },
+];
+
+/* ═══════════════ RENDER ═══════════════ */
+const $ = s => document.querySelector(s);
+const el = (t,c,h) => { const e=document.createElement(t); if(c)e.className=c; if(h!==undefined)e.innerHTML=h; return e; };
+
+/* nav */
+function go(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===id));
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+id));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('#nav a').forEach(a=>a.onclick=e=>{e.preventDefault();go(a.getAttribute('href').slice(1));});
+
+/* 2. layers */
+const lw = $('#layers');
+LAYERS.forEach((L,i)=>{
+  const n = el('div','lnode',`
+    <div class="ic">${L.ic}</div>
+    <div class="tt"><b>${L.t}</b><small>${L.s}</small></div>
+    <div class="ar">›</div>`);
+  n.style.setProperty('--c',L.c);
+  const d = el('div','ldetail',`<dl>
+    <dt>Purpose</dt><dd>${L.purpose}</dd>
+    <dt>Key files</dt><dd><ul>${L.files.map(f=>`<li>${f}</li>`).join('')}</ul></dd>
+    <dt>Owns</dt><dd><ul style="display:block">${L.resp.map(r=>`<li style="display:list-item;background:none;border:none;padding:2px 0 2px 14px;font-family:inherit;font-size:13px;color:var(--dim);position:relative">${r}</li>`).join('')}</ul></dd>
+    <dt>Depends on</dt><dd><ul>${L.deps.map(f=>`<li>${f}</li>`).join('')}</ul></dd>
+    <dt>Related</dt><dd>${L.rel}</dd>
+  </dl>`);
+  d.style.setProperty('--c',L.c);
+  n.onclick=()=>{n.classList.toggle('on');d.classList.toggle('on');};
+  lw.appendChild(n); lw.appendChild(d);
+  if(i<LAYERS.length-1) lw.appendChild(el('div','arrow','▼'));
+});
+
+/* 3. tree */
+const tw=$('#tree'), fd=$('#fdetail');
+function showFile(f,node){
+  document.querySelectorAll('.tfile').forEach(x=>x.classList.remove('on'));
+  node.classList.add('on');
+  fd.innerHTML=`
+    <div class="path">${f.f}</div>
+    <h3>${f.star?'★ ':''}Purpose</h3>
+    <p style="font-size:13.5px">${f.p}</p>
+    <h4>Important functions</h4><ul>${f.fn.map(x=>`<li class="fn">${x}</li>`).join('')}</ul>
+    <h4>Connected files</h4><ul>${f.conn.map(x=>`<li>${x}</li>`).join('')}</ul>
+    <h4>When to modify</h4><p style="font-size:13.5px">${f.when}</p>`;
+  fd.scrollTop=0;
+}
+TREE.forEach(dir=>{
+  const d=el('div','tdir open',`<span class="cx">▸</span>${dir.d}<small>${dir.note}</small>`);
+  const k=el('div','tkids open');
+  d.onclick=()=>{d.classList.toggle('open');k.classList.toggle('open');};
+  dir.kids.forEach(f=>{
+    const n=el('div','tfile'+(f.star?' star':''),`<span class="dot"></span>${f.f.split('/').pop()}`);
+    n.onclick=()=>showFile(f,n);
+    k.appendChild(n);
+  });
+  tw.appendChild(d); tw.appendChild(k);
+});
+showFile(TREE[2].kids[0], tw.querySelectorAll('.tfile')[TREE[0].kids.length+TREE[1].kids.length]);
+
+/* 4. features */
+const fw=$('#feats');
+FEATURES.forEach(F=>{
+  const c=el('div','fcard');
+  c.innerHTML=`
+    <div class="fhead"><div class="ic">${F.ic}</div><div class="tt"><b>${F.t}</b><small>${F.s}</small></div><div class="ar" style="color:var(--dim2)">›</div></div>
+    <div class="fbody">
+      <div class="fsec"><b>User journey</b><p>${F.journey}</p></div>
+      <div class="fsec"><b>Data flow</b><div class="steps">${F.steps.map((s,i)=>`${i?'<span class="a">→</span>':''}<span class="s">${s}</span>`).join('')}</div></div>
+      <div class="fsec"><b>Entry points</b><ul>${F.entry.map(x=>`<li><code>${x}</code></li>`).join('')}</ul></div>
+      <div class="fsec"><b>Main files</b><ul>${F.files.map(x=>`<li><code>${x}</code></li>`).join('')}</ul></div>
+      <div class="fsec"><b>Logic</b><p>${F.logic}</p></div>
+      <div class="fsec"><b>Implementation reality</b><p>${F.reality}</p></div>
+      <div class="fsec"><b>Known limitations</b><ul>${F.limits.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+      <div class="fsec"><b>Future improvements</b><ul>${F.future.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+    </div>`;
+  const h=c.querySelector('.fhead'), b=c.querySelector('.fbody'), ar=c.querySelector('.ar');
+  h.onclick=()=>{const o=b.classList.toggle('open');c.classList.toggle('open',o);ar.style.transform=o?'rotate(90deg)':'';};
+  fw.appendChild(c);
+});
+
+/* 5. flows */
+const ft=$('#flowtabs'), fl=$('#flows');
+FLOWS.forEach((F,i)=>{
+  const t=el('div','tab'+(i?'':' on'),F.t);
+  const b=el('div','flowbox'+(i?'':' on'));
+  b.appendChild(el('div','card',F.steps.map((s,j)=>`
+    <div class="fl"><div class="num">${j+1}</div><div class="c"><b>${s[0]}</b><small>${s[1]}</small><span class="where">${s[2]}</span></div></div>`).join('')));
+  t.onclick=()=>{
+    document.querySelectorAll('#flowtabs .tab').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.flowbox').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on'); b.classList.add('on');
+  };
+  ft.appendChild(t); fl.appendChild(b);
+});
+
+/* 6. memory */
+const mz=$('#memzone');
+MEMORY.forEach(M=>{
+  mz.appendChild(el('div','mem',`<b>${M.ic} ${M.t}</b><ul>${M.items.map(x=>`<li>${x}</li>`).join('')}</ul>`));
+});
+
+/* 7. debt */
+const SEV={critical:{c:'var(--bad)',l:'Critical'},medium:{c:'var(--warn)',l:'Medium'},low:{c:'var(--cyan)',l:'Low'}};
+const dz=$('#debts'), dfz=$('#dfilters');
+['all','critical','medium','low'].forEach((f,i)=>{
+  const n=DEBT.filter(d=>f==='all'||d.sev===f).length;
+  const t=el('div','tab'+(i?'':' on'),`${f==='all'?'All':SEV[f].l} <span style="opacity:.6">${n}</span>`);
+  t.onclick=()=>{
+    document.querySelectorAll('#dfilters .tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');
+    document.querySelectorAll('.debt').forEach(d=>d.style.display=(f==='all'||d.dataset.sev===f)?'':'none');
+  };
+  dfz.appendChild(t);
+});
+DEBT.forEach(D=>{
+  const d=el('div','debt',`
+    <div class="top"><span class="tag" style="background:${SEV[D.sev].c}22;color:${SEV[D.sev].c}">${SEV[D.sev].l}</span><b>${D.t}</b></div>
+    <p style="font-family:var(--mono);font-size:11.5px;color:var(--cyan);margin-bottom:6px">${D.where}</p>
+    <p>${D.p}</p>
+    <div class="fix"><b>Fix →</b> ${D.fix}</div>`);
+  d.style.setProperty('--sc',SEV[D.sev].c); d.dataset.sev=D.sev;
+  dz.appendChild(d);
+});
+
+/* 8. mods */
+const mw=$('#mods');
+MODS.forEach(M=>{
+  const m=el('div','mod',`
+    <div class="mhead"><span class="q">▸</span>${M.q}<span class="ar">›</span></div>
+    <div class="mbody">
+      <ol>${M.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+      ${M.warn?`<div class="warnbox"><b>Trap:</b> ${M.warn}</div>`:''}
+      ${M.ok?`<div class="okbox">${M.ok}</div>`:''}
+    </div>`);
+  m.querySelector('.mhead').onclick=()=>m.classList.toggle('open');
+  mw.appendChild(m);
+});
+</script>
+</body>
+</html>
