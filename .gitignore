@@ -54,3 +54,9 @@ coverage/
 *.sublime-workspace
 
 .env.deployment.whole
+
+.agents/
+.claude-flow/
+.claude/
+CLAUDE.md
+graphify-out/
