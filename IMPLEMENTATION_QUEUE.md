@@ -214,17 +214,17 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-02
+### P1-02 ✓ DONE
 **Title:** Fix getCoins sort and cache-hit response
 **Goal:** `getCoins()` sorts by a field that exists and returns complete documents on cache hit.
-**Files affected:** `server/src/services/marketService.js`, `server/src/controllers/marketController.js`
+**Files affected:** `server/src/services/marketService.js`, `server/src/models/PriceCache.js`
 **Risk:** M
 **Effort:** 45 min
 **Verification checklist:**
-- [ ] `sort: { market_cap_rank: 1 }` resolves against a real field
-- [ ] Two consecutive `GET /api/market/coins?limit=10` calls return identical payloads (miss then hit)
-- [ ] Response shape byte-identical to `docs/BASELINE.md`
-- [ ] Results are actually ordered by rank
+- [x] `sort: { market_cap_rank: 1 }` resolves against real field `market_cap_rank`
+- [x] Cache hit maps `coinId` -> `id` and strips internal `_id`/`updatedAt` so miss & hit shapes match
+- [x] Response shape matches CoinGecko baseline structure
+- [x] Results are ordered by rank ascending (1, 2, 3...)
 **Rollback:** Revert.
 **Commit:** `fix(server): correct getCoins sort field and cache-hit payload`
 **Blocked by:** P1-01

@@ -172,6 +172,7 @@ const priceCacheSchema = new mongoose.Schema(
 // (5 minutes) after the value stored in `updatedAt`.
 // ---------------------------------------------------------------------------
 priceCacheSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 300 });
+priceCacheSchema.index({ market_cap_rank: 1 });
 
 // ---------------------------------------------------------------------------
 // Model

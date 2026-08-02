@@ -47,7 +47,10 @@ class MarketService {
 
         if (cachedCoins.length >= limit) {
           console.log(`[MarketService] Serving ${cachedCoins.length} coins from cache.`);
-          return cachedCoins;
+          return cachedCoins.map(({ _id, updatedAt, coinId, ...rest }) => ({
+            id: coinId,
+            ...rest,
+          }));
         }
       } catch (err) {
         console.error('[MarketService] Failed to read from PriceCache (non-fatal):', err.message);
