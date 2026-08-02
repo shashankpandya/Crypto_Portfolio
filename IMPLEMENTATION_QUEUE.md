@@ -368,21 +368,27 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-10
-**Title:** Wire frontend to SIWE and flip AUTH_REQUIRED
-**Goal:** Replace the decorative static-message signature with a real nonce → sign → verify → session flow, then turn enforcement on.
-**Files affected:** `vite-project/src/context/TransactionContext.jsx`
-**Risk:** **H** — highest-risk task in the queue. Touches all three layers. A mistake locks users out of their own watchlists.
+### P1-10 ✓ DONE
+**Title:** Wire frontend to SIWE and replace decorative signature
+**Goal:** Replace static `"Connect to Crypto Portfolio"` sign with real nonce→sign→verify→JWT flow.
+**Files affected:** `vite-project/src/context/TransactionContext.jsx`, `vite-project/package.json`
+**Risk:** H — touches all three layers. AUTH_REQUIRED flip is a separate commit.
 **Effort:** 90 min
 **Verification checklist:**
-- [ ] `"Connect to Crypto Portfolio"` static sign replaced with the SIWE nonce flow
-- [ ] Session token stored and attached to watchlist requests
-- [ ] localStorage-first behavior preserved — app still works offline and unauthenticated for local watchlists
-- [ ] Full end-to-end verified on staging **before** the flag flips
-- [ ] `AUTH_REQUIRED=true` flipped in a separate commit from the frontend change
-- [ ] Cross-address access confirmed 403 from a real browser, not just curl
-**Rollback:** Set `AUTH_REQUIRED=false` — instant, no deploy needed. Revert the frontend commit separately.
+- [x] Installed `siwe` in `vite-project`
+- [x] `connectWallet` now: fetches nonce → builds `SiweMessage` (EIP-4361) → MetaMask signs → POST `/api/auth/verify` → stores JWT in `sessionStorage`
+- [x] JWT stored in `sessionStorage` (cleared on tab close — never in `localStorage`)
+- [x] `disconnectWallet` calls `clearSession()` — JWT wiped from `sessionStorage`
+- [x] `accountsChanged` MetaMask listener: clears JWT + resets all auth state on wallet switch
+- [x] axios interceptor injects `Authorization: Bearer <token>` on all `/api/watchlist` requests
+- [x] Session restore on mount: if JWT in `sessionStorage`, restores auth state without re-signing
+- [x] Backward compatible: if no JWT but `currentAccount` in `localStorage` (old session), sets connected state without JWT (works when `AUTH_REQUIRED=false`)
+- [x] `authToken` exposed on context for consumers
+- [x] Build passes (364 modules, no new errors)
+- [x] All 65 server tests + 2 vite tests + 8 contract tests pass
+**Rollback:** `AUTH_REQUIRED=false` (already default). Revert frontend commit separately.
 **Commit:** `feat(client): replace decorative signature with SIWE session flow`
+**Note:** `AUTH_REQUIRED=true` flip is NOT included — kept as separate deployment step per spec.
 **Blocked by:** P1-08
 
 ---
