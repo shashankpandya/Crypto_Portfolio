@@ -6,7 +6,7 @@ describe("Transactions Contract", function () {
   let owner;
   let addr1;
   let addr2;
-  const initialSupply = ethers.utils.parseEther("1000");
+  const initialSupply = ethers.parseEther("1000");
 
   beforeEach(async function () {
     const signers = await ethers.getSigners();
@@ -15,7 +15,7 @@ describe("Transactions Contract", function () {
     addr2 = signers[2];
     const Transactions = await ethers.getContractFactory("Transactions");
     transactions = await Transactions.deploy(initialSupply);
-    await transactions.deployed();
+    await transactions.waitForDeployment();
   });
 
   describe("Deployment", function () {
@@ -28,13 +28,13 @@ describe("Transactions Contract", function () {
     });
 
     it("Should set the initial fee to 1%", async function () {
-      expect(await transactions.feePercentage()).to.equal(100);
+      expect(await transactions.feePercentage()).to.equal(100n);
     });
   });
 
   describe("Transactions and Fees", function () {
     it("Should transfer tokens, deduct fee, and record transaction with metadata", async function () {
-      const amount = ethers.utils.parseEther("100");
+      const amount = ethers.parseEther("100");
       const message = "Fee test";
       const category = "Business";
       const tags = ["test", "fee"];
@@ -45,12 +45,12 @@ describe("Transactions Contract", function () {
       const tx = await transactions.connect(addr1).addToBlockchain(addr2.address, amount, message, category, tags);
       await tx.wait();
 
-      const fee = amount.mul(100).div(10000);
-      const amountToSend = amount.sub(fee);
+      const fee = (amount * 100n) / 10000n;
+      const amountToSend = amount - fee;
 
-      expect(await transactions.balanceOf(addr1.address)).to.equal(0);
+      expect(await transactions.balanceOf(addr1.address)).to.equal(0n);
       expect(await transactions.balanceOf(addr2.address)).to.equal(amountToSend);
-      expect(await transactions.balanceOf(owner.address)).to.equal(ownerBalanceAfterFirstTransfer.add(fee));
+      expect(await transactions.balanceOf(owner.address)).to.equal(ownerBalanceAfterFirstTransfer + fee);
 
       const allTransactions = await transactions.getAllTransactions();
       expect(allTransactions.length).to.equal(1);
@@ -60,9 +60,9 @@ describe("Transactions Contract", function () {
     });
 
     it("Should perform batch transfers and collect fees", async function () {
-      const amount1 = ethers.utils.parseEther("100");
-      const amount2 = ethers.utils.parseEther("200");
-      const totalAmount = amount1.add(amount2);
+      const amount1 = ethers.parseEther("100");
+      const amount2 = ethers.parseEther("200");
+      const totalAmount = amount1 + amount2;
       const message = "Batch test";
       const category = "Batch";
       const tags = ["batch", "multi"];
@@ -79,17 +79,16 @@ describe("Transactions Contract", function () {
       );
       await tx.wait();
 
-      const fee1 = amount1.mul(100).div(10000);
-      const fee2 = amount2.mul(100).div(10000);
-      const totalFees = fee1.add(fee2);
+      const fee1 = (amount1 * 100n) / 10000n;
+      const fee2 = (amount2 * 100n) / 10000n;
 
       // addr1: totalAmount - amount1 - amount2 = 0
       // owner: ownerBalanceBefore + amount1(net) + fee1 + fee2
       // amount1(net) = amount1 - fee1
       // owner: ownerBalanceBefore + amount1 - fee1 + fee1 + fee2 = ownerBalanceBefore + amount1 + fee2
-      expect(await transactions.balanceOf(addr1.address)).to.equal(0);
-      expect(await transactions.balanceOf(owner.address)).to.equal(ownerBalanceBefore.add(amount1).add(fee2));
-      expect(await transactions.balanceOf(addr2.address)).to.equal(amount2.sub(fee2));
+      expect(await transactions.balanceOf(addr1.address)).to.equal(0n);
+      expect(await transactions.balanceOf(owner.address)).to.equal(ownerBalanceBefore + amount1 + fee2);
+      expect(await transactions.balanceOf(addr2.address)).to.equal(amount2 - fee2);
 
       const allTransactions = await transactions.getAllTransactions();
       expect(allTransactions.length).to.equal(2);
@@ -98,18 +97,18 @@ describe("Transactions Contract", function () {
     });
 
     it("Should allow owner to change fee and apply new fee", async function () {
-      const newFee = 500; // 5%
+      const newFee = 500n; // 5%
       await transactions.setFeePercentage(newFee);
       expect(await transactions.feePercentage()).to.equal(newFee);
 
-      const amount = ethers.utils.parseEther("100");
+      const amount = ethers.parseEther("100");
       await transactions.transfer(addr1.address, amount);
       const ownerBalanceBefore = await transactions.balanceOf(owner.address);
 
       await transactions.connect(addr1).addToBlockchain(addr2.address, amount, "5% fee", "", []);
       
-      const expectedFee = amount.mul(500).div(10000);
-      expect(await transactions.balanceOf(owner.address)).to.equal(ownerBalanceBefore.add(expectedFee));
+      const expectedFee = (amount * 500n) / 10000n;
+      expect(await transactions.balanceOf(owner.address)).to.equal(ownerBalanceBefore + expectedFee);
     });
 
     it("Should fail if non-owner tries to change fee", async function () {
