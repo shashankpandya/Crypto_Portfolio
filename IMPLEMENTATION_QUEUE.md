@@ -434,9 +434,28 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 **Commit:** `fix(client): standardize gas price and limit defaults with dynamic provider estimation`
 **Blocked by:** —
 
+### P1-13 ✓ DONE
+**Title:** Remove hardcoded USD rate and fake gas estimate
+**Goal:** Stop showing invented numbers (`* 0.5` USD multiplier and `~45,000 Gwei (approx. $0.12)` static text) on the transfer screen.
+**Files affected:** `vite-project/src/components/TokenTransfer.jsx`, `vite-project/src/components/TokenTransfer.test.jsx`
+**Risk:** L
+**Effort:** 60 min
+**Verification checklist:**
+- [x] Hardcoded `* 0.5` USD conversion span removed
+- [x] Hardcoded `~45,000 Gwei (approx. $0.12)` static gas estimate text removed
+- [x] Dynamic `gasEstimate` populated via provider fee data (`getFeeData()`)
+- [x] Gas estimate row explicitly labeled `Network Fee (Estimate)`
+- [x] Gas estimate row **hidden** when estimate is unavailable (`gasEstimate === null`)
+- [x] Unit tests added in `TokenTransfer.test.jsx` (2 tests) verifying absence of fake USD/gas numbers
+- [x] All 65 server tests + 14 vite tests + 8 contract tests pass
+- [x] Vite production build succeeds
+**Rollback:** Revert.
+**Commit:** `fix(client): replace fabricated USD rate and gas estimate with real quotes`
+**Blocked by:** —
+
 ---
 
-### P1-13
+### P1-14
 **Title:** Replace synthetic sparklines with real 7d data
 **Goal:** Delete `generateSparklinePath()` — a `Math.sin(hash)` curve presented as a price trend.
 **Files affected:** `vite-project/src/components/TopCoins.jsx`, `vite-project/src/api.js`

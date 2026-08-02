@@ -1,4 +1,5 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { ethers } from "ethers";
 import { TransactionContext } from "../context/TransactionContext";
 
 const isValidAddress = (addr) => {
@@ -15,10 +16,55 @@ function TokenTransfer() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [gasEstimate, setGasEstimate] = useState(null);
 
   // Validation states for single transfer
   const [singleAddressValid, setSingleAddressValid] = useState(null); // null, true, false
   const [singleAmountValid, setSingleAmountValid] = useState(null);
+
+  // Dynamic fee estimate (P1-13)
+  useEffect(() => {
+    let isMounted = true;
+
+    const estimateFee = async () => {
+      if (!window.ethereum || !formData.addressTo || !formData.amount) {
+        if (isMounted) setGasEstimate(null);
+        return;
+      }
+      if (!isValidAddress(formData.addressTo) || parseFloat(formData.amount) <= 0) {
+        if (isMounted) setGasEstimate(null);
+        return;
+      }
+
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const feeData = await provider.getFeeData();
+        const gasPrice = feeData.gasPrice || feeData.maxFeePerGas || 0n;
+
+        if (gasPrice > 0n) {
+          const gweiVal = Math.round(Number(ethers.formatUnits(gasPrice, "gwei")));
+          const estimatedWei = 85000n * gasPrice; // ~85,000 gas units estimate
+          const ethVal = parseFloat(ethers.formatEther(estimatedWei)).toFixed(5);
+
+          if (isMounted) {
+            setGasEstimate({
+              gwei: `~${gweiVal} Gwei`,
+              eth: `~${ethVal} ETH`,
+            });
+          }
+        } else {
+          if (isMounted) setGasEstimate(null);
+        }
+      } catch {
+        if (isMounted) setGasEstimate(null);
+      }
+    };
+
+    estimateFee();
+    return () => {
+      isMounted = false;
+    };
+  }, [formData.addressTo, formData.amount]);
 
   // Validation check handlers
   const checkSingleAddress = (val) => {
@@ -223,9 +269,6 @@ function TokenTransfer() {
                 <label htmlFor="amountInput" className="text-xs font-medium text-slate-400">
                   Amount (MTK)
                 </label>
-                <span className="text-[10px] text-[#71717a] font-mono">
-                  {formData.amount ? `= $${(parseFloat(formData.amount) * 0.5).toFixed(2)} USD` : ""}
-                </span>
               </div>
               <input
                 type="number"
@@ -258,11 +301,16 @@ function TokenTransfer() {
               />
             </div>
 
-            {/* Gas estimator */}
-            <div className="bg-white/[0.02] border border-white/5 rounded-md px-3 py-2 text-[11px] font-mono text-slate-500 flex justify-between items-center select-none">
-              <span><span className="text-slate-600 mr-1">⛽</span> Estimated Network Fee:</span>
-              <span className="text-white">~45,000 Gwei (approx. $0.12)</span>
-            </div>
+            {/* Dynamic Gas estimator (P1-13) — hidden when estimate is unavailable */}
+            {gasEstimate && (
+              <div className="bg-white/[0.02] border border-white/5 rounded-md px-3 py-2 text-[11px] font-mono text-slate-500 flex justify-between items-center select-none">
+                <span><span className="text-slate-600 mr-1">⛽</span> Network Fee (Estimate):</span>
+                <span className="text-white">
+                  {gasEstimate.gwei} {gasEstimate.eth ? `(${gasEstimate.eth})` : ""}
+                </span>
+              </div>
+            )}
+
 
             <button
               type="submit"
