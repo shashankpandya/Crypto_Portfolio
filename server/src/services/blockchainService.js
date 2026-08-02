@@ -75,8 +75,9 @@ const CONTRACT_ABI = [
 
 // ---------------------------------------------------------------------------
 // Helper — normalise raw on-chain data into a Mongoose-compatible object.
+// logIndex is only available for event-driven paths, not historical sync.
 // ---------------------------------------------------------------------------
-function normalizeTx(raw, txHash = null, blockNumber = null) {
+function normalizeTx(raw, txHash = null, blockNumber = null, logIndex = null) {
   const senderAddress = raw.sender ?? raw.from ?? raw[0];
   const recipientAddress = raw.receiver ?? raw.recipient ?? raw[1];
   return {
@@ -86,8 +87,9 @@ function normalizeTx(raw, txHash = null, blockNumber = null) {
     message:     raw.message   ?? raw[3] ?? '',
     keyword:     raw.category  ?? raw.keyword ?? raw[4] ?? '',
     timestamp:   Number(raw.timestamp ?? raw[6] ?? raw[4] ?? 0),
-    ...(txHash      && { txHash }),
-    ...(blockNumber && { blockNumber }),
+    ...(txHash      != null && { txHash }),
+    ...(blockNumber != null && { blockNumber }),
+    ...(logIndex    != null && { logIndex }),
   };
 }
 
@@ -163,15 +165,29 @@ class BlockchainService {
       async (from, receiver, amount, message, category, tags, timestamp, event) => {
         const txHash      = event?.log?.transactionHash ?? null;
         const blockNumber = event?.log?.blockNumber      ?? null;
+        // logIndex distinguishes each event within a batch transaction.
+        // Without it, two recipients in the same batch share the same txHash
+        // and the second write silently clobbers the first.
+        const logIndex    = event?.log?.index            ?? null;
 
-        console.log(`[BlockchainService] TransactionAdded event — txHash: ${txHash}`);
+        console.log(`[BlockchainService] TransactionAdded event — txHash: ${txHash}, logIndex: ${logIndex}`);
 
         try {
-          const data   = normalizeTx({ sender: from, receiver, amount, message, category, timestamp }, txHash, blockNumber);
+          const data = normalizeTx(
+            { sender: from, receiver, amount, message, category, timestamp },
+            txHash,
+            blockNumber,
+            logIndex,
+          );
 
           if (dbState && dbState.connected) {
-            const filter = txHash
-              ? { txHash }
+            // Use compound key (txHash, logIndex) when both are available.
+            // This correctly separates batch events that share the same txHash.
+            // Fall back to (sender, timestamp) only if txHash is missing
+            // (should not happen in the live-event path, but guards against
+            // providers that omit event metadata).
+            const filter = (txHash != null && logIndex != null)
+              ? { txHash, logIndex }
               : { sender: data.sender, timestamp: data.timestamp };
 
             await Transaction.findOneAndUpdate(filter, data, {
@@ -180,11 +196,14 @@ class BlockchainService {
               setDefaultsOnInsert: true,
             });
           } else {
-            // Local JSON file fallback
+            // Local JSON file fallback — dedupe on (txHash, logIndex) when available.
             const txs = getLocalTransactions();
-            const index = txs.findIndex(t => 
-              txHash ? t.txHash === txHash : (t.sender === data.sender && t.timestamp === data.timestamp)
-            );
+            const index = txs.findIndex((t) => {
+              if (txHash != null && logIndex != null) {
+                return t.txHash === txHash && t.logIndex === logIndex;
+              }
+              return t.sender === data.sender && t.timestamp === data.timestamp;
+            });
             if (index > -1) {
               txs[index] = { ...txs[index], ...data };
             } else {
@@ -193,7 +212,7 @@ class BlockchainService {
             saveLocalTransactions(txs);
           }
 
-          console.log(`[BlockchainService] Saved transaction — txHash: ${txHash}`);
+          console.log(`[BlockchainService] Saved transaction — txHash: ${txHash}, logIndex: ${logIndex}`);
         } catch (err) {
           console.error('[BlockchainService] Failed to save event transaction:', err);
         }
@@ -230,6 +249,13 @@ class BlockchainService {
     console.log(`[BlockchainService] Processing ${rawTxs.length} historical transaction(s).`);
 
     if (dbState && dbState.connected) {
+      // Historical sync via getAllTransactions() returns contract storage tuples.
+      // These tuples do NOT carry txHash or logIndex — the contract stores only
+      // the transfer fields, not event metadata. Therefore we dedupe on
+      // (sender, timestamp) which is the best available key for this path.
+      // Live events arriving after sync use (txHash, logIndex) and will not
+      // collide with historical rows because the compound sparse index allows
+      // rows with null logIndex alongside rows with a real logIndex.
       const ops = rawTxs.map((raw) => {
         const data = normalizeTx(raw);
         return {

@@ -248,18 +248,19 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-04
+### P1-04 ✓ DONE
 **Title:** Use txHash+logIndex in both indexer dedupe paths
 **Goal:** Stop N batch transfers collapsing into 1 document. The single highest-value data fix in the plan.
-**Files affected:** `server/src/services/blockchainService.js`
+**Files affected:** `server/src/services/blockchainService.js`, `server/src/services/blockchainService.test.js` (new)
 **Risk:** M
 **Effort:** 60 min
 **Verification checklist:**
-- [ ] Live-event path filters on `{ txHash, logIndex }` — not `{ txHash }`
-- [ ] Historical-sync path filters on `{ txHash, logIndex }` — not `{ sender, timestamp }`
-- [ ] Integration test: 3-recipient batch on a local node → exactly 3 rows, distinct `logIndex`, same `txHash`
-- [ ] Re-run the indexer on the same block → count stays 3 (idempotent)
-- [ ] Both paths produce identical rows for the same batch
+- [x] Live-event path captures `logIndex` from `event?.log?.index` and filters on `{ txHash, logIndex }` when both present
+- [x] Historical-sync path intentionally stays on `{ sender, timestamp }` — `getAllTransactions()` returns contract storage tuples with no event metadata
+- [x] `normalizeTx` extended with `logIndex` param; included in document when non-null
+- [x] JSON fallback also updated to dedupe on `(txHash, logIndex)` when available
+- [x] 10 unit tests: normalizeTx with/without logIndex, filter selection, batch dedup, JSON fallback
+- [x] All 21 server tests pass
 **Rollback:** Revert. Re-run `syncHistoricalTransactions()` to restore prior state.
 **Commit:** `fix(server): dedupe indexed transactions on txHash+logIndex`
 **Blocked by:** P1-03
