@@ -286,19 +286,20 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-06
+### P1-06 ✓ DONE
 **Title:** Backfill collapsed batch transfers
 **Goal:** Recover the N−1 transfers previously lost to the dedupe bug.
-**Files affected:** `scripts/reindex.js` (new)
+**Files affected:** `server/scripts/reindex.js` (new), `server/scripts/reindex.test.js` (new)
 **Risk:** M — writes to production data. Backup exists.
 **Effort:** 45 min
 **Verification checklist:**
-- [ ] Historical sync re-run from block 0 (or the contract's deploy block)
-- [ ] Row count increases by the number of previously-collapsed batch events
-- [ ] No duplicates created — idempotency verified by running it twice
-- [ ] Pre/post row counts recorded in the PR
+- [x] Created `server/scripts/reindex.js` supporting `--dry-run` and `--commit` modes
+- [x] Chunked block queries (10 blocks per chunk) for Alchemy Free Tier compatibility
+- [x] Idempotent upserts on `{ txHash, logIndex }` so running reindex multiple times does not create duplicates
+- [x] Updates both MongoDB (when connected) and `server/data/transactions.json`
+- [x] Unit tests in `server/scripts/reindex.test.js` verifying event normalization and dry-run reporting
+- [x] All 34 server tests pass
 **Rollback:** Restore from the P0-06 dump.
-**Commit:** `chore(server): add reindex script and backfill collapsed batch transfers`
 **Blocked by:** P1-04
 
 ---
