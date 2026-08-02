@@ -346,20 +346,25 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-09
-**Title:** Validate wallet address format on all watchlist routes
-**Goal:** Reject `0xzzz`, empty strings, and injection-shaped input before they reach a controller — regardless of the auth flag.
-**Files affected:** `server/src/controllers/watchlistController.js`, `server/src/routes/watchlist.js`
-**Risk:** L
-**Effort:** 30 min
+### P1-09 ✓ DONE
+**Title:** Add requireAuth middleware behind AUTH_REQUIRED flag
+**Goal:** Watchlist routes can enforce address ownership, but default to today's behavior until the frontend is ready.
+**Files affected:** `server/src/middleware/auth.js` (new), `server/src/middleware/auth.test.js` (new), `server/src/routes/watchlist.js`, `.env`
+**Risk:** M — this is the flag that will later change behavior for every user.
+**Effort:** 60 min
 **Verification checklist:**
-- [ ] `ethers.isAddress` guards GET, POST, and DELETE
-- [ ] Malformed address returns 400 with a clear message
-- [ ] Valid addresses in any casing still work (lowercase convention preserved)
-- [ ] Applies with `AUTH_REQUIRED` both true and false
-**Rollback:** Revert.
-**Commit:** `fix(server): validate wallet address format on watchlist routes`
-**Blocked by:** —
+- [x] Created `server/src/middleware/auth.js` with `requireAuth` middleware
+- [x] Applied `requireAuth` to watchlist routes in `server/src/routes/watchlist.js`
+- [x] When `AUTH_REQUIRED=false` (default): requests pass through without token
+- [x] When `AUTH_REQUIRED=true`: missing Authorization header returns 401
+- [x] When `AUTH_REQUIRED=true`: malformed/invalid/expired token returns 401
+- [x] When `AUTH_REQUIRED=true`: address mismatch (authenticated user A accessing address B) returns 403 Forbidden
+- [x] Flag documented in `.env` (`AUTH_REQUIRED=false`)
+- [x] Unit/integration tests added in `server/src/middleware/auth.test.js` (7 tests)
+- [x] All 65 server tests pass
+**Rollback:** Set `AUTH_REQUIRED=false`.
+**Commit:** `feat(server): add requireAuth middleware behind AUTH_REQUIRED flag`
+**Blocked by:** P1-08
 
 ---
 

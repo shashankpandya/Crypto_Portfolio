@@ -6,16 +6,17 @@ const {
   addCoin,
   removeCoin,
 } = require('../controllers/watchlistController');
+const { requireAuth } = require('../middleware/auth');
 
 const router = Router();
 
 // GET /api/watchlist/:walletAddress
-router.get('/:walletAddress', get);
+router.get('/:walletAddress', requireAuth, get);
 
 // POST /api/watchlist/:walletAddress/coins  — body: { coinId }
-router.post('/:walletAddress/coins', addCoin);
+router.post('/:walletAddress/coins', requireAuth, addCoin);
 
 // DELETE /api/watchlist/:walletAddress/coins/:coinId
-router.delete('/:walletAddress/coins/:coinId', removeCoin);
+router.delete('/:walletAddress/coins/:coinId', requireAuth, removeCoin);
 
 module.exports = router;
