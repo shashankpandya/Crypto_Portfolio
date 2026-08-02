@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto    = require('crypto');
 const express   = require('express');
 const helmet    = require('helmet');
 const cors      = require('cors');
@@ -14,9 +15,12 @@ const watchlistRoutes   = require('./routes/watchlist');
 const authRoutes        = require('./routes/auth');
 
 // ---------------------------------------------------------------------------
-// App
+// App & Proxy settings
 // ---------------------------------------------------------------------------
 const app = express();
+
+// Trust reverse proxy (e.g. Nginx, Cloudflare, ALB) - 1 hop
+app.set('trust proxy', 1);
 
 // ---------------------------------------------------------------------------
 // Security & parsing middleware
@@ -25,10 +29,32 @@ const app = express();
 // helmet sets a sensible suite of security-related HTTP headers.
 app.use(helmet());
 
-// cors — restrict origins via CORS_ORIGIN env var in production.
+// CORS allowlist configuration (P1-15)
+const defaultDevOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+];
+const configuredOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? configuredOrigins
+  : [...new Set([...defaultDevOrigins, ...configuredOrigins])];
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
@@ -38,46 +64,9 @@ app.use(
 app.use(express.json({ limit: '10kb' }));
 
 // ---------------------------------------------------------------------------
-// Rate limiting — 100 requests per 15 minutes per IP.
-// ---------------------------------------------------------------------------
-const limiter = rateLimit({
-  windowMs:          15 * 60 * 1000, // 15 minutes
-  max:               100,
-  standardHeaders:   true,  // Return rate-limit info in RateLimit-* headers
-  legacyHeaders:     false, // Disable X-RateLimit-* headers
-  message: {
-    success: false,
-    message: 'Too many requests from this IP. Please try again after 15 minutes.',
-  },
-});
-
-app.use(limiter);
-
-// ---------------------------------------------------------------------------
-// DB health guard
-// Sits in front of all /api routes. Reads dbState from app.locals (set by
-// index.js after connectDB resolves) and short-circuits with 503 when the
-// database is not connected. The /health route is intentionally excluded so
-// load balancers and uptime monitors always receive a response.
-// ---------------------------------------------------------------------------
-app.use('/api', (req, res, next) => {
-  // Database connection is optional; if disconnected, controllers will fallback to local file-based JSON storage.
-  return next();
-});
-
-// ---------------------------------------------------------------------------
-// Routes
-// ---------------------------------------------------------------------------
-app.use('/api/transactions', transactionRoutes);
-app.use('/api/market',       marketRoutes);
-app.use('/api/watchlist',    watchlistRoutes);
-app.use('/api/auth',         authRoutes);
-
-// ---------------------------------------------------------------------------
-// Health check
+// Health check (P1-15)
 // GET /health
-// Intentionally placed AFTER the DB guard so it always responds, even when
-// the database is down. Reports DB status in the response body.
+// Exempt from rate limiting and DB requirements. Responds even when DB is down.
 // ---------------------------------------------------------------------------
 app.get('/health', (req, res) => {
   const { dbState } = req.app.locals ?? {};
@@ -93,6 +82,30 @@ app.get('/health', (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+// Rate limiting — 100 requests per 15 minutes per IP (applies to API routes).
+// ---------------------------------------------------------------------------
+const limiter = rateLimit({
+  windowMs:        15 * 60 * 1000, // 15 minutes
+  max:             100,
+  standardHeaders: true,  // Return rate-limit info in RateLimit-* headers
+  legacyHeaders:   false, // Disable X-RateLimit-* headers
+  message: {
+    success: false,
+    message: 'Too many requests from this IP. Please try again after 15 minutes.',
+  },
+});
+
+app.use(limiter);
+
+// ---------------------------------------------------------------------------
+// Routes
+// ---------------------------------------------------------------------------
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/market',       marketRoutes);
+app.use('/api/watchlist',    watchlistRoutes);
+app.use('/api/auth',         authRoutes);
+
+// ---------------------------------------------------------------------------
 // 404 handler — catches any request that didn't match a route above.
 // ---------------------------------------------------------------------------
 app.use((_req, res) => {
@@ -100,22 +113,28 @@ app.use((_req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// Global error handler
-// Express identifies this as an error handler because it has four parameters.
-// All unhandled errors thrown inside route handlers land here.
+// Global error handler (P1-15)
+// Error redaction in production with correlation IDs.
 // ---------------------------------------------------------------------------
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
-  console.error('[GlobalErrorHandler]', err);
+  const isDev = process.env.NODE_ENV === 'development';
+  const status = err.status ?? err.statusCode ?? 500;
+  const correlationId = `req-${crypto.randomUUID()}`;
 
-  // Don't leak internal stack traces to the client in production.
-  const isDev     = process.env.NODE_ENV === 'development';
-  const status    = err.status ?? err.statusCode ?? 500;
-  const message   = err.message || 'Internal server error.';
+  console.error(`[GlobalErrorHandler] [${correlationId}]`, err);
+
+  if (status >= 500 && !isDev) {
+    return res.status(status).json({
+      success: false,
+      message: 'Internal server error.',
+      correlationId,
+    });
+  }
 
   res.status(status).json({
     success: false,
-    message,
+    message: err.message || 'Internal server error.',
     ...(isDev && { stack: err.stack }),
   });
 });

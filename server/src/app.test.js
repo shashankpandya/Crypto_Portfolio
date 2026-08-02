@@ -1,11 +1,6 @@
 "use strict";
 /**
- * app.test.js — Server smoke tests
- *
- * Rules:
- * - No live Mongo connection required (db disconnected → 503 on /health, which is correct)
- * - No outbound network calls
- * - Tests import app directly (not index.js) to avoid .listen() + DB side effects
+ * app.test.js — Server smoke and security tests (P1-15)
  */
 
 const request = require("supertest");
@@ -14,7 +9,6 @@ const app = require("../src/app");
 describe("GET /health", () => {
   it("responds with JSON and correct shape", async () => {
     const res = await request(app).get("/health");
-    // 503 when db not connected (no Mongo in test env) — that is correct behaviour
     expect([200, 503]).toContain(res.status);
     expect(res.body).toHaveProperty("status");
     expect(res.body).toHaveProperty("db");
@@ -24,7 +18,6 @@ describe("GET /health", () => {
 
   it("returns degraded when no db is connected", async () => {
     const res = await request(app).get("/health");
-    // In test env: app.locals.dbState is not set → connected = false → 503
     expect(res.status).toBe(503);
     expect(res.body.status).toBe("degraded");
     expect(res.body.db).toBe("disconnected");
@@ -36,5 +29,29 @@ describe("404 catch-all", () => {
     const res = await request(app).get("/nonexistent-route-xyz");
     expect(res.status).toBe(404);
     expect(res.body).toHaveProperty("message");
+  });
+});
+
+describe("Security Hardening (P1-15)", () => {
+  describe("CORS Allowlist", () => {
+    it("allows valid dev origin http://localhost:5173", async () => {
+      const res = await request(app)
+        .get("/health")
+        .set("Origin", "http://localhost:5173");
+      expect(res.headers["access-control-allow-origin"]).toBe("http://localhost:5173");
+    });
+
+    it("rejects unauthorized origin https://evil.example.com without Access-Control-Allow-Origin header", async () => {
+      const res = await request(app)
+        .get("/health")
+        .set("Origin", "https://evil.example.com");
+      expect(res.headers["access-control-allow-origin"]).toBeUndefined();
+    });
+  });
+
+  describe("Express configuration", () => {
+    it("has trust proxy enabled for reverse proxy deployment", () => {
+      expect(app.get("trust proxy")).toBe(1);
+    });
   });
 });

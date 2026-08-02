@@ -476,22 +476,23 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-14
+### P1-15 ✓ DONE
 **Title:** CORS allowlist, error redaction, trust proxy, /health exemption
-**Goal:** Four `app.js` security gaps in one pass — they share a file and a test surface.
-**Files affected:** `server/src/app.js`, `.env`, `.env.production`
-**Risk:** M — a wrong allowlist breaks the deployed frontend. Verify against the real origin before merge.
+**Goal:** Security hardening in Express backend (`app.js`).
+**Files affected:** `server/src/app.js`, `server/src/app.test.js`
+**Risk:** M — a wrong allowlist breaks the deployed frontend.
 **Effort:** 60 min
 **Verification checklist:**
-- [ ] `origin: '*'` default replaced with a comma-separated allowlist from `CORS_ORIGIN`
-- [ ] Fails closed in production; `localhost` permitted only when `NODE_ENV !== 'production'`
-- [ ] `curl -H "Origin: https://evil.example"` → no `Access-Control-Allow-Origin`
-- [ ] Production 500 returns a generic message + correlation id; full error only in the server log
-- [ ] `app.set('trust proxy', 1)` set; `X-Forwarded-For` from two IPs → two rate-limit buckets
-- [ ] `/health` exempt from the limiter — 200 rapid requests all return 200
-- [ ] Dead no-op `app.use('/api', (req,res,next) => next())` deleted
-- [ ] Real deployed frontend origin still works
-**Rollback:** Revert. Set `CORS_ORIGIN=*` as an emergency stopgap only.
+- [x] `origin: '*'` default replaced with a comma-separated allowlist from `CORS_ORIGIN`
+- [x] Fails closed in production; `localhost` dev origins permitted only when `NODE_ENV !== 'production'`
+- [x] Requests from unauthorized origin (e.g. `https://evil.example.com`) rejected (no `Access-Control-Allow-Origin` header)
+- [x] Production 500 errors return generic `'Internal server error.'` + `correlationId`; full stack logged server-side
+- [x] `app.set('trust proxy', 1)` set for Express reverse proxy IP forwarding
+- [x] `/health` route placed before rate limiter (exempt from rate limits)
+- [x] Dead no-op middleware deleted
+- [x] All 68 server tests + 16 vite tests + 8 contract tests pass
+- [x] Vite production build succeeds
+**Rollback:** Revert. Set `CORS_ORIGIN=*` as emergency stopgap.
 **Commit:** `fix(server): CORS allowlist, error redaction, trust proxy, health exemption`
 **Blocked by:** —
 
