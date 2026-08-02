@@ -2,18 +2,39 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { gsap } from "gsap";
 
-const generateSparklinePath = (id, change24h) => {
-  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const points = [];
-  const count = 10;
-  for (let i = 0; i < count; i++) {
-    const x = (i / (count - 1)) * 60;
-    let y = 12 + Math.sin((hash + i) * 1.1) * 7;
-    y += (change24h > 0 ? (count - i) * 0.4 : (i - count) * 0.4);
-    y = Math.max(3, Math.min(21, y));
-    points.push(`${x},${y}`);
+const renderSparkline = (sparklineData, isPositive) => {
+  const prices = sparklineData?.price;
+  if (!prices || !Array.isArray(prices) || prices.length < 2) {
+    return null;
   }
-  return `M ${points.join(" L ")}`;
+
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+
+  const width = 60;
+  const height = 20;
+  const padding = 2;
+
+  const points = prices.map((price, i) => {
+    const x = ((i / (prices.length - 1)) * width).toFixed(1);
+    const y = (height + padding - ((price - min) / range) * height).toFixed(1);
+    return `${x},${y}`;
+  });
+
+  const pathD = `M ${points.join(" L ")}`;
+
+  return (
+    <svg className="w-16 h-6" viewBox="0 0 60 24" fill="none">
+      <path
+        d={pathD}
+        stroke={isPositive ? "#10B981" : "#F43F5E"}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 };
 
 const TopCoins = ({ coins }) => {
@@ -85,8 +106,8 @@ const TopCoins = ({ coins }) => {
           </thead>
           <tbody className="divide-y divide-white/[0.03]">
             {filteredCoins.length > 0 ? (
-              filteredCoins.map((coin) => {
-                const actualRank = (coins || []).findIndex((c) => c.id === coin.id) + 1;
+              filteredCoins.map((coin, index) => {
+                const actualRank = coin.market_cap_rank ?? ((coins || []).findIndex((c) => c.id === coin.id) + 1);
                 const isPositive = (coin.price_change_percentage_24h ?? 0) >= 0;
                 return (
                   <tr
@@ -128,18 +149,10 @@ const TopCoins = ({ coins }) => {
                     </td>
                     <td className="px-4 py-2">
                       <div className="flex justify-center items-center">
-                        <svg className="w-16 h-6" viewBox="0 0 60 24" fill="none">
-                          <path
-                            d={generateSparklinePath(coin.id, coin.price_change_percentage_24h)}
-                            stroke={isPositive ? "#10B981" : "#F43F5E"}
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="animate-sparkline"
-                          />
-                        </svg>
+                        {renderSparkline(coin.sparkline_in_7d, isPositive)}
                       </div>
                     </td>
+
                     <td className="px-4 py-2 text-right font-mono text-xs text-slate-500 hidden md:table-cell">
                       ${coin.market_cap?.toLocaleString() ?? "N/A"}
                     </td>

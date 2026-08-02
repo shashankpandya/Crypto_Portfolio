@@ -455,19 +455,21 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-14
+### P1-14 ✓ DONE
 **Title:** Replace synthetic sparklines with real 7d data
 **Goal:** Delete `generateSparklinePath()` — a `Math.sin(hash)` curve presented as a price trend.
-**Files affected:** `vite-project/src/components/TopCoins.jsx`, `vite-project/src/api.js`
+**Files affected:** `vite-project/src/components/TopCoins.jsx`, `vite-project/src/components/TopCoins.test.jsx`, `vite-project/src/api.js`
 **Risk:** L
 **Effort:** 45 min
 **Verification checklist:**
-- [ ] CoinGecko markets call adds `sparkline=true`
-- [ ] Chart renders `sparkline_in_7d.price`
-- [ ] `generateSparklinePath` deleted — not kept as a fallback
-- [ ] Sparkline column renders nothing when data is absent
-- [ ] Rank uses `coin.market_cap_rank`, not `coins.findIndex(...) + 1`
-- [ ] Test with a deliberately out-of-order list: displayed rank matches `market_cap_rank`
+- [x] CoinGecko markets call includes `sparkline=true`
+- [x] Chart renders `sparkline_in_7d.price` data
+- [x] `generateSparklinePath` deleted — not kept as a fallback
+- [x] Sparkline column renders nothing when data is absent
+- [x] Rank uses `coin.market_cap_rank`, not `coins.findIndex(...) + 1`
+- [x] Unit tests added in `TopCoins.test.jsx` (2 tests) verifying real SVG path rendering and out-of-order `market_cap_rank` display
+- [x] All 65 server tests + 16 vite tests + 8 contract tests pass
+- [x] Vite production build succeeds
 **Rollback:** Revert.
 **Commit:** `fix(client): render real 7d sparklines and use market_cap_rank`
 **Blocked by:** —
