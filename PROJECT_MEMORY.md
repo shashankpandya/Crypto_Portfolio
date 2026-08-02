@@ -83,7 +83,13 @@ npm run build         # vite build
 
 ## Auth Reality
 
-**No real auth.** Wallet connect stores account+signature in localStorage; signature is static text, never verified. Server APIs (watchlist) trust address in URL — anyone can write to any watchlist. On-chain `onlyOwner` is the only real access control. `User` model exists, unused. If adding auth: SIWE (nonce → sign → server verify → session), then guard watchlist routes.
+**SIWE authentication implemented (P1-08, P1-09, P1-10).**
+- Nonce endpoint (`GET /api/auth/nonce?address=0x...`) generates single-use 5-min TTL nonces.
+- Verify endpoint (`POST /api/auth/verify`) recovers EIP-4361 signer, verifies nonce, upserts `User` model (`lastActive`), and returns 24h JWT.
+- Frontend (`TransactionContext.jsx`) executes nonce → sign → verify → JWT stored in `sessionStorage`.
+- `Authorization: Bearer <JWT>` header auto-injected by axios interceptor for watchlist endpoints.
+- `requireAuth` middleware (`server/src/middleware/auth.js`) enforces JWT and address ownership matching behind `AUTH_REQUIRED` feature flag (default: `false`).
+- Account changes (`accountsChanged`) and logout wipe `sessionStorage` session token.
 
 ## Common Debugging Areas
 
