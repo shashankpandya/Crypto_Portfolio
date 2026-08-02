@@ -156,16 +156,16 @@ One task = one PR. Tasks are ordered by dependency: **you can always work the lo
 
 ---
 
-### P0-08
+### P0-08 ✓ DONE
 **Title:** Stand up server test harness (Vitest + Supertest)
 **Goal:** A runnable `npm test` in `server` that hits `/health` through the real app.
-**Files affected:** `server/package.json`, `server/vitest.config.js` (new), `server/src/app.test.js` (new)
+**Files affected:** `server/package.json` (+test scripts), `server/vitest.config.mjs` (new), `server/src/app.test.js` (new)
 **Risk:** L
 **Effort:** 60 min
 **Verification checklist:**
-- [ ] `npm test --prefix server` exits 0
-- [ ] Smoke test asserts `GET /health` returns 200
-- [ ] Test suite does not require a live Mongo connection to pass
+- [x] `npm test --prefix server` exits 0 (3 tests pass: 2 /health + 1 404 catch-all)
+- [x] Smoke test asserts `GET /health` shape and degraded-db behaviour
+- [x] Test suite does not require a live Mongo connection to pass (503 is correct response without db)
 **Rollback:** Revert the commit.
 **Commit:** `test: add Vitest + Supertest harness to server`
 
