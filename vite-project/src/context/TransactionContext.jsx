@@ -33,6 +33,8 @@ import {
   verifyContract,
   logContractMethods,
   logContractDetails,
+  checkAllowance,
+  approveAllowance,
 } from "../utils/constant";
 
 // Make sure these are correctly defined in your constants file
@@ -486,32 +488,7 @@ export const TransactionProvider = ({ children }) => {
     }
   };
 
-  const checkAllowance = async (owner, spender) => {
-    try {
-      if (!window.ethereum) throw new Error("Please install MetaMask.");
-      const contract = await getEthereumContract();
-      const allowance = await contract.allowance(owner, spender);
-      return ethers.formatUnits(allowance, 18);
-    } catch (error) {
-      console.error("Error checking allowance:", error);
-      throw error;
-    }
-  };
 
-  const approveAllowance = async (spender, amount) => {
-    try {
-      const contract = await getEthereumContract();
-      const amountInWei = ethers.parseUnits(amount.toString(), 18);
-      const transaction = await contract.approve(spender, amountInWei);
-      setIsLoading(true);
-      await transaction.wait();
-      setIsLoading(false);
-      return transaction.hash;
-    } catch (error) {
-      console.error("Error approving allowance:", error);
-      throw error;
-    }
-  };
 
   const checkTokenBalance = async (address) => {
     try {
@@ -546,7 +523,8 @@ export const TransactionProvider = ({ children }) => {
         "amount:",
         amount
       );
-      const txHash = await approveAllowance(spender, amount);
+      const amountInWei = ethers.parseEther(amount);
+      const txHash = await approveAllowance(spender, amountInWei);
       console.log("Approval transaction hash:", txHash);
       setSuccessMessage(
         `Allowance of ${amount} tokens approved for ${spender}`

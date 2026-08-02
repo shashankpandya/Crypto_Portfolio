@@ -85,6 +85,12 @@ export const logContractDetails = (contract) => {
   }
 };
 
+/**
+ * Check MTK token allowance granted by owner to spender.
+ * @param {string} owner - Ethereum address of token owner
+ * @param {string} spender - Ethereum address of spender
+ * @returns {Promise<bigint>} Allowance amount in Wei (bigint)
+ */
 export const checkAllowance = async (owner, spender) => {
   if (typeof window.ethereum === "undefined") {
     throw new Error("Ethereum object not found");
@@ -105,7 +111,7 @@ export const checkAllowance = async (owner, spender) => {
       console.warn(
         "Allowance function not found in contract ABI. Returning default value."
       );
-      return ethers.parseEther("0");
+      return 0n;
     }
 
     try {
@@ -118,7 +124,18 @@ export const checkAllowance = async (owner, spender) => {
   });
 };
 
-export const approveAllowance = async (spender, amount) => {
+/**
+ * Approve MTK token allowance for spender.
+ * @param {string} spender - Ethereum address of spender
+ * @param {bigint} amountWei - Allowance amount in Wei (must be a bigint)
+ * @returns {Promise<string>} Transaction hash
+ */
+export const approveAllowance = async (spender, amountWei) => {
+  if (typeof amountWei !== "bigint") {
+    throw new TypeError(
+      `approveAllowance expects amountWei to be a bigint (Wei unit). Received: ${typeof amountWei} (${amountWei}). Use ethers.parseEther() to convert from Ether string.`
+    );
+  }
   if (typeof window.ethereum === "undefined") {
     throw new Error("Ethereum object not found");
   }
@@ -136,7 +153,7 @@ export const approveAllowance = async (spender, amount) => {
       signer
     );
     try {
-      const tx = await contract.approve(spender, amount);
+      const tx = await contract.approve(spender, amountWei);
       await tx.wait();
       return tx.hash;
     } catch (error) {
@@ -145,5 +162,6 @@ export const approveAllowance = async (spender, amount) => {
     }
   });
 };
+
 
 export default { transactionsABI, transactionsAddress };

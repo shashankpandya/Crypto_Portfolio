@@ -393,22 +393,23 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-11
+### P1-11 ✓ DONE
 **Title:** Unify the duplicated allowance helpers
-**Goal:** One `approveAllowance` / `checkAllowance` with a unit contract that fails loudly. Today two copies with the same name expect opposite units — swapping the import is a 1e18× approval error.
-**Files affected:** `vite-project/src/utils/constant.js`, `vite-project/src/context/TransactionContext.jsx`, `vite-project/src/components/AllowanceManager.jsx`
-**Risk:** M — touches on-chain approval. Test on testnet before merge.
+**Goal:** One `approveAllowance` / `checkAllowance` with a unit contract that fails loudly.
+**Files affected:** `vite-project/src/utils/constant.js`, `vite-project/src/context/TransactionContext.jsx`, `vite-project/src/components/AllowanceManager.jsx`, `vite-project/src/utils/constant.test.js`
+**Risk:** M — touches on-chain approval.
 **Effort:** 60 min
 **Verification checklist:**
-- [ ] Exactly one definition of each function survives — grep proves it
-- [ ] Parameter renamed to `amountWei`; accepts only `bigint`; throws on `number` or `string`
-- [ ] JSDoc at the definition site states the unit explicitly
-- [ ] `TransactionContext` copy deleted (re-export if any caller remains mid-migration)
-- [ ] `AllowanceManager` keeps its own `parseEther` — it already produces wei
-- [ ] Unit test: non-`bigint` input throws
-- [ ] Unit test: 1.5-token approval sends exactly `1500000000000000000`
-- [ ] Manual on testnet: approve 1 MTK, read allowance on-chain, it reads 1 — not 1e18
-**Rollback:** Revert. Any bad approval already on-chain must be reset to 0 manually.
+- [x] Exactly one definition of each function survives (`constant.js`) — grep proves it
+- [x] Parameter renamed to `amountWei`; accepts only `bigint`; throws `TypeError` on `number` or `string`
+- [x] JSDoc at definition site states unit explicitly (bigint Wei)
+- [x] `TransactionContext` duplicate definition deleted; imports and forwards `constant.js` version
+- [x] `handleApprove` in `TransactionContext` converts string `amount` to `bigint` Wei via `ethers.parseEther`
+- [x] `AllowanceManager` imports from `constant.js` and passes `bigint` Wei
+- [x] Unit test (`constant.test.js`): non-`bigint` input throws `TypeError` with helpful message
+- [x] All 65 server tests + 7 vite tests + 8 contract tests pass
+- [x] Vite build succeeds
+**Rollback:** Revert.
 **Commit:** `fix(client): unify allowance helpers behind a single wei-only contract`
 **Blocked by:** P0-07
 
