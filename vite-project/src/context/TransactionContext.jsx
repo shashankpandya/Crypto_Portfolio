@@ -43,6 +43,32 @@ import {
 
 export const TransactionContext = React.createContext();
 
+/**
+ * Helper to build transaction options dynamically (P1-12).
+ * Prefers provider estimation (contract.estimateGas + 10% buffer) while supporting
+ * user overrides when specified. Eliminates hardcoded gas prices/limits.
+ */
+export const getTxOptions = async (contract, methodName, args = [], customOptions = {}) => {
+  const options = {};
+
+  if (customOptions.gasLimit && !isNaN(customOptions.gasLimit) && Number(customOptions.gasLimit) > 0) {
+    options.gasLimit = BigInt(Math.floor(Number(customOptions.gasLimit)));
+  } else if (contract && contract.estimateGas && typeof contract.estimateGas[methodName] === "function") {
+    try {
+      const estimatedGas = await contract.estimateGas[methodName](...args);
+      options.gasLimit = (estimatedGas * 110n) / 100n; // 10% safety margin
+    } catch (err) {
+      console.warn(`[GasEstimation] Could not estimate gas for ${methodName}:`, err?.message || err);
+    }
+  }
+
+  if (customOptions.gasPrice && !isNaN(customOptions.gasPrice) && Number(customOptions.gasPrice) > 0) {
+    options.gasPrice = ethers.parseUnits(customOptions.gasPrice.toString(), "gwei");
+  }
+
+  return options;
+};
+
 const getEthereumContract = async () => {
   if (!window.ethereum) throw new Error("Please install MetaMask.");
   const provider = new ethers.BrowserProvider(window.ethereum);
@@ -175,7 +201,8 @@ export const TransactionProvider = ({ children }) => {
     try {
       const contract = await getEthereumContract();
       const basisPoints = Math.round(parseFloat(newFeePercent) * 100);
-      const tx = await contract.setFeePercentage(basisPoints);
+      const txOptions = await getTxOptions(contract, "setFeePercentage", [basisPoints]);
+      const tx = await contract.setFeePercentage(basisPoints, txOptions);
       setIsLoading(true);
       await tx.wait();
       setIsLoading(false);
@@ -228,14 +255,13 @@ export const TransactionProvider = ({ children }) => {
 
         const contract = await getEthereumContract();
         const parsedAmounts = amounts.map(amt => ethers.parseEther(amt));
+        const batchArgs = [receivers, parsedAmounts, message || "", "Batch Transfer", []];
+        const txOptions = await getTxOptions(contract, "addToBlockchainBatch", batchArgs);
 
         setIsLoading(true);
         const transaction = await contract.addToBlockchainBatch(
-          receivers,
-          parsedAmounts,
-          message || "",
-          "Batch Transfer",
-          []
+          ...batchArgs,
+          txOptions
         );
         await transaction.wait();
         setIsLoading(false);
@@ -451,7 +477,7 @@ export const TransactionProvider = ({ children }) => {
   const sendTransaction = async () => {
     try {
       if (window.ethereum) {
-        const { addressTo, amount, message } = formData;
+        const { addressTo, amount, message, gasLimit, gasPrice } = formData;
 
         if (!transactionsAddress || !ethers.isAddress(transactionsAddress)) {
           throw new Error("Smart contract address (VITE_CONTRACT_ADDRESS) is not configured.");
@@ -459,15 +485,12 @@ export const TransactionProvider = ({ children }) => {
 
         const contract = await getEthereumContract();
         const parsedAmount = ethers.parseEther(amount);
+        const txArgs = [addressTo, parsedAmount, message || "", "Transfer", []];
+        const txOptions = await getTxOptions(contract, "addToBlockchain", txArgs, { gasLimit, gasPrice });
 
-        // Call the smart contract's addToBlockchain method.
-        // This transfers the ERC20 token, collects fees, and records the metadata.
         const transaction = await contract.addToBlockchain(
-          addressTo,
-          parsedAmount,
-          message || "",
-          "Transfer",
-          []
+          ...txArgs,
+          txOptions
         );
 
         return transaction;

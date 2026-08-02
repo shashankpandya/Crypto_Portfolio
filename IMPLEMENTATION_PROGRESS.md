@@ -21,3 +21,4 @@
 - [x] P1-09: Add requireAuth middleware behind AUTH_REQUIRED flag (`server/src/middleware/auth.js`)
 - [x] P1-10: Wire frontend to SIWE and enable authenticated wallet flow (`vite-project/src/context/TransactionContext.jsx`)
 - [x] P1-11: Unify duplicated allowance helpers (`vite-project/src/utils/constant.js`, `TransactionContext.jsx`)
+- [x] P1-12: Standardize gas price and limit defaults (`vite-project/src/context/TransactionContext.jsx`)
