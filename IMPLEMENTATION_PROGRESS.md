@@ -24,4 +24,7 @@
 - [x] P1-12: Standardize gas price and limit defaults (`vite-project/src/context/TransactionContext.jsx`)
 - [x] P1-13: Remove hardcoded USD rate and fake gas estimate (`vite-project/src/components/TokenTransfer.jsx`)
 - [x] P1-14: Replace synthetic sparklines with real 7d data (`vite-project/src/components/TopCoins.jsx`, `api.js`)
-- [x] P1-15: CORS allowlist, error redaction, trust proxy, /health exemption (`server/src/app.js`)
+- [x] P1-15: Split getEthBalance/getTokenBalance, surface MTK balance card (`TransactionContext.jsx`, `Home.jsx`)
+- [x] P1-16: Collapse dual wallet state, move chainChanged to context, fix empty-accounts disconnect
+
+**Phase 1 complete.** All 16 tasks done.

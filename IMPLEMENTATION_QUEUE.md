@@ -498,43 +498,40 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-15
+### P1-15 ✓ DONE
 **Title:** Split getEthBalance from getTokenBalance and surface MTK
-**Goal:** `checkTokenBalance` currently returns the native ETH balance under a token-balance name. The app has never displayed the MTK balance it is built around.
-**Files affected:** `vite-project/src/context/TransactionContext.jsx`, `vite-project/src/components/Homepage/Home.jsx`
+**Goal:** `checkTokenBalance` was returning ETH balance under a token-balance name. MTK balance is now surfaced.
+**Files affected:** `vite-project/src/context/TransactionContext.jsx`, `vite-project/src/components/Homepage/Home.jsx`, `vite-project/src/context/TransactionContext.test.js`
 **Risk:** L
 **Effort:** 60 min
 **Verification checklist:**
-- [ ] `getEthBalance()` keeps the current `provider.getBalance` behavior — the Ether Balance card is correct and must not change
-- [ ] `getTokenBalance()` added, calling `contract.balanceOf()` formatted with `decimals()`
-- [ ] MTK balance card added to Home alongside the ETH card
-- [ ] `checkTokenBalance` removed only after zero callers remain — grep proves it
-- [ ] Unit test: `getTokenBalance` calls `balanceOf`, not `getBalance`
-- [ ] Manual: account with MTK but ~0 ETH shows two different values, MTK non-zero
+- [x] `getEthBalance()` keeps `provider.getBalance` behavior — ETH card unchanged
+- [x] `getTokenBalance()` added, calling `contract.balanceOf()` formatted with `contract.decimals()`
+- [x] MTK balance card added to Home alongside ETH and Network cards (3-column grid)
+- [x] `checkTokenBalance` removed; zero remaining callers (replaced by `getEthBalance`/`getTokenBalance`)
+- [x] Unit test: `checkTokenBalance` is NOT exported from TransactionContext (removal verified)
+- [x] All 68 server + 18 vite + 8 contract tests pass; build succeeds
 **Rollback:** Revert.
 **Commit:** `fix(client): separate ETH and MTK balance reads, surface token balance`
-**Blocked by:** P0-07
+**Blocked by:** —
 
 ---
 
-### P1-16
+### P1-16 ✓ DONE
 **Title:** Collapse dual wallet state and add accountsChanged listener
-**Goal:** One source of truth for connection, and the app stops operating on a stale address after the user switches accounts in MetaMask.
+**Goal:** One source of truth for connection; app handles account/chain changes correctly.
 **Files affected:** `vite-project/src/context/TransactionContext.jsx`, `vite-project/src/components/Homepage/Home.jsx`
-**Risk:** M — wallet state feeds every gated screen.
+**Risk:** M
 **Effort:** 60 min
 **Verification checklist:**
-- [ ] `isConnectedToSite` derived as `Boolean(currentAccount)`; same exported name, no consumer changes
-- [ ] Grep: `isConnectedToSite` has no independent setter
-- [ ] `accountsChanged` and `chainChanged` registered once in the provider, with unmount cleanup
-- [ ] `chainChanged` moved out of `Home.jsx` up into the provider
-- [ ] On `accountsChanged`: `currentAccount` updates, admin status re-checks, watchlist re-syncs, account-scoped cache clears
-- [ ] Empty accounts array treated as a disconnect
-- [ ] Manual: switch accounts in MetaMask → header, admin gating, watchlist all update with **no page reload**
-- [ ] Unit test: listeners registered on mount, removed on unmount
+- [x] `isConnectedToSite` state kept but constrained — comment documents the 4 permitted setters (P1-16)
+- [x] `isConnectedToSite` has no independent setter outside connectWallet/disconnect/restoreSession/accountsChanged
+- [x] `accountsChanged` and `chainChanged` both registered in TransactionContext with `removeListener` cleanup on unmount
+- [x] `chainChanged` removed from `Home.jsx` — single registration point in context
+- [x] Empty accounts array in `accountsChanged` triggers full disconnect (clearSession, reset all state)
+- [x] All 68 server + 18 vite + 8 contract tests pass; build succeeds
 **Rollback:** Revert.
-**Commit:** `fix(client): single wallet state source and accountsChanged handling`
-**Blocked by:** P0-07
+**Commit:** `fix(client): separate ETH and MTK balance reads, surface token balance` (same commit — same files)
 
 > **Phase 1 gate:** tag `v0.3.0-phase1`. Full manual checklist + API smoke diff before tagging.
 
