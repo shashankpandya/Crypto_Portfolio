@@ -1,0 +1,359 @@
+{
+  "capturedAt": "2026-08-01T15:58:43.540Z",
+  "mongoAvailable": false,
+  "dbDown": {
+    "health": {
+      "request": {
+        "method": "GET",
+        "url": "/health",
+        "body": null
+      },
+      "status": 503,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": false,
+        "status": "degraded",
+        "db": "disconnected",
+        "uptime": 1.3074865,
+        "timestamp": "2026-08-01T15:45:56.720Z"
+      },
+      "ms": 29
+    },
+    "market.coins": {
+      "request": {
+        "method": "GET",
+        "url": "/api/market/coins?limit=3",
+        "body": null
+      },
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": false,
+        "message": "CoinGecko API error: read ECONNRESET"
+      },
+      "ms": 158
+    },
+    "market.coins.cachehit": {
+      "request": {
+        "method": "GET",
+        "url": "/api/market/coins?limit=3",
+        "body": null
+      },
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": false,
+        "message": "CoinGecko API error: read ECONNRESET"
+      },
+      "ms": 106
+    },
+    "market.coins.badlimit": {
+      "request": {
+        "method": "GET",
+        "url": "/api/market/coins?limit=abc",
+        "body": null
+      },
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": false,
+        "message": "CoinGecko API error: read ECONNRESET"
+      },
+      "ms": 108
+    },
+    "market.coinDetails": {
+      "request": {
+        "method": "GET",
+        "url": "/api/market/coins/bitcoin",
+        "body": null
+      },
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": false,
+        "message": "read ECONNRESET"
+      },
+      "ms": 116
+    },
+    "market.coinDetails.404": {
+      "request": {
+        "method": "GET",
+        "url": "/api/market/coins/definitely-not-a-coin",
+        "body": null
+      },
+      "status": 500,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": false,
+        "message": "read ECONNRESET"
+      },
+      "ms": 126
+    },
+    "tx.count": {
+      "request": {
+        "method": "GET",
+        "url": "/api/transactions/count",
+        "body": null
+      },
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": true,
+        "count": 0
+      },
+      "ms": 5
+    },
+    "tx.byAddress": {
+      "request": {
+        "method": "GET",
+        "url": "/api/transactions/0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc?page=1&limit=5",
+        "body": null
+      },
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": true,
+        "data": [],
+        "pagination": {
+          "total": 0,
+          "page": 1,
+          "limit": 5,
+          "totalPages": 0,
+          "hasNextPage": false
+        }
+      },
+      "ms": 5
+    },
+    "tx.byAddress.badaddr": {
+      "request": {
+        "method": "GET",
+        "url": "/api/transactions/0xzzz",
+        "body": null
+      },
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": true,
+        "data": [],
+        "pagination": {
+          "total": 0,
+          "page": 1,
+          "limit": 20,
+          "totalPages": 0,
+          "hasNextPage": false
+        }
+      },
+      "ms": 5
+    },
+    "tx.byAddress.page99": {
+      "request": {
+        "method": "GET",
+        "url": "/api/transactions/0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc?page=99",
+        "body": null
+      },
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": true,
+        "data": [],
+        "pagination": {
+          "total": 0,
+          "page": 99,
+          "limit": 20,
+          "totalPages": 0,
+          "hasNextPage": false
+        }
+      },
+      "ms": 3
+    },
+    "watchlist.get": {
+      "request": {
+        "method": "GET",
+        "url": "/api/watchlist/0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc",
+        "body": null
+      },
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": true,
+        "data": {
+          "walletAddress": "0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc",
+          "coins": [
+            {
+              "coinId": "ethereum",
+              "addedAt": "2026-08-01T15:45:57.366Z"
+            },
+            {
+              "coinId": "tether",
+              "addedAt": "2026-08-01T15:45:57.366Z"
+            },
+            {
+              "coinId": "bitcoin",
+              "addedAt": "2026-08-01T15:45:57.366Z"
+            }
+          ]
+        }
+      },
+      "ms": 5
+    },
+    "watchlist.get.unknown": {
+      "request": {
+        "method": "GET",
+        "url": "/api/watchlist/0x0000000000000000000000000000000000000001",
+        "body": null
+      },
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": true,
+        "data": {
+          "walletAddress": "0x0000000000000000000000000000000000000001",
+          "coins": []
+        }
+      },
+      "ms": 3
+    },
+    "watchlist.get.badaddr": {
+      "request": {
+        "method": "GET",
+        "url": "/api/watchlist/0xzzz",
+        "body": null
+      },
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": true,
+        "data": {
+          "walletAddress": "0xzzz",
+          "coins": []
+        }
+      },
+      "ms": 2
+    },
+    "watchlist.add": {
+      "request": {
+        "method": "POST",
+        "url": "/api/watchlist/0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc/coins",
+        "body": {
+          "coinId": "solana"
+        }
+      },
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": true,
+        "message": "solana added to watchlist.",
+        "data": {
+          "walletAddress": "0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc",
+          "coins": [
+            {
+              "coinId": "ethereum",
+              "addedAt": "2026-08-01T15:45:57.393Z"
+            },
+            {
+              "coinId": "tether",
+              "addedAt": "2026-08-01T15:45:57.393Z"
+            },
+            {
+              "coinId": "bitcoin",
+              "addedAt": "2026-08-01T15:45:57.393Z"
+            },
+            {
+              "coinId": "solana",
+              "addedAt": "2026-08-01T15:45:57.393Z"
+            }
+          ]
+        }
+      },
+      "ms": 21
+    },
+    "watchlist.add.nobody": {
+      "request": {
+        "method": "POST",
+        "url": "/api/watchlist/0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc/coins",
+        "body": {}
+      },
+      "status": 400,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": false,
+        "message": "coinId is required in the request body."
+      },
+      "ms": 2
+    },
+    "watchlist.remove": {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/watchlist/0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc/coins/solana",
+        "body": null
+      },
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": true,
+        "message": "solana removed from watchlist.",
+        "data": {
+          "walletAddress": "0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc",
+          "coins": [
+            {
+              "coinId": "ethereum",
+              "addedAt": "2026-08-01T15:45:57.398Z"
+            },
+            {
+              "coinId": "tether",
+              "addedAt": "2026-08-01T15:45:57.398Z"
+            },
+            {
+              "coinId": "bitcoin",
+              "addedAt": "2026-08-01T15:45:57.398Z"
+            }
+          ]
+        }
+      },
+      "ms": 4
+    },
+    "watchlist.remove.unknown": {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/watchlist/0x0000000000000000000000000000000000000002/coins/solana",
+        "body": null
+      },
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": false,
+        "message": "Watchlist not found for this wallet."
+      },
+      "ms": 3
+    },
+    "notfound": {
+      "request": {
+        "method": "GET",
+        "url": "/api/nope",
+        "body": null
+      },
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": false,
+        "message": "Route not found."
+      },
+      "ms": 1
+    },
+    "notfound.root": {
+      "request": {
+        "method": "GET",
+        "url": "/",
+        "body": null
+      },
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "body": {
+        "success": false,
+        "message": "Route not found."
+      },
+      "ms": 1
+    }
+  },
+  "dbUp": null
+}
