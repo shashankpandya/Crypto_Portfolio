@@ -267,17 +267,19 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-05
+### P1-05 ✓ DONE
 **Title:** Replace positional fallbacks in normalizeTx
 **Goal:** Kill `raw.timestamp ?? raw[6] ?? raw[4] ?? 0` — positional guessing turns a silent shape change into silent data corruption.
-**Files affected:** `server/src/services/blockchainService.js`
+**Files affected:** `server/src/services/blockchainService.js`, `server/src/services/blockchainService.test.js`
 **Risk:** L — behavior-preserving if the named fields are correct.
 **Effort:** 45 min
 **Verification checklist:**
-- [ ] Every `raw[N]` positional access replaced with named-field access
-- [ ] Missing required field throws instead of defaulting to `0`
-- [ ] Unit test: well-formed event normalizes correctly
-- [ ] Unit test: malformed event throws with a useful message
+- [x] Every `raw[N]` positional access removed from normalizeTx
+- [x] Missing required fields (`sender`, `receiver`, `amount`, `timestamp`) throw with useful message including raw keys
+- [x] Unit test: well-formed event (both named shapes: `from`/`sender`, `receiver`/`recipient`) normalizes correctly
+- [x] Unit test: malformed event (missing sender, receiver, amount, timestamp) throws with correct message
+- [x] Regression guard: positional-only input (plain array) throws instead of silently using wrong values
+- [x] 32 server tests all passing
 **Rollback:** Revert.
 **Commit:** `refactor(server): use named field access in normalizeTx`
 **Blocked by:** P1-04

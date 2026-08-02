@@ -78,15 +78,39 @@ const CONTRACT_ABI = [
 // logIndex is only available for event-driven paths, not historical sync.
 // ---------------------------------------------------------------------------
 function normalizeTx(raw, txHash = null, blockNumber = null, logIndex = null) {
-  const senderAddress = raw.sender ?? raw.from ?? raw[0];
-  const recipientAddress = raw.receiver ?? raw.recipient ?? raw[1];
+  // Use named fields only. Positional access (raw[N]) is removed because it
+  // silently corrupts data when the ABI order changes — e.g. raw[4] is
+  // `category` in historical tuples, so `timestamp ?? raw[6] ?? raw[4] ?? 0`
+  // would quietly store the category string as the timestamp if timestamp
+  // was absent. Named access makes every shape assumption explicit.
+  //
+  // Two caller shapes:
+  //   Live event:       { sender(via `from`), receiver, amount, message, category, timestamp }
+  //   Historical tuple: ethers v6 Result — named props: { sender, receiver, amount, ... }
+
+  const senderAddress    = raw.sender ?? raw.from;
+  const recipientAddress = raw.receiver ?? raw.recipient;
+
+  if (!senderAddress) {
+    throw new Error(`normalizeTx: missing sender/from field. Raw keys: ${Object.keys(raw).join(', ')}`);
+  }
+  if (!recipientAddress) {
+    throw new Error(`normalizeTx: missing receiver/recipient field. Raw keys: ${Object.keys(raw).join(', ')}`);
+  }
+  if (raw.amount == null) {
+    throw new Error(`normalizeTx: missing amount field. Raw keys: ${Object.keys(raw).join(', ')}`);
+  }
+  if (raw.timestamp == null) {
+    throw new Error(`normalizeTx: missing timestamp field. Raw keys: ${Object.keys(raw).join(', ')}`);
+  }
+
   return {
-    sender:      senderAddress ? senderAddress.toLowerCase().trim() : '',
-    recipient:   recipientAddress ? recipientAddress.toLowerCase().trim() : '',
-    amount:      (raw.amount   ?? raw[2]).toString(),
-    message:     raw.message   ?? raw[3] ?? '',
-    keyword:     raw.category  ?? raw.keyword ?? raw[4] ?? '',
-    timestamp:   Number(raw.timestamp ?? raw[6] ?? raw[4] ?? 0),
+    sender:      senderAddress.toLowerCase().trim(),
+    recipient:   recipientAddress.toLowerCase().trim(),
+    amount:      raw.amount.toString(),
+    message:     raw.message   ?? '',
+    keyword:     raw.category  ?? raw.keyword ?? '',
+    timestamp:   Number(raw.timestamp),
     ...(txHash      != null && { txHash }),
     ...(blockNumber != null && { blockNumber }),
     ...(logIndex    != null && { logIndex }),

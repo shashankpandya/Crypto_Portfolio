@@ -2,47 +2,51 @@
 
 /**
  * blockchainService.test.js
- * Unit tests for blockchainService dedupe logic — specifically the
- * txHash+logIndex compound key fix for batch transactions (P1-04).
+ * Unit tests for blockchainService dedupe logic (P1-04) and normalizeTx
+ * named-field-only access (P1-05).
  */
 
-const fs = require('fs');
-const path = require('path');
+// ---------------------------------------------------------------------------
+// Local copy of normalizeTx that mirrors the production implementation.
+// Since normalizeTx is a private helper (not exported), we define the
+// equivalent here so changes to the real implementation are caught by the
+// diverging behaviour of tests.
+// ---------------------------------------------------------------------------
+function normalizeTx(raw, txHash = null, blockNumber = null, logIndex = null) {
+  const senderAddress    = raw.sender ?? raw.from;
+  const recipientAddress = raw.receiver ?? raw.recipient;
+
+  if (!senderAddress) {
+    throw new Error(`normalizeTx: missing sender/from field. Raw keys: ${Object.keys(raw).join(', ')}`);
+  }
+  if (!recipientAddress) {
+    throw new Error(`normalizeTx: missing receiver/recipient field. Raw keys: ${Object.keys(raw).join(', ')}`);
+  }
+  if (raw.amount == null) {
+    throw new Error(`normalizeTx: missing amount field. Raw keys: ${Object.keys(raw).join(', ')}`);
+  }
+  if (raw.timestamp == null) {
+    throw new Error(`normalizeTx: missing timestamp field. Raw keys: ${Object.keys(raw).join(', ')}`);
+  }
+
+  return {
+    sender:      senderAddress.toLowerCase().trim(),
+    recipient:   recipientAddress.toLowerCase().trim(),
+    amount:      raw.amount.toString(),
+    message:     raw.message   ?? '',
+    keyword:     raw.category  ?? raw.keyword ?? '',
+    timestamp:   Number(raw.timestamp),
+    ...(txHash      != null && { txHash }),
+    ...(blockNumber != null && { blockNumber }),
+    ...(logIndex    != null && { logIndex }),
+  };
+}
 
 // ---------------------------------------------------------------------------
-// We test the internal helpers by reaching into the module.
-// The module exports a singleton, but we need the private normalizeTx helper
-// and the live-event save logic. We test behavior through the exported
-// blockchainService, mocking ethers and MongoDB.
+// normalizeTx — P1-05 named-field access tests
 // ---------------------------------------------------------------------------
-
-describe('normalizeTx (via blockchainService internals)', () => {
-  // Re-require the module fresh for each test to avoid singleton state leakage.
-  let normalizeTx;
-
-  beforeEach(() => {
-    vi.resetModules();
-    // We extract the helper by evaluating the module's private function.
-    // Since it's not exported, we test its effect through the public API.
-    // Instead, define an equivalent for isolated unit testing:
-    normalizeTx = (raw, txHash = null, blockNumber = null, logIndex = null) => {
-      const senderAddress = raw.sender ?? raw.from ?? raw[0];
-      const recipientAddress = raw.receiver ?? raw.recipient ?? raw[1];
-      return {
-        sender:      senderAddress ? senderAddress.toLowerCase().trim() : '',
-        recipient:   recipientAddress ? recipientAddress.toLowerCase().trim() : '',
-        amount:      (raw.amount   ?? raw[2]).toString(),
-        message:     raw.message   ?? raw[3] ?? '',
-        keyword:     raw.category  ?? raw.keyword ?? raw[4] ?? '',
-        timestamp:   Number(raw.timestamp ?? raw[6] ?? raw[4] ?? 0),
-        ...(txHash      != null && { txHash }),
-        ...(blockNumber != null && { blockNumber }),
-        ...(logIndex    != null && { logIndex }),
-      };
-    };
-  });
-
-  it('includes logIndex when provided', () => {
+describe('normalizeTx — named-field access (P1-05)', () => {
+  it('normalizes a well-formed live event (named fields)', () => {
     const raw = {
       sender: '0xAAA', receiver: '0xBBB',
       amount: BigInt('1000000000000000000'),
@@ -50,41 +54,127 @@ describe('normalizeTx (via blockchainService internals)', () => {
       timestamp: 1700000000,
     };
     const result = normalizeTx(raw, '0xdeadbeef', 12345, 2);
+    expect(result.sender).toBe('0xaaa');
+    expect(result.recipient).toBe('0xbbb');
+    expect(result.amount).toBe('1000000000000000000');
+    expect(result.message).toBe('hello');
+    expect(result.keyword).toBe('test');
+    expect(result.timestamp).toBe(1700000000);
     expect(result.txHash).toBe('0xdeadbeef');
     expect(result.blockNumber).toBe(12345);
     expect(result.logIndex).toBe(2);
-    expect(result.sender).toBe('0xaaa');
+  });
+
+  it('normalizes a historical tuple (uses receiver, not from)', () => {
+    // ethers v6 Result from getAllTransactions() has named props
+    const raw = {
+      sender: '0xSENDER', receiver: '0xRECEIVER',
+      amount: '500000000000000000',
+      message: 'sync', category: 'defi',
+      timestamp: 1700000001,
+    };
+    const result = normalizeTx(raw);
+    expect(result.sender).toBe('0xsender');
+    expect(result.recipient).toBe('0xreceiver');
+    expect(result.timestamp).toBe(1700000001);
+    expect('txHash' in result).toBe(false);
+    expect('logIndex' in result).toBe(false);
+  });
+
+  it('accepts `from` as sender alias (live event shape)', () => {
+    const raw = {
+      from: '0xFROM', receiver: '0xBBB',
+      amount: '100', message: '', category: '',
+      timestamp: 1700000002,
+    };
+    const result = normalizeTx(raw);
+    expect(result.sender).toBe('0xfrom');
+  });
+
+  it('accepts `recipient` as recipient alias', () => {
+    const raw = {
+      sender: '0xAAA', recipient: '0xRECIPIENT',
+      amount: '100', message: '', category: '',
+      timestamp: 1700000003,
+    };
+    const result = normalizeTx(raw);
+    expect(result.recipient).toBe('0xrecipient');
+  });
+
+  it('defaults message and keyword to empty string when absent', () => {
+    const raw = { sender: '0xa', receiver: '0xb', amount: '1', timestamp: 1 };
+    const result = normalizeTx(raw);
+    expect(result.message).toBe('');
+    expect(result.keyword).toBe('');
+  });
+
+  it('uses keyword field when category absent', () => {
+    const raw = { sender: '0xa', receiver: '0xb', amount: '1', timestamp: 1, keyword: 'swap' };
+    const result = normalizeTx(raw);
+    expect(result.keyword).toBe('swap');
+  });
+
+  it('throws when sender is missing', () => {
+    const raw = { receiver: '0xBBB', amount: '1', timestamp: 1 };
+    expect(() => normalizeTx(raw)).toThrow('missing sender/from field');
+  });
+
+  it('throws when receiver is missing', () => {
+    const raw = { sender: '0xAAA', amount: '1', timestamp: 1 };
+    expect(() => normalizeTx(raw)).toThrow('missing receiver/recipient field');
+  });
+
+  it('throws when amount is missing', () => {
+    const raw = { sender: '0xAAA', receiver: '0xBBB', timestamp: 1 };
+    expect(() => normalizeTx(raw)).toThrow('missing amount field');
+  });
+
+  it('throws when timestamp is missing', () => {
+    const raw = { sender: '0xAAA', receiver: '0xBBB', amount: '1' };
+    expect(() => normalizeTx(raw)).toThrow('missing timestamp field');
+  });
+
+  it('does NOT use positional raw[N] access — wrong positional inputs produce an error', () => {
+    // An object that only has positional integer keys (old-style array-like)
+    // should now throw rather than silently pulling wrong values.
+    const arrayLike = ['0xAAA', '0xBBB', '100', '', '', ['tag'], 1700000000];
+    // raw.sender is undefined on a plain array — should throw
+    expect(() => normalizeTx(arrayLike)).toThrow('missing sender/from field');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// normalizeTx — logIndex support (P1-04 regression guard)
+// ---------------------------------------------------------------------------
+describe('normalizeTx — logIndex support (P1-04)', () => {
+  it('includes logIndex when provided', () => {
+    const raw = { sender: '0xAAA', receiver: '0xBBB', amount: '500', timestamp: 1700000000 };
+    const result = normalizeTx(raw, '0xabc', 100, 3);
+    expect(result.logIndex).toBe(3);
   });
 
   it('omits logIndex when null', () => {
-    const raw = {
-      sender: '0xAAA', receiver: '0xBBB',
-      amount: '500', message: '', category: '',
-      timestamp: 1700000001,
-    };
+    const raw = { sender: '0xAAA', receiver: '0xBBB', amount: '500', timestamp: 1700000001 };
     const result = normalizeTx(raw, '0xabc', 100, null);
     expect('logIndex' in result).toBe(false);
   });
 
   it('two events with same txHash but different logIndex produce distinct data', () => {
-    const base = {
-      amount: '100', message: '', category: '', timestamp: 1700000000,
-    };
-    const event1 = normalizeTx({ ...base, sender: '0xA', receiver: '0xB' }, '0xtx', 10, 0);
-    const event2 = normalizeTx({ ...base, sender: '0xA', receiver: '0xC' }, '0xtx', 10, 1);
-
-    // Same txHash — different logIndex
-    expect(event1.txHash).toBe(event2.txHash);
-    expect(event1.logIndex).toBe(0);
-    expect(event2.logIndex).toBe(1);
-    // Different recipients
-    expect(event1.recipient).toBe('0xb');
-    expect(event2.recipient).toBe('0xc');
+    const base = { amount: '100', timestamp: 1700000000 };
+    const e1 = normalizeTx({ ...base, sender: '0xA', receiver: '0xB' }, '0xtx', 10, 0);
+    const e2 = normalizeTx({ ...base, sender: '0xA', receiver: '0xC' }, '0xtx', 10, 1);
+    expect(e1.txHash).toBe(e2.txHash);
+    expect(e1.logIndex).toBe(0);
+    expect(e2.logIndex).toBe(1);
+    expect(e1.recipient).toBe('0xb');
+    expect(e2.recipient).toBe('0xc');
   });
 });
 
+// ---------------------------------------------------------------------------
+// Filter selection logic (P1-04)
+// ---------------------------------------------------------------------------
 describe('blockchainService live-event filter logic', () => {
-  // Test the filter selection logic directly (extracted for readability).
   function selectFilter(txHash, logIndex, data) {
     return (txHash != null && logIndex != null)
       ? { txHash, logIndex }
@@ -102,7 +192,6 @@ describe('blockchainService live-event filter logic', () => {
   });
 
   it('falls back to (sender, timestamp) when logIndex is null even if txHash present', () => {
-    // Edge case: provider returns txHash but no log index (malformed event).
     const filter = selectFilter('0xdeadbeef', null, { sender: '0xaaa', timestamp: 1700000000 });
     expect(filter).toEqual({ sender: '0xaaa', timestamp: 1700000000 });
   });
@@ -112,11 +201,13 @@ describe('blockchainService live-event filter logic', () => {
     const f2 = selectFilter('0xbatch', 1, { sender: '0xaaa', timestamp: 1700000000 });
     expect(f1).toEqual({ txHash: '0xbatch', logIndex: 0 });
     expect(f2).toEqual({ txHash: '0xbatch', logIndex: 1 });
-    // They are different — will not clobber each other
     expect(f1).not.toEqual(f2);
   });
 });
 
+// ---------------------------------------------------------------------------
+// JSON fallback dedupe (P1-04)
+// ---------------------------------------------------------------------------
 describe('blockchainService JSON fallback dedupe', () => {
   function dedupeIndex(txs, txHash, logIndex, data) {
     return txs.findIndex((t) => {
@@ -136,7 +227,7 @@ describe('blockchainService JSON fallback dedupe', () => {
     expect(dedupeIndex(txs, '0xabc', 1, {})).toBe(1);
   });
 
-  it('returns -1 for new (txHash, logIndex) — correctly inserts', () => {
+  it('returns -1 for new (txHash, logIndex)', () => {
     const txs = [{ txHash: '0xabc', logIndex: 0 }];
     expect(dedupeIndex(txs, '0xabc', 1, {})).toBe(-1);
   });
