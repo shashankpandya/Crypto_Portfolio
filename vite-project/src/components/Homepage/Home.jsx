@@ -42,9 +42,10 @@ const CountUp = ({ value, duration = 800, decimals = 4 }) => {
 };
 
 const Home = ({ coins }) => {
-  const { currentAccount, checkTokenBalance, isConnectedToSite, connectWallet } =
+  const { currentAccount, getEthBalance, getTokenBalance, isConnectedToSite, connectWallet } =
     useContext(TransactionContext);
-  const [balance, setBalance] = useState("0");
+  const [ethBalance, setEthBalance] = useState("0");
+  const [tokenBalance, setTokenBalance] = useState("0");
   const [network, setNetwork] = useState("Unknown Network");
   const [isTestnet, setIsTestnet] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -85,50 +86,36 @@ const Home = ({ coins }) => {
     );
   }, []);
 
+  // Fetch ETH and MTK balances + network when account changes (P1-15)
+  // chainChanged listener moved to TransactionContext (P1-16)
   useEffect(() => {
-    const fetchBalanceAndNetwork = async () => {
+    const fetchBalancesAndNetwork = async () => {
       if (currentAccount && window.ethereum) {
         try {
-          const rawBalance = await checkTokenBalance(currentAccount);
-          const parsedBalance = parseFloat(rawBalance);
-          setBalance(!isNaN(parsedBalance) ? parsedBalance.toString() : "0.0000");
+          // ETH balance
+          const rawEth = await getEthBalance(currentAccount);
+          const parsedEth = parseFloat(rawEth);
+          setEthBalance(!isNaN(parsedEth) ? parsedEth.toString() : "0.0000");
 
+          // MTK token balance
+          const rawToken = await getTokenBalance(currentAccount);
+          const parsedToken = parseFloat(rawToken);
+          setTokenBalance(!isNaN(parsedToken) ? parsedToken.toString() : "0");
+
+          // Network
           const provider = new ethers.BrowserProvider(window.ethereum);
           const chainIdHex = await provider.send("eth_chainId", []);
           const chainId = parseInt(chainIdHex, 16);
           setNetwork(getNetworkName(chainIdHex));
-          // Simple testnet check
           setIsTestnet([5, 11155111, 80001].includes(chainId));
         } catch (error) {
-          console.error("Error fetching balance or network:", error);
+          console.error("Error fetching balances or network:", error);
         }
       }
     };
 
-    const handleChainChanged = async () => {
-      try {
-        const newProvider = new ethers.BrowserProvider(window.ethereum);
-        const chainIdHex = await newProvider.send("eth_chainId", []);
-        const chainId = parseInt(chainIdHex, 16);
-        setNetwork(getNetworkName(chainIdHex));
-        setIsTestnet([5, 11155111, 80001].includes(chainId));
-      } catch (error) {
-        console.error("Error handling chain change:", error);
-      }
-    };
-
-    fetchBalanceAndNetwork();
-
-    if (window.ethereum) {
-      window.ethereum.on("chainChanged", handleChainChanged);
-    }
-
-    return () => {
-      if (window.ethereum) {
-        window.ethereum.removeListener("chainChanged", handleChainChanged);
-      }
-    };
-  }, [currentAccount, checkTokenBalance]);
+    fetchBalancesAndNetwork();
+  }, [currentAccount, getEthBalance, getTokenBalance]);
 
   return (
     <div className="page-container text-white">
@@ -199,13 +186,22 @@ const Home = ({ coins }) => {
                 <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
                   Asset Details
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* ETH Balance */}
                   <div className="bg-[#050811] p-3.5 rounded border border-white/5">
                     <p className="text-[#71717a] text-[10px] font-bold uppercase tracking-wider mb-1">Ether Balance</p>
                     <p className="text-white text-2xl font-bold font-mono animate-fade-in-300">
-                      <CountUp value={balance} decimals={4} /> <span className="text-xs text-[#71717a] font-normal font-sans ml-1">ETH</span>
+                      <CountUp value={ethBalance} decimals={4} /> <span className="text-xs text-[#71717a] font-normal font-sans ml-1">ETH</span>
                     </p>
                   </div>
+                  {/* MTK Token Balance */}
+                  <div className="bg-[#050811] p-3.5 rounded border border-white/5">
+                    <p className="text-[#71717a] text-[10px] font-bold uppercase tracking-wider mb-1">MTK Balance</p>
+                    <p className="text-white text-2xl font-bold font-mono animate-fade-in-300">
+                      <CountUp value={tokenBalance} decimals={2} /> <span className="text-xs text-[#71717a] font-normal font-sans ml-1">MTK</span>
+                    </p>
+                  </div>
+                  {/* Network */}
                   <div className="bg-[#050811] p-3.5 rounded border border-white/5 flex flex-col justify-between">
                     <div>
                       <p className="text-[#71717a] text-[10px] font-bold uppercase tracking-wider mb-1">Network</p>

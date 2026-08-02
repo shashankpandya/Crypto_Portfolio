@@ -145,6 +145,8 @@ export const TransactionProvider = ({ children }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  // isConnectedToSite is derived — do NOT add an independent setter outside of:
+  // connectWallet, disconnectWallet, restoreSession, handleAccountsChanged (P1-16)
   const [isConnectedToSite, setIsConnectedToSite] = useState(false);
   const [signature, setSignature] = useState(null);
   const [authToken, setAuthToken] = useState(getStoredToken());
@@ -513,14 +515,32 @@ export const TransactionProvider = ({ children }) => {
 
 
 
-  const checkTokenBalance = async (address) => {
+  /** Returns native ETH balance of address as a formatted string (P1-15). */
+  const getEthBalance = async (address) => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const balance = await provider.getBalance(address);
       return ethers.formatEther(balance);
     } catch (error) {
-      console.error("Error checking token balance:", error);
+      console.error("[getEthBalance] Error:", error);
       throw error;
+    }
+  };
+
+  /** Returns MTK (ERC-20) token balance of address as a formatted string (P1-15). */
+  const getTokenBalance = async (address) => {
+    try {
+      if (!transactionsAddress || !ethers.isAddress(transactionsAddress)) {
+        return "0";
+      }
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const contract = new ethers.Contract(transactionsAddress, transactionsABI, provider);
+      const decimals = await contract.decimals();
+      const balance = await contract.balanceOf(address);
+      return ethers.formatUnits(balance, decimals);
+    } catch (error) {
+      console.error("[getTokenBalance] Error:", error);
+      return "0";
     }
   };
 
@@ -591,11 +611,13 @@ export const TransactionProvider = ({ children }) => {
     restoreSession();
   }, []);
 
-  // Listen for MetaMask account changes — clear JWT and reset auth
+  // Listen for MetaMask account and chain changes (P1-16)
+  // Both listeners live here — single registration point, correct cleanup on unmount.
   useEffect(() => {
     if (!window.ethereum) return;
 
     const handleAccountsChanged = (accounts) => {
+      // Empty accounts array means the user disconnected in MetaMask
       clearSession();
       setAuthToken(null);
       setIsConnectedToSite(false);
@@ -606,14 +628,21 @@ export const TransactionProvider = ({ children }) => {
       setFeePercentage("0");
       localStorage.removeItem("currentAccount");
       if (accounts.length > 0) {
-        // New account selected — prompt re-authentication
+        // A new account was selected — clear state and prompt re-authentication
         console.log("[Auth] Account changed. Please reconnect to authenticate.");
       }
     };
 
+    const handleChainChanged = () => {
+      // Chain change may invalidate cached contract state — safest to reload
+      window.location.reload();
+    };
+
     window.ethereum.on("accountsChanged", handleAccountsChanged);
+    window.ethereum.on("chainChanged", handleChainChanged);
     return () => {
       window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+      window.ethereum.removeListener("chainChanged", handleChainChanged);
     };
   }, []);
 
@@ -631,7 +660,8 @@ export const TransactionProvider = ({ children }) => {
         formData,
         checkAllowance,
         approveAllowance,
-        checkTokenBalance,
+        getEthBalance,
+        getTokenBalance,
         getContractInfo,
         handleApprove,
         spender,
