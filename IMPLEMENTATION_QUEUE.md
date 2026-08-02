@@ -498,7 +498,7 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-15 ✓ DONE
+### P1-16 ✓ DONE
 **Title:** Split getEthBalance from getTokenBalance and surface MTK
 **Goal:** `checkTokenBalance` was returning ETH balance under a token-balance name. MTK balance is now surfaced.
 **Files affected:** `vite-project/src/context/TransactionContext.jsx`, `vite-project/src/components/Homepage/Home.jsx`, `vite-project/src/context/TransactionContext.test.js`
@@ -517,14 +517,14 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-16 ✓ DONE
-**Title:** Collapse dual wallet state and add accountsChanged listener
+### P1-17 ✓ DONE
+**Title:** Collapse dual wallet state and add accountsChanged/chainChanged listeners
 **Goal:** One source of truth for connection; app handles account/chain changes correctly.
 **Files affected:** `vite-project/src/context/TransactionContext.jsx`, `vite-project/src/components/Homepage/Home.jsx`
 **Risk:** M
 **Effort:** 60 min
 **Verification checklist:**
-- [x] `isConnectedToSite` state kept but constrained — comment documents the 4 permitted setters (P1-16)
+- [x] `isConnectedToSite` state kept but constrained — comment documents the 4 permitted setters (P1-17)
 - [x] `isConnectedToSite` has no independent setter outside connectWallet/disconnect/restoreSession/accountsChanged
 - [x] `accountsChanged` and `chainChanged` both registered in TransactionContext with `removeListener` cleanup on unmount
 - [x] `chainChanged` removed from `Home.jsx` — single registration point in context
