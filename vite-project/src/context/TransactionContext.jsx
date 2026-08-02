@@ -1,6 +1,31 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
+import { SiweMessage } from "siwe";
+
+// ---------------------------------------------------------------------------
+// Session token helpers — sessionStorage so JWT is cleared on tab close.
+// ---------------------------------------------------------------------------
+const TOKEN_KEY = "auth_token";
+const TOKEN_ADDR_KEY = "auth_address";
+
+function storeSession(address, token) {
+  sessionStorage.setItem(TOKEN_KEY, token);
+  sessionStorage.setItem(TOKEN_ADDR_KEY, address.toLowerCase());
+}
+
+function clearSession() {
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_ADDR_KEY);
+}
+
+function getStoredToken() {
+  return sessionStorage.getItem(TOKEN_KEY) || null;
+}
+
+function getStoredAddress() {
+  return sessionStorage.getItem(TOKEN_ADDR_KEY) || null;
+}
 
 import {
   transactionsABI,
@@ -94,9 +119,35 @@ export const TransactionProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [isConnectedToSite, setIsConnectedToSite] = useState(false);
   const [signature, setSignature] = useState(null);
+  const [authToken, setAuthToken] = useState(getStoredToken());
   const [isAdmin, setIsAdmin] = useState(false);
   const [contractOwner, setContractOwner] = useState("");
   const [feePercentage, setFeePercentage] = useState("0");
+
+  // ---------------------------------------------------------------------------
+  // Axios interceptor — inject Authorization header on all watchlist requests.
+  // Use a ref so we only register once and can clean up.
+  // ---------------------------------------------------------------------------
+  const interceptorRef = useRef(null);
+
+  useEffect(() => {
+    if (interceptorRef.current !== null) {
+      axios.interceptors.request.eject(interceptorRef.current);
+    }
+    interceptorRef.current = axios.interceptors.request.use((config) => {
+      const token = getStoredToken();
+      if (token && config.url && config.url.includes("/api/watchlist")) {
+        config.headers = config.headers || {};
+        config.headers["Authorization"] = `Bearer ${token}`;
+      }
+      return config;
+    });
+    return () => {
+      if (interceptorRef.current !== null) {
+        axios.interceptors.request.eject(interceptorRef.current);
+      }
+    };
+  }, [authToken]);
 
   const handleChange = (e, name) => {
     setformData((prevState) => ({ ...prevState, [name]: e.target.value }));
@@ -322,24 +373,54 @@ export const TransactionProvider = ({ children }) => {
   const connectWallet = async () => {
     try {
       if (!window.ethereum) return alert("Please install MetaMask.");
+
+      // 1. Request MetaMask account access
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
       const account = accounts[0];
-      setCurrentAccount(account);
+      const accountLower = account.toLowerCase();
 
-      // Request signature
+      // 2. Fetch nonce from backend (SIWE)
+      const nonceRes = await axios.get(`/api/auth/nonce?address=${accountLower}`);
+      if (!nonceRes.data.success) throw new Error("Failed to fetch nonce.");
+      const nonce = nonceRes.data.nonce;
+
+      // 3. Build EIP-4361 SIWE message
       const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const message = "Connect to Crypto Portfolio";
-      const signature = await signer.signMessage(message);
-      setSignature(signature);
+      const network = await provider.getNetwork();
+      const siweMsg = new SiweMessage({
+        domain: window.location.host,
+        address: account,
+        statement: "Sign in with Ethereum to Crypto Portfolio.",
+        uri: window.location.origin,
+        version: "1",
+        chainId: Number(network.chainId),
+        nonce,
+      });
+      const messageText = siweMsg.prepareMessage();
 
+      // 4. Sign with MetaMask
+      const signer = await provider.getSigner();
+      const sig = await signer.signMessage(messageText);
+      setSignature(sig);
+
+      // 5. Verify on backend and receive JWT
+      const verifyRes = await axios.post("/api/auth/verify", {
+        message: messageText,
+        signature: sig,
+      });
+      if (!verifyRes.data.success) throw new Error("Server rejected signature.");
+      const token = verifyRes.data.token;
+
+      // 6. Store session securely (sessionStorage — cleared on tab/browser close)
+      storeSession(accountLower, token);
+      setAuthToken(token);
+      setCurrentAccount(account);
       setIsConnectedToSite(true);
 
-      // Save to local storage
+      // Keep account in localStorage for reconnect UX (not used for auth)
       localStorage.setItem("currentAccount", account);
-      localStorage.setItem("signature", signature);
 
       await checkAdminStatus(account);
       await syncLocalWatchlistToDB(account);
@@ -348,20 +429,21 @@ export const TransactionProvider = ({ children }) => {
       if (error.code === 4001 || error.message?.includes("rejected")) {
         throw new Error("Connection request rejected by user.");
       }
-      throw new Error("No ethereum object or connection failed.");
+      throw error;
     }
   };
 
   const disconnectWallet = () => {
+    clearSession();
+    setAuthToken(null);
     setIsConnectedToSite(false);
     setCurrentAccount("");
     setSignature(null);
     setIsAdmin(false);
     setContractOwner("");
     setFeePercentage("0");
-    // Clear local storage
     localStorage.removeItem("currentAccount");
-    localStorage.removeItem("signature");
+    localStorage.removeItem("signature"); // legacy cleanup
   };
 
   const sendTransaction = async () => {
@@ -482,14 +564,22 @@ export const TransactionProvider = ({ children }) => {
     verifyContract();
   }, []);
 
+  // Restore session from sessionStorage on mount
   useEffect(() => {
-    const checkConnection = async () => {
+    const restoreSession = async () => {
+      const storedToken = getStoredToken();
+      const storedAddress = getStoredAddress();
       const storedAccount = localStorage.getItem("currentAccount");
-      const storedSignature = localStorage.getItem("signature");
 
-      if (storedAccount && storedSignature) {
+      if (storedToken && storedAddress) {
+        // JWT present — restore auth state without re-signing
+        setCurrentAccount(storedAccount || storedAddress);
+        setAuthToken(storedToken);
+        setIsConnectedToSite(true);
+        await checkAdminStatus(storedAddress);
+      } else if (storedAccount) {
+        // Wallet connected but no JWT (e.g. AUTH_REQUIRED=false era)
         setCurrentAccount(storedAccount);
-        setSignature(storedSignature);
         setIsConnectedToSite(true);
         await checkAdminStatus(storedAccount);
       } else {
@@ -497,7 +587,33 @@ export const TransactionProvider = ({ children }) => {
       }
     };
 
-    checkConnection();
+    restoreSession();
+  }, []);
+
+  // Listen for MetaMask account changes — clear JWT and reset auth
+  useEffect(() => {
+    if (!window.ethereum) return;
+
+    const handleAccountsChanged = (accounts) => {
+      clearSession();
+      setAuthToken(null);
+      setIsConnectedToSite(false);
+      setCurrentAccount("");
+      setSignature(null);
+      setIsAdmin(false);
+      setContractOwner("");
+      setFeePercentage("0");
+      localStorage.removeItem("currentAccount");
+      if (accounts.length > 0) {
+        // New account selected — prompt re-authentication
+        console.log("[Auth] Account changed. Please reconnect to authenticate.");
+      }
+    };
+
+    window.ethereum.on("accountsChanged", handleAccountsChanged);
+    return () => {
+      window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+    };
   }, []);
 
   return (
@@ -515,7 +631,7 @@ export const TransactionProvider = ({ children }) => {
         checkAllowance,
         approveAllowance,
         checkTokenBalance,
-        getContractInfo, // Add this line
+        getContractInfo,
         handleApprove,
         spender,
         amount,
@@ -525,6 +641,7 @@ export const TransactionProvider = ({ children }) => {
         disconnectWallet,
         isConnectedToSite,
         signature,
+        authToken,
         isAdmin,
         contractOwner,
         feePercentage,
