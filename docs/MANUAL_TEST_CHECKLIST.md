@@ -132,7 +132,8 @@ Navigate to `http://localhost:5173/transfer`.
 ### 5.1 No wallet connected
 - [ ] Page renders with full transfer form visible (Recipient Address, Amount, Memo fields)
 - [ ] "Single Address" and "Batch List" tabs are shown
-- [ ] Estimated Network Fee shows ~45,000 Gwei (approx. $0.12)
+- [ ] Estimated Network Fee row is shown when a provider estimate is available, hidden otherwise
+- [ ] **No hardcoded "~45,000 Gwei (approx. $0.12)"** — that text was removed by P1-13; its presence is now a regression
 - [ ] **Note:** Form is accessible without wallet (no wallet-gating on the form itself — submitting will fail with a MetaMask prompt or error)
 
 ### 5.2 No contract address configured
