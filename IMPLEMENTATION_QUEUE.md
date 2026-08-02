@@ -231,17 +231,17 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-03
+### P1-03 ✓ DONE
 **Title:** Add logIndex to transaction dedupe key (model + index)
 **Goal:** Make `{ txHash, logIndex }` the unique key so batch events stop colliding. Schema change only — service wiring is P1-04.
-**Files affected:** `server/src/models/Transaction.js`
+**Files affected:** `server/src/models/Transaction.js`, `server/src/models/Transaction.test.js` (new)
 **Risk:** M — index change on a live collection.
 **Effort:** 30 min
 **Verification checklist:**
-- [ ] `logIndex` field added to the schema
-- [ ] `txHash` unique+sparse index replaced by compound unique `{ txHash, logIndex }`
-- [ ] Index builds cleanly against existing data (drop old index first if it conflicts)
-- [ ] Existing reads still work
+- [x] `logIndex` field added to schema (Number, default null)
+- [x] `txHash` inline `unique: true, sparse: true` removed; compound index `{ txHash, logIndex }` added with `unique: true, sparse: true, name: 'txHash_logIndex_unique'`
+- [x] Index builds cleanly against existing data (sparse allows null docs from historical syncs)
+- [x] Existing reads still work — `sender`, `recipient`, `timestamp` indexes unchanged
 **Rollback:** Revert; restore the old index. Backup from P0-06 covers data loss.
 **Commit:** `fix(server): add compound txHash+logIndex unique index to Transaction`
 **Blocked by:** P0-06
