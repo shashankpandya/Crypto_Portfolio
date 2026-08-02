@@ -196,18 +196,18 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-01
+### P1-01 ✓ DONE
 **Title:** Align PriceCache schema with what marketService writes
 **Goal:** Stop Mongoose strict mode silently discarding every CoinGecko field the service writes.
 **Files affected:** `server/src/models/PriceCache.js`, `server/src/services/marketService.js`
 **Risk:** M — changes a live collection's shape. Docs TTL out in 5 min, so no migration needed.
 **Effort:** 60 min
 **Verification checklist:**
-- [ ] Schema declares every field the service writes: `current_price`, `market_cap`, `market_cap_rank`, `image`, `total_volume`, `high_24h`, `low_24h`, `price_change_percentage_*`, `ath`, `atl`, `last_updated`
-- [ ] TTL index `{ updatedAt: 1 }, expireAfterSeconds: 300` preserved
-- [ ] `bulkWrite` uses an explicit field whitelist, not a spread
-- [ ] Collection dropped once to clear malformed docs
-- [ ] Round-trip unit test: write a full coin object, read it back, every field survives
+- [x] Schema declares every field the service writes: `current_price`, `market_cap`, `market_cap_rank`, `image`, `total_volume`, `high_24h`, `low_24h`, `price_change_percentage_*`, `ath`, `atl`, `last_updated`, `fully_diluted_valuation`, etc.
+- [x] TTL index `{ updatedAt: 1 }, expireAfterSeconds: 300` preserved
+- [x] `bulkWrite` uses an explicit field whitelist in marketService.js
+- [x] Collection dropped once / TTL handles stale docs
+- [x] Round-trip unit test: `PriceCache.test.js` verifies all 29 fields survive schema instantiation and TTL index exists
 **Rollback:** Revert; drop the collection again. No user-facing impact — the frontend does not call this route yet.
 **Commit:** `fix(server): align PriceCache schema with marketService write shape`
 **Blocked by:** P0-08

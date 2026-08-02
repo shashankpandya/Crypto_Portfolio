@@ -9,10 +9,17 @@ const priceCacheSchema = new mongoose.Schema(
   {
     // CoinGecko coin identifier, e.g. "bitcoin", "ethereum".
     coinId: {
-      type:     String,
-      required: true,
-      unique:   true,
-      trim:     true,
+      type:      String,
+      required:  true,
+      unique:    true,
+      trim:      true,
+      lowercase: true,
+    },
+
+    symbol: {
+      type:      String,
+      default:   '',
+      trim:      true,
       lowercase: true,
     },
 
@@ -22,26 +29,129 @@ const priceCacheSchema = new mongoose.Schema(
       trim:    true,
     },
 
-    symbol: {
+    image: {
       type:    String,
       default: '',
-      trim:    true,
-      lowercase: true,
     },
 
-    price: {
+    current_price: {
       type:    Number,
       default: 0,
     },
 
-    marketCap: {
+    market_cap: {
       type:    Number,
       default: 0,
     },
 
-    volume24h: {
+    market_cap_rank: {
       type:    Number,
       default: 0,
+    },
+
+    fully_diluted_valuation: {
+      type:    Number,
+      default: null,
+    },
+
+    total_volume: {
+      type:    Number,
+      default: 0,
+    },
+
+    high_24h: {
+      type:    Number,
+      default: 0,
+    },
+
+    low_24h: {
+      type:    Number,
+      default: 0,
+    },
+
+    price_change_24h: {
+      type:    Number,
+      default: 0,
+    },
+
+    price_change_percentage_24h: {
+      type:    Number,
+      default: 0,
+    },
+
+    price_change_percentage_1h_in_currency: {
+      type:    Number,
+      default: null,
+    },
+
+    price_change_percentage_24h_in_currency: {
+      type:    Number,
+      default: null,
+    },
+
+    price_change_percentage_7d_in_currency: {
+      type:    Number,
+      default: null,
+    },
+
+    market_cap_change_24h: {
+      type:    Number,
+      default: 0,
+    },
+
+    market_cap_change_percentage_24h: {
+      type:    Number,
+      default: 0,
+    },
+
+    circulating_supply: {
+      type:    Number,
+      default: 0,
+    },
+
+    total_supply: {
+      type:    Number,
+      default: null,
+    },
+
+    max_supply: {
+      type:    Number,
+      default: null,
+    },
+
+    ath: {
+      type:    Number,
+      default: 0,
+    },
+
+    ath_change_percentage: {
+      type:    Number,
+      default: 0,
+    },
+
+    ath_date: {
+      type:    String,
+      default: '',
+    },
+
+    atl: {
+      type:    Number,
+      default: 0,
+    },
+
+    atl_change_percentage: {
+      type:    Number,
+      default: 0,
+    },
+
+    atl_date: {
+      type:    String,
+      default: '',
+    },
+
+    last_updated: {
+      type:    String,
+      default: '',
     },
 
     // Explicitly managed so the TTL index has a concrete field to target.
