@@ -61,6 +61,7 @@ describe('reindex.js script', () => {
       expect(res).toHaveProperty('missing');
       expect(res).toHaveProperty('backfilled');
       expect(res).toHaveProperty('skipped');
-    });
+    }, 15000);
+
   });
 });

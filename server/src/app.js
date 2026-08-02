@@ -11,6 +11,7 @@ const rateLimit = require('express-rate-limit');
 const transactionRoutes = require('./routes/transactions');
 const marketRoutes      = require('./routes/market');
 const watchlistRoutes   = require('./routes/watchlist');
+const authRoutes        = require('./routes/auth');
 
 // ---------------------------------------------------------------------------
 // App
@@ -70,6 +71,7 @@ app.use('/api', (req, res, next) => {
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/market',       marketRoutes);
 app.use('/api/watchlist',    watchlistRoutes);
+app.use('/api/auth',         authRoutes);
 
 // ---------------------------------------------------------------------------
 // Health check

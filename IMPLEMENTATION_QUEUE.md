@@ -323,20 +323,26 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-08
-**Title:** Add requireAuth middleware behind AUTH_REQUIRED flag
-**Goal:** Watchlist routes can enforce address ownership, but default to today's behavior until the frontend is ready.
-**Files affected:** `server/src/middleware/auth.js` (new), `server/src/routes/watchlist.js`, `.env`, `.env.production`
-**Risk:** M — this is the flag that will later change behavior for every user.
+### P1-08 ✓ DONE
+**Title:** Add SIWE nonce and verify endpoints (additive, nothing wired)
+**Goal:** Server can issue a nonce and verify a signature. No existing route changes — pure addition.
+**Files affected:** `server/src/routes/auth.js` (new), `server/src/controllers/authController.js` (new), `server/src/controllers/authController.test.js` (new), `server/src/app.js`, `server/scripts/reindex.test.js` (timeout fix)
+**Risk:** L — nothing consumes it yet.
 **Effort:** 60 min
 **Verification checklist:**
-- [ ] `AUTH_REQUIRED=false` (default) → all watchlist responses byte-identical to baseline
-- [ ] `AUTH_REQUIRED=true` → no session returns 401
-- [ ] `AUTH_REQUIRED=true` → authenticated as A, requesting B returns 403 on GET, POST, and DELETE
-- [ ] Flag documented in `.env.example`
-**Rollback:** Set `AUTH_REQUIRED=false`. No revert needed.
-**Commit:** `feat(server): add requireAuth middleware behind AUTH_REQUIRED flag`
-**Blocked by:** P1-07
+- [x] `GET /api/auth/nonce?address=0x…` returns a single-use nonce with 5-minute TTL
+- [x] Nonce is single-use — second `consumeNonce` call returns null (replay prevention)
+- [x] Expired nonce (past expiresAt) returns null
+- [x] Invalid/missing address returns 400
+- [x] `POST /api/auth/verify` returns 400 for missing message or signature
+- [x] `POST /api/auth/verify` returns 400 for malformed SIWE message string
+- [x] `POST /api/auth/verify` returns 401 for invalid signature (ethers.verifyMessage fails)
+- [x] JWT issued on success with recoveredAddress claim
+- [x] Installed `jsonwebtoken` and `siwe` packages
+- [x] All existing routes behave identically — 58 server tests all pass
+**Rollback:** Revert. Nothing depends on it.
+**Commit:** `feat(server): add SIWE nonce and verify endpoints`
+**Blocked by:** P0-08
 
 ---
 
