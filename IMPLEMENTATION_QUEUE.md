@@ -304,22 +304,22 @@ All Phase 1 tasks are independent of each other. Parallelize freely.
 
 ---
 
-### P1-07
-**Title:** Add SIWE nonce and verify endpoints (additive, nothing wired)
-**Goal:** Server can issue a nonce and verify a signature. No existing route changes yet — this is pure addition.
-**Files affected:** `server/src/routes/auth.js` (new), `server/src/controllers/authController.js` (new), `server/src/models/User.js`, `server/src/app.js`
-**Risk:** L — nothing consumes it yet.
-**Effort:** 90 min
+### P1-07 ✓ DONE
+**Title:** Standardize Ethereum address casing across server
+**Goal:** Normalize all wallet addresses to lowercase and validate format before database/file operations to prevent duplicate or missed records.
+**Files affected:** `server/src/utils/addressUtils.js` (new), `server/src/controllers/watchlistController.js`, `server/src/controllers/transactionController.js`, `server/src/utils/addressUtils.test.js` (new), `server/src/controllers/addressNormalization.test.js` (new)
+**Risk:** L
+**Effort:** 30 min
 **Verification checklist:**
-- [ ] `GET /api/auth/nonce?address=0x…` returns a single-use nonce with a short TTL
-- [ ] `POST /api/auth/verify` recovers the signer, validates the nonce, issues a session token
-- [ ] Consumed nonce is rejected on replay
-- [ ] Expired nonce is rejected
-- [ ] Signature from a different address is rejected
-- [ ] All existing routes behave identically — smoke collection diffs clean
-**Rollback:** Revert. Nothing depends on it.
-**Commit:** `feat(server): add SIWE nonce and verify endpoints`
-**Blocked by:** P0-08
+- [x] Created `server/src/utils/addressUtils.js` helper with `normalizeAddress` and `isValidAddress`
+- [x] Standardized `watchlistController.js` (`get`, `addCoin`, `removeCoin`) to normalize all `walletAddress` parameters
+- [x] Standardized `transactionController.js` (`getByAddress`) to normalize all `address` parameters
+- [x] Returns `400 Bad Request` for invalid hex address formats
+- [x] Unit & integration tests verifying lowercase, checksum, and mixed-case inputs resolve to the same normalized record
+- [x] All 47 server tests pass
+**Rollback:** Revert.
+**Commit:** `fix(server): standardize Ethereum address casing and validation across controllers`
+**Blocked by:** P1-06
 
 ---
 

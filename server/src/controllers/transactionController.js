@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const Transaction = require('../models/Transaction');
+const { normalizeAddress } = require('../utils/addressUtils');
 
 const DATA_DIR = path.resolve(__dirname, '../../data');
 const TRANSACTIONS_FILE = path.join(DATA_DIR, 'transactions.json');
@@ -50,10 +51,10 @@ function parsePagination(query) {
 // ---------------------------------------------------------------------------
 async function getByAddress(req, res) {
   try {
-    const address = req.params.address?.toLowerCase().trim();
+    const address = normalizeAddress(req.params.address);
 
     if (!address) {
-      return res.status(400).json({ success: false, message: 'Wallet address is required.' });
+      return res.status(400).json({ success: false, message: 'Invalid or missing wallet address.' });
     }
 
     const { page, limit, skip } = parsePagination(req.query);

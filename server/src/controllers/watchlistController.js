@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const Watchlist = require('../models/Watchlist');
+const { normalizeAddress } = require('../utils/addressUtils');
 
 const DATA_DIR = path.resolve(__dirname, '../../data');
 const WATCHLIST_FILE = path.join(DATA_DIR, 'watchlist.json');
@@ -30,10 +31,10 @@ function saveLocalWatchlists(data) {
 // ---------------------------------------------------------------------------
 async function get(req, res) {
   try {
-    const walletAddress = req.params.walletAddress?.toLowerCase().trim();
+    const walletAddress = normalizeAddress(req.params.walletAddress);
 
     if (!walletAddress) {
-      return res.status(400).json({ success: false, message: 'walletAddress is required.' });
+      return res.status(400).json({ success: false, message: 'Invalid or missing walletAddress.' });
     }
 
     const { dbState } = req.app.locals;
@@ -68,11 +69,11 @@ async function get(req, res) {
 // ---------------------------------------------------------------------------
 async function addCoin(req, res) {
   try {
-    const walletAddress = req.params.walletAddress?.toLowerCase().trim();
+    const walletAddress = normalizeAddress(req.params.walletAddress);
     const coinId        = req.body.coinId?.toLowerCase().trim();
 
     if (!walletAddress) {
-      return res.status(400).json({ success: false, message: 'walletAddress is required.' });
+      return res.status(400).json({ success: false, message: 'Invalid or missing walletAddress.' });
     }
     if (!coinId) {
       return res.status(400).json({ success: false, message: 'coinId is required in the request body.' });
@@ -125,11 +126,11 @@ async function addCoin(req, res) {
 // ---------------------------------------------------------------------------
 async function removeCoin(req, res) {
   try {
-    const walletAddress = req.params.walletAddress?.toLowerCase().trim();
+    const walletAddress = normalizeAddress(req.params.walletAddress);
     const coinId        = req.params.coinId?.toLowerCase().trim();
 
     if (!walletAddress) {
-      return res.status(400).json({ success: false, message: 'walletAddress is required.' });
+      return res.status(400).json({ success: false, message: 'Invalid or missing walletAddress.' });
     }
     if (!coinId) {
       return res.status(400).json({ success: false, message: 'coinId is required.' });
