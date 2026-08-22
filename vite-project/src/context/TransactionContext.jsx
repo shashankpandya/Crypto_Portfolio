@@ -131,8 +131,6 @@ export const TransactionProvider = ({ children }) => {
     addressTo: "",
     amount: "",
     message: "",
-    gasLimit: "",
-    gasPrice: "",
   });
   const [currentAccount, setCurrentAccount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -140,11 +138,6 @@ export const TransactionProvider = ({ children }) => {
     localStorage.getItem("transactionCount")
   );
   const [transactions, setTransactions] = useState([]);
-  const [spender, setSpender] = useState("");
-  const [amount, setAmount] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [loading, setLoading] = useState(false);
   // isConnectedToSite is derived — do NOT add an independent setter outside of:
   // connectWallet, disconnectWallet, restoreSession, handleAccountsChanged (P1-16)
   const [isConnectedToSite, setIsConnectedToSite] = useState(false);
@@ -479,7 +472,7 @@ export const TransactionProvider = ({ children }) => {
   const sendTransaction = async () => {
     try {
       if (window.ethereum) {
-        const { addressTo, amount, message, gasLimit, gasPrice } = formData;
+        const { addressTo, amount, message } = formData;
 
         if (!transactionsAddress || !ethers.isAddress(transactionsAddress)) {
           throw new Error("Smart contract address (VITE_CONTRACT_ADDRESS) is not configured.");
@@ -488,7 +481,7 @@ export const TransactionProvider = ({ children }) => {
         const contract = await getEthereumContract();
         const parsedAmount = ethers.parseEther(amount);
         const txArgs = [addressTo, parsedAmount, message || "", "Transfer", []];
-        const txOptions = await getTxOptions(contract, "addToBlockchain", txArgs, { gasLimit, gasPrice });
+        const txOptions = await getTxOptions(contract, "addToBlockchain", txArgs);
 
         const transaction = await contract.addToBlockchain(
           ...txArgs,
@@ -541,42 +534,6 @@ export const TransactionProvider = ({ children }) => {
     } catch (error) {
       console.error("[getTokenBalance] Error:", error);
       return "0";
-    }
-  };
-
-  const handleApprove = async () => {
-    setErrorMessage("");
-    setSuccessMessage("");
-
-    if (!currentAccount) {
-      setErrorMessage("Please connect your wallet first.");
-      return;
-    }
-
-    if (!spender || !amount) {
-      setErrorMessage("Please provide spender address and amount.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      console.log(
-        "Approving allowance for spender:",
-        spender,
-        "amount:",
-        amount
-      );
-      const amountInWei = ethers.parseEther(amount);
-      const txHash = await approveAllowance(spender, amountInWei);
-      console.log("Approval transaction hash:", txHash);
-      setSuccessMessage(
-        `Allowance of ${amount} tokens approved for ${spender}`
-      );
-    } catch (error) {
-      console.error("Error approving allowance:", error);
-      setErrorMessage(error.message || "Failed to approve allowance.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -663,12 +620,6 @@ export const TransactionProvider = ({ children }) => {
         getEthBalance,
         getTokenBalance,
         getContractInfo,
-        handleApprove,
-        spender,
-        amount,
-        errorMessage,
-        successMessage,
-        loading,
         disconnectWallet,
         isConnectedToSite,
         signature,
