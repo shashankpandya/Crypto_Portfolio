@@ -673,20 +673,20 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-08
+### P2-08 ✓ DONE
 **Title:** Extract transactionRepo
 **Goal:** Same treatment for transactions.
 **Files affected:** `server/src/repositories/transactionRepo.js` (new), `server/src/controllers/transactionsController.js`
 **Risk:** M
 **Effort:** 90 min
 **Verification checklist:**
-- [ ] `dbState.connected` read only inside the repo
-- [ ] Repo uses `jsonStore`
-- [ ] Route order preserved: `/count` still declared before `/:address`
-- [ ] API responses byte-identical to baseline in both DB modes
-- [ ] Pagination behavior unchanged
+- [x] `dbState.connected` read only inside the repo
+- [x] Repo uses `jsonStore`
+- [x] Route order preserved: `/count` still declared before `/:address`
+- [x] API responses byte-identical to baseline in both DB modes
+- [x] Pagination behavior unchanged
 **Rollback:** Revert.
-**Commit:** `refactor(server): extract transactionRepo with single dbState branch`
+**Commit:** `refactor(server): extract transactionRepo with single dbState branch` (6a9fae4)
 **Blocked by:** P2-06
 
 ---
