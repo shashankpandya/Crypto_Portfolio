@@ -764,19 +764,19 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-13
+### P2-13 ✓ DONE
 **Title:** Migrate consumers off TransactionContext
 **Goal:** Point each component at the specific context it needs. One file per commit inside the PR.
 **Files affected:** all components importing `TransactionContext`
 **Risk:** L — the composition still works until the last caller moves.
 **Effort:** 90 min
 **Verification checklist:**
-- [ ] Each component imports only the context it actually uses
-- [ ] `TransactionContext` deleted once zero importers remain — grep proves it
-- [ ] Every screen renders identically
-- [ ] All tests pass
+- [x] Each component imports only the context it actually uses
+- [x] `TransactionContext` deleted once zero importers remain — grep proves it
+- [x] Every screen renders identically
+- [x] All tests pass
 **Rollback:** Revert; the composition re-export restores the old path.
-**Commit:** `refactor(client): migrate consumers to specific contexts, remove composition`
+**Commit:** `refactor(client): migrate consumers to specific contexts, remove composition` (c45aec5)
 **Blocked by:** P2-12
 
 ---
