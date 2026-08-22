@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useWallet } from "../../hooks/useWallet";
 import { useContract } from "../../hooks/useContract";
+import { COLORS } from "../../utils/tokens";
+import Button from "../../components/ui/Button";
 
 function AdminPanel() {
   const { currentAccount } = useWallet();
@@ -69,18 +71,18 @@ function AdminPanel() {
   if (!isOwner) {
     return (
       <div className="page-container text-white max-w-sm">
-        <div className="bg-[#0c1118] border border-white/5 rounded-lg p-5 text-center shadow-xl">
-          <div className="w-12 h-12 bg-[#EF4444]/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#EF4444]/20 shadow-inner">
-            <svg className="w-6 h-6 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="bg-surface-raised border border-white/5 rounded-lg p-5 text-center shadow-xl">
+          <div className="w-12 h-12 bg-negative/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-negative/20 shadow-inner">
+            <svg className="w-6 h-6 text-negative" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m0-8V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
           <h3 className="text-base font-bold text-white mb-2">Access Denied</h3>
-          <p className="text-[#71717a] text-xs leading-relaxed mb-4">
+          <p className="text-muted text-xs leading-relaxed mb-4">
             Only the contract owner can access this administration panel.
           </p>
           {contractOwner && (
-            <div className="bg-[#050811] p-2 rounded border border-white/5 font-mono text-[10px] text-[#71717a] select-all">
+            <div className="bg-base p-2 rounded border border-white/5 font-mono text-[10px] text-muted select-all">
               Owner: {contractOwner}
             </div>
           )}
@@ -96,14 +98,14 @@ function AdminPanel() {
         <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
           <span className="premium-text-gradient-primary">Admin Control Panel</span>
         </h1>
-        <p className="text-xs text-[#71717a] mt-1.5 max-w-md">
+        <p className="text-xs text-muted mt-1.5 max-w-md">
           Manage system configurations, adjust transaction fees, and audit contract variables.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Contract Metadata Card */}
-        <div className="bg-[#0c1118] border border-white/5 p-5 rounded-lg shadow-lg flex flex-col justify-between">
+        <div className="bg-surface-raised border border-white/5 p-5 rounded-lg shadow-lg flex flex-col justify-between">
           <div>
             <h3 className="text-sm font-bold mb-4 text-white border-b border-white/5 pb-2">
               Contract Details
@@ -116,32 +118,29 @@ function AdminPanel() {
               </div>
             ) : contractInfoError ? (
               <div className="flex flex-col items-start gap-2 text-xs">
-                <p className="text-[#EF4444]">{contractInfoError}</p>
-                <button
-                  onClick={fetchInfo}
-                  className="bg-white/5 border border-white/10 hover:bg-white/10 text-white px-3 py-1 rounded text-[10px] font-bold transition duration-150"
-                >
+                <p className="text-negative">{contractInfoError}</p>
+                <Button variant="secondary" onClick={fetchInfo} className="text-[10px] py-1 px-3">
                   Retry
-                </button>
+                </Button>
               </div>
             ) : (
-              <div className="space-y-3.5 text-xs text-[#a1a7bb]">
+              <div className="space-y-3.5 text-xs text-slate-400">
                 <div>
-                  <p className="text-[#71717a] text-[10px] font-semibold uppercase">Token Name</p>
+                  <p className="text-muted text-[10px] font-semibold uppercase">Token Name</p>
                   <p className="text-white font-bold">{contractInfo?.name}</p>
                 </div>
                 <div>
-                  <p className="text-[#71717a] text-[10px] font-semibold uppercase">Token Symbol</p>
+                  <p className="text-muted text-[10px] font-semibold uppercase">Token Symbol</p>
                   <p className="text-white font-mono font-bold">{contractInfo?.symbol}</p>
                 </div>
                 <div>
-                  <p className="text-[#71717a] text-[10px] font-semibold uppercase">Total Supply</p>
+                  <p className="text-muted text-[10px] font-semibold uppercase">Total Supply</p>
                   <p className="text-white font-mono font-bold">
                     {(Number(contractInfo?.totalSupply) / 10 ** Number(contractInfo?.decimals)).toLocaleString()} MTK
                   </p>
                 </div>
                 <div className="border-t border-white/5 pt-2.5">
-                  <p className="text-[#71717a] text-[10px] font-semibold uppercase">Contract Owner Address</p>
+                  <p className="text-muted text-[10px] font-semibold uppercase">Contract Owner Address</p>
                   <p className="text-white text-[10px] break-all font-mono">
                     {contractOwner || "Unknown"}
                   </p>
@@ -152,20 +151,20 @@ function AdminPanel() {
         </div>
 
         {/* Action Card: Update Fee */}
-        <div className="bg-[#0c1118] border border-white/5 p-5 rounded-lg shadow-lg flex flex-col justify-between">
+        <div className="bg-surface-raised border border-white/5 p-5 rounded-lg shadow-lg flex flex-col justify-between">
           <div>
             <h3 className="text-sm font-bold mb-4 text-white border-b border-white/5 pb-2">
               Fee Management
             </h3>
-            <div className="mb-4 p-3 bg-[#050811] rounded border border-white/5 text-xs">
-              <p className="text-[#71717a] text-[10px] font-semibold uppercase">Current Contract Fee</p>
-              <p className="text-2xl font-bold text-[#38BDF8] font-mono mt-0.5">{feePercentage}%</p>
+            <div className="mb-4 p-3 bg-base rounded border border-white/5 text-xs">
+              <p className="text-muted text-[10px] font-semibold uppercase">Current Contract Fee</p>
+              <p className="text-2xl font-bold text-cobalt font-mono mt-0.5">{feePercentage}%</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <div className="flex justify-between items-center text-xs text-[#a1a7bb]">
+              <div className="flex justify-between items-center text-xs text-slate-400">
                 <span className="font-semibold text-xs">New Fee Percentage</span>
                 <span className="text-white font-bold font-mono text-sm">{newFee}%</span>
               </div>
@@ -178,39 +177,31 @@ function AdminPanel() {
                 name="newFee"
                 value={newFee}
                 onChange={(e) => setNewFee(parseFloat(e.target.value))}
-                className="w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-[#050811] accent-[#FF385C]"
+                className="w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-base accent-coral"
                 style={{
-                  background: `linear-gradient(to right, #FF385C 0%, #FF7B00 ${(newFee / 10) * 100}%, #050811 ${(newFee / 10) * 100}%, #050811 100%)`
+                  background: `linear-gradient(to right, ${COLORS.coral} 0%, ${COLORS.coral} ${(newFee / 10) * 100}%, ${COLORS.base} ${(newFee / 10) * 100}%, ${COLORS.base} 100%)`
                 }}
                 required
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full h-10 rounded-lg text-xs font-bold text-white transition duration-200 ${
-                isLoading
-                  ? "bg-white/5 text-[#71717a] border border-white/5 cursor-not-allowed"
-                  : "premium-btn"
-              }`}
-            >
+            <Button type="submit" disabled={isLoading} className="w-full h-10">
               {isLoading ? "Updating Contract Fee..." : "Update Fee"}
-            </button>
+            </Button>
           </form>
         </div>
       </div>
 
       {/* Messages */}
       {errorMessage && (
-        <div className="bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] px-3.5 py-2 rounded text-xs mt-4" role="alert">
+        <div className="bg-negative/10 border border-negative/20 text-negative px-3.5 py-2 rounded text-xs mt-4" role="alert">
           <p className="font-bold">Error</p>
           <p className="opacity-90 mt-0.5">{errorMessage}</p>
         </div>
       )}
 
       {successMessage && (
-        <div className="bg-[#10B981]/10 border border-[#10B981]/20 text-[#10B981] px-3.5 py-2 rounded text-xs mt-4" role="alert">
+        <div className="bg-positive/10 border border-positive/20 text-positive px-3.5 py-2 rounded text-xs mt-4" role="alert">
           <p className="font-bold">Success</p>
           <p className="opacity-90 mt-0.5 break-all">{successMessage}</p>
         </div>

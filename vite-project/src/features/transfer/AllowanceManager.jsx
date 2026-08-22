@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useWallet } from "../../hooks/useWallet";
 import { ethers } from "ethers";
 import { checkAllowance, approveAllowance } from "../../utils/constant";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
 
 const isValidAddress = (addr) => {
   return /^0x[a-fA-F0-9]{40}$/.test(addr);
@@ -103,21 +105,21 @@ function AllowanceManager() {
         <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
           <span className="premium-text-gradient-primary">Token Allowance</span>
         </h1>
-        <p className="text-xs text-[#71717a] mt-1.5 max-w-sm">
+        <p className="text-xs text-muted mt-1.5 max-w-sm">
           Check or approve spend permissions granted to external decentralized applications.
         </p>
       </div>
 
-      <div className="w-full bg-[#0c1118] border border-white/5 rounded-lg p-5 shadow-lg relative">
+      <div className="w-full bg-surface-raised border border-white/5 rounded-lg p-5 shadow-lg relative">
         {/* Tabs */}
-        <div className="flex mb-5 bg-[#050811] p-1 rounded border border-white/5 font-semibold text-xs select-none">
+        <div className="flex mb-5 bg-base p-1 rounded border border-white/5 font-semibold text-xs select-none">
           <button
             type="button"
             onClick={() => setActiveTab("check")}
             className={`flex-1 py-1.5 text-center rounded transition duration-200 ${
               activeTab === "check"
                 ? "bg-white/[0.04] text-white border border-white/5"
-                : "text-[#71717a] hover:text-white"
+                : "text-muted hover:text-white"
             }`}
           >
             Check Allowance
@@ -128,7 +130,7 @@ function AllowanceManager() {
             className={`flex-1 py-1.5 text-center rounded transition duration-200 ${
               activeTab === "approve"
                 ? "bg-white/[0.04] text-white border border-white/5"
-                : "text-[#71717a] hover:text-white"
+                : "text-muted hover:text-white"
             }`}
           >
             Approve Spender
@@ -137,13 +139,13 @@ function AllowanceManager() {
 
         {/* Status Messages */}
         {errorMessage && (
-          <div className="bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] px-3.5 py-2 rounded text-xs mb-4" role="alert">
+          <div className="bg-negative/10 border border-negative/20 text-negative px-3.5 py-2 rounded text-xs mb-4" role="alert">
             <p className="font-bold">Error</p>
             <p className="opacity-90 mt-0.5">{errorMessage}</p>
           </div>
         )}
         {successMessage && (
-          <div className="bg-[#10B981]/10 border border-[#10B981]/20 text-[#10B981] px-3.5 py-2 rounded text-xs mb-4" role="alert">
+          <div className="bg-positive/10 border border-positive/20 text-positive px-3.5 py-2 rounded text-xs mb-4" role="alert">
             <p className="font-bold">Success</p>
             <p className="opacity-90 mt-0.5 break-all">{successMessage}</p>
           </div>
@@ -153,24 +155,24 @@ function AllowanceManager() {
         <form onSubmit={activeTab === "check" ? handleCheck : handleApprove} className="space-y-4">
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <label htmlFor="spenderAddress" className="text-[#a1a7bb] text-xs font-semibold">
+              <label htmlFor="spenderAddress" className="text-slate-400 text-xs font-semibold">
                 Spender Wallet Address
               </label>
               {addressValid !== null && (
-                <span className={`text-[10px] font-bold ${addressValid ? "text-[#10B981]" : "text-[#EF4444]"}`}>
+                <span className={`text-[10px] font-bold ${addressValid ? "text-positive" : "text-negative"}`}>
                   {addressValid ? "✓ Valid Address" : "✗ Invalid Address"}
                 </span>
               )}
             </div>
-            <input
+            <Input
               type="text"
               id="spenderAddress"
               placeholder="0x..."
               value={spender}
               onChange={(e) => setSpender(e.target.value)}
               onBlur={handleAddressBlur}
-              className={`w-full h-10 px-3 text-xs rounded premium-input font-mono focus:outline-none text-white placeholder-[#71717a] ${
-                addressValid === true ? "border-[#10B981]" : addressValid === false ? "border-[#EF4444]" : ""
+              className={`w-full h-10 text-xs font-mono ${
+                addressValid === true ? "!border-positive" : addressValid === false ? "!border-negative" : ""
               }`}
               required
             />
@@ -178,10 +180,10 @@ function AllowanceManager() {
 
           {activeTab === "approve" && (
             <div>
-              <label htmlFor="approveAmount" className="block text-[#a1a7bb] text-xs font-semibold mb-1.5">
+              <label htmlFor="approveAmount" className="block text-slate-400 text-xs font-semibold mb-1.5">
                 Approve Amount (MTK)
               </label>
-              <input
+              <Input
                 type="number"
                 step="any"
                 min="0"
@@ -189,36 +191,28 @@ function AllowanceManager() {
                 placeholder="0.0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full h-10 px-3 text-xs rounded premium-input font-mono focus:outline-none text-white placeholder-[#71717a]"
+                className="w-full h-10 text-xs font-mono"
                 required
               />
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full h-10 rounded-lg text-xs font-bold text-white transition duration-200 ${
-              isLoading
-                ? "bg-white/5 text-[#71717a] border border-white/5 cursor-not-allowed"
-                : "premium-btn"
-            }`}
-          >
+          <Button type="submit" disabled={isLoading} className="w-full h-10">
             {isLoading ? "Processing Contract Call..." : activeTab === "check" ? "Check Allowance" : "Approve Allowance"}
-          </button>
+          </Button>
         </form>
 
         {/* Premium Glow Gradient Results Card (No flat cyan) */}
         {currentAllowance !== null && (
-          <div className="mt-5 p-4 rounded bg-gradient-to-br from-[#FF385C]/05 via-[#0b0f19] to-[#2563EB]/05 border border-white/5 shadow-lg relative overflow-hidden animate-fade-in flex flex-col justify-center items-center">
+          <div className="mt-5 p-4 rounded bg-gradient-to-br from-coral/5 via-surface to-cobalt/5 border border-white/5 shadow-lg relative overflow-hidden animate-fade-in flex flex-col justify-center items-center">
             {/* Subtle top glow line */}
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#FF385C]/20 to-transparent"></div>
-            <p className="text-[#a1a7bb] text-[10px] uppercase font-bold tracking-wider mb-1">
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-coral/20 to-transparent"></div>
+            <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1">
               Spendable Allowance Limit
             </p>
             <p className="text-2xl font-bold font-mono text-white">
               {parseFloat(currentAllowance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}{" "}
-              <span className="text-xs text-[#71717a] font-normal font-sans ml-1">MTK</span>
+              <span className="text-xs text-muted font-normal font-sans ml-1">MTK</span>
             </p>
           </div>
         )}

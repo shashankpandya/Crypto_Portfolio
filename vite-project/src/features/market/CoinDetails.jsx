@@ -15,6 +15,7 @@ import {
 import { useWallet } from "../../hooks/useWallet";
 import { useWatchlist } from "../../hooks/useWatchlist";
 import { COLORS } from "../../utils/tokens";
+import Button from "../../components/ui/Button";
 
 ChartJS.register(
   CategoryScale,
@@ -116,12 +117,9 @@ const CoinDetails = () => {
     return (
       <div className="flex flex-col items-center gap-3 p-5 text-center bg-negative/10 border border-negative/20 rounded-lg max-w-lg mx-auto">
         <p className="text-negative">{error}</p>
-        <button
-          onClick={fetchData}
-          className="premium-btn text-white text-xs font-bold py-1.5 px-4 rounded-lg transition duration-200"
-        >
+        <Button onClick={fetchData} className="text-xs py-1.5 px-4">
           Retry
-        </button>
+        </Button>
       </div>
     );
   if (!coinDetails || !coinHistory)
@@ -187,16 +185,15 @@ const CoinDetails = () => {
               </span>
             </div>
           </div>
-          <button
+          <Button
             onClick={toggleWatchlist}
-            className={`font-bold py-1.5 px-4 rounded-lg text-xs transition duration-200 ${
-              isInWatchlist
-                ? "bg-negative/10 border border-negative/20 text-negative hover:bg-negative hover:text-white"
-                : "premium-btn text-white"
+            variant={isInWatchlist ? "secondary" : "primary"}
+            className={`text-xs py-1.5 px-4 ${
+              isInWatchlist ? "!bg-negative/10 !border-negative/20 !text-negative hover:!bg-negative hover:!text-white" : ""
             }`}
           >
             {isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
-          </button>
+          </Button>
         </div>
 
         {/* Stats Grid */}

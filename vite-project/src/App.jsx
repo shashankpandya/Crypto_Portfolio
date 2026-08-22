@@ -22,8 +22,8 @@ const AdminPanel = React.lazy(() => import("./features/admin/AdminPanel"));
 
 const SuspenseFallback = () => (
   <div className="flex flex-col items-center justify-center py-20">
-    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#FF385C] shadow-md shadow-[#FF385C]/20"></div>
-    <p className="mt-4 text-[#a1a7bb] text-sm font-medium tracking-wide">Loading component...</p>
+    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-coral shadow-md shadow-coral/20"></div>
+    <p className="mt-4 text-slate-400 text-sm font-medium tracking-wide">Loading component...</p>
   </div>
 );
 
@@ -109,11 +109,11 @@ const App = () => {
       <WatchlistProvider>
         <ContractProvider>
           <AppProviders>
-            <div className="min-h-screen bg-[#050811] premium-bg text-white relative overflow-x-hidden">
+            <div className="min-h-screen bg-base premium-bg text-white relative overflow-x-hidden">
               {/* Ambient Background Glow Blur Circles */}
               <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[#FF385C]/04 blur-[150px]"></div>
-                <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[#2563EB]/04 blur-[150px]"></div>
+                <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-coral/[0.04] blur-[150px]"></div>
+                <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-cobalt/[0.04] blur-[150px]"></div>
               </div>
               <div className="relative z-10">
                 <Navbar />
@@ -158,7 +158,7 @@ const App = () => {
                               </p>
                               <Link
                                 to="/"
-                                className="premium-btn text-white text-xs font-bold py-2 px-6 rounded-lg mt-xs transition duration-200"
+                                className="inline-flex items-center justify-center rounded-md bg-coral px-md py-xs text-xs font-medium text-white shadow-[0_4px_12px_0_rgba(255,56,92,0.15)] transition duration ease-premium hover:opacity-95 hover:shadow-[0_6px_16px_0_rgba(255,56,92,0.3)] hover:-translate-y-px mt-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-cobalt focus-visible:outline-offset-1"
                               >
                                 Back to Dashboard
                               </Link>

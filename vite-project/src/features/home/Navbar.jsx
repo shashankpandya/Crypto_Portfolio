@@ -6,6 +6,8 @@ import { Tooltip } from "react-tooltip";
 
 import { useWallet } from "../../hooks/useWallet";
 import { useContract } from "../../hooks/useContract";
+import { COLORS } from "../../utils/tokens";
+import Button from "../../components/ui/Button";
 
 const NavBarItem = ({ title, path, active, closeMenu, classprops, requiresWallet }) => (
   <li className={`mx-4 relative group ${classprops || ""}`}>
@@ -42,8 +44,8 @@ const CPLogo = () => (
   <svg className="w-7 h-7" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="cp-logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#FF385C" />
-        <stop offset="100%" stopColor="#2563EB" />
+        <stop offset="0%" stopColor={COLORS.coral} />
+        <stop offset="100%" stopColor={COLORS.cobalt} />
       </linearGradient>
     </defs>
     {/* Geometric sharp hexagon CP monogram */}
@@ -56,7 +58,7 @@ const CPLogo = () => (
     />
     <path
       d="M40 38 H58 C63 38 63 48 58 48 H40 V62"
-      stroke="#ffffff"
+      stroke="white"
       strokeWidth="8"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -94,14 +96,14 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="sticky top-0 w-full h-14 flex items-center justify-between px-6 backdrop-blur-md bg-[#050811]/90 border-b border-white/5 z-50">
+    <nav className="sticky top-0 w-full h-14 flex items-center justify-between px-6 backdrop-blur-md bg-base/90 border-b border-white/5 z-50">
       {/* Brand logo: compact layout */}
       <div className="flex items-center text-xl font-semibold tracking-tight">
         <Link to="/" className="flex items-center space-x-3 group">
           <div className="group-hover:scale-105 transition-all duration-300">
             <CPLogo />
           </div>
-          <span className="text-sm font-semibold tracking-tight text-white group-hover:text-[#FF385C] transition-colors duration-200 select-none">
+          <span className="text-sm font-semibold tracking-tight text-white group-hover:text-coral transition-colors duration-200 select-none">
             Crypto Portfolio
           </span>
         </Link>
@@ -129,14 +131,14 @@ const Navbar = () => {
         {!toggleMenu ? (
           <HiMenuAlt4
             fontSize={24}
-            className="text-white md:hidden cursor-pointer hover:text-[#FF385C] transition duration-200"
+            className="text-white md:hidden cursor-pointer hover:text-coral transition duration-200"
             onClick={() => setToggleMenu(true)}
             aria-label="Open menu"
           />
         ) : (
           <AiOutlineClose
             fontSize={24}
-            className="text-white md:hidden cursor-pointer hover:text-[#FF385C] transition duration-200"
+            className="text-white md:hidden cursor-pointer hover:text-coral transition duration-200"
             onClick={() => setToggleMenu(false)}
             aria-label="Close menu"
           />
@@ -145,13 +147,13 @@ const Navbar = () => {
         {toggleMenu && (
           <ul
             className="z-50 fixed top-0 right-0 p-6 w-[70vw] h-screen shadow-2xl md:hidden list-none
-            flex flex-col justify-start items-end rounded-l-xl bg-[#0b0f19] border-l border-white/5 text-white animate-slide-in"
+            flex flex-col justify-start items-end rounded-l-xl bg-surface border-l border-white/5 text-white animate-slide-in"
           >
             <li className="text-lg w-full my-2 flex justify-between items-center border-b border-white/5 pb-4">
-              <span className="text-[#FF385C] font-extrabold tracking-wider">MENU</span>
+              <span className="text-coral font-extrabold tracking-wider">MENU</span>
               <AiOutlineClose
                 onClick={() => setToggleMenu(false)}
-                className="cursor-pointer hover:text-[#FF385C] transition duration-200"
+                className="cursor-pointer hover:text-coral transition duration-200"
                 aria-label="Close menu"
               />
             </li>
@@ -173,17 +175,17 @@ const Navbar = () => {
       {/* Wallet Connection Section */}
       <div className="flex items-center space-x-3 ml-4">
         {isConnectedToSite ? (
-          <div className="flex items-center space-x-2.5 bg-[#0b0f19] border border-white/5 px-3 py-1.5 rounded-lg shadow-lg">
+          <div className="flex items-center space-x-2.5 bg-surface border border-white/5 px-3 py-1.5 rounded-lg shadow-lg">
             {/* Active Network Dot (Electric Cobalt / Blue) */}
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2563EB] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2563EB]"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cobalt opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cobalt"></span>
             </span>
-            <p className="text-[#a1a7bb] font-mono text-xs font-semibold tracking-tight">
+            <p className="text-slate-400 font-mono text-xs font-semibold tracking-tight">
               {`${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`}
             </p>
             <button
-              className="bg-white/5 hover:bg-[#FF385C] hover:text-white border border-white/5 text-[#a1a7bb] text-[10px] font-bold py-1 px-2.5 rounded transition duration-200"
+              className="bg-white/5 hover:bg-coral hover:text-white border border-white/5 text-slate-400 text-[10px] font-bold py-1 px-2.5 rounded transition duration-200"
               onClick={handleDisconnect}
             >
               Disconnect
@@ -193,14 +195,14 @@ const Navbar = () => {
           <div className="flex items-center space-x-2.5 bg-white/[0.02] border border-white/5 px-2.5 py-1 rounded-lg">
             {/* Grey disconnected dot */}
             <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-600"></span>
-            <button
-              className="premium-btn text-white text-xs font-bold py-1.5 px-4 rounded-lg transition duration-300"
+            <Button
+              className="text-xs py-1.5 px-4"
               onClick={handleConnect}
               data-tooltip-id="connect-wallet-tooltip"
               data-tooltip-content="Connect your Ethereum wallet to access the dashboard"
             >
               Connect Wallet
-            </button>
+            </Button>
           </div>
         )}
         <Tooltip id="connect-wallet-tooltip" />

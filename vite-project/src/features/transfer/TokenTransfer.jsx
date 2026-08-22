@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { useWallet } from "../../hooks/useWallet";
 import { useContract } from "../../hooks/useContract";
+import Button from "../../components/ui/Button";
 
 const isValidAddress = (addr) => {
   return /^0x[a-fA-F0-9]{40}$/.test(addr);
@@ -185,10 +186,10 @@ function TokenTransfer() {
         </div>
       </div>
 
-      <div className="w-full bg-[#0c1118] border border-white/5 rounded-lg p-5 shadow-lg relative">
+      <div className="w-full bg-surface-raised border border-white/5 rounded-lg p-5 shadow-lg relative">
         {/* Tab Selector */}
         <div className="flex justify-center mb-6">
-          <div className="inline-flex bg-[#0B0F19] border border-white/10 rounded-lg p-0.5 w-fit font-semibold text-xs select-none">
+          <div className="inline-flex bg-surface border border-white/10 rounded-lg p-0.5 w-fit font-semibold text-xs select-none">
             <button
               type="button"
               onClick={() => {
@@ -224,13 +225,13 @@ function TokenTransfer() {
 
         {/* Status Messages */}
         {errorMessage && (
-          <div className="bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] px-3.5 py-2 rounded text-xs mb-4" role="alert">
+          <div className="bg-negative/10 border border-negative/20 text-negative px-3.5 py-2 rounded text-xs mb-4" role="alert">
             <p className="font-bold">Error</p>
             <p className="opacity-90 mt-0.5">{errorMessage}</p>
           </div>
         )}
         {successMessage && (
-          <div className="bg-[#10B981]/10 border border-[#10B981]/20 text-[#10B981] px-3.5 py-2 rounded text-xs mb-4" role="alert">
+          <div className="bg-positive/10 border border-positive/20 text-positive px-3.5 py-2 rounded text-xs mb-4" role="alert">
             <p className="font-bold">Success</p>
             <p className="opacity-90 mt-0.5 break-all">{successMessage}</p>
           </div>
@@ -245,7 +246,7 @@ function TokenTransfer() {
                   Recipient Address
                 </label>
                 {singleAddressValid !== null && (
-                  <span className={`text-[10px] font-bold ${singleAddressValid ? "text-[#10B981]" : "text-[#EF4444]"}`}>
+                  <span className={`text-[10px] font-bold ${singleAddressValid ? "text-positive" : "text-negative"}`}>
                     {singleAddressValid ? "✓ Valid Address" : "✗ Invalid Address"}
                   </span>
                 )}
@@ -258,8 +259,8 @@ function TokenTransfer() {
                 value={formData.addressTo || ""}
                 onChange={(e) => handleChange(e, "addressTo")}
                 onBlur={(e) => checkSingleAddress(e.target.value)}
-                className={`w-full h-10 px-3 text-sm rounded bg-[#0B0F19] border border-white/8 text-white placeholder:text-slate-600 font-mono transition-colors duration-150 focus:border-white/20 focus:ring-0 focus:outline-none ${
-                  singleAddressValid === true ? "border-[#10B981]" : singleAddressValid === false ? "border-[#EF4444]" : ""
+                className={`w-full h-10 px-3 text-sm rounded bg-surface border border-white/8 text-white placeholder:text-slate-600 font-mono transition-colors duration-150 focus:border-white/20 focus:ring-0 focus:outline-none ${
+                  singleAddressValid === true ? "border-positive" : singleAddressValid === false ? "border-negative" : ""
                 }`}
                 required
               />
@@ -281,8 +282,8 @@ function TokenTransfer() {
                 value={formData.amount || ""}
                 onChange={(e) => handleChange(e, "amount")}
                 onBlur={(e) => checkSingleAmount(e.target.value)}
-                className={`w-full h-10 px-3 text-sm rounded bg-[#0B0F19] border border-white/8 text-white placeholder:text-slate-600 transition-colors duration-150 focus:border-white/20 focus:ring-0 focus:outline-none ${
-                  singleAmountValid === true ? "border-[#10B981]" : singleAmountValid === false ? "border-[#EF4444]" : ""
+                className={`w-full h-10 px-3 text-sm rounded bg-surface border border-white/8 text-white placeholder:text-slate-600 transition-colors duration-150 focus:border-white/20 focus:ring-0 focus:outline-none ${
+                  singleAmountValid === true ? "border-positive" : singleAmountValid === false ? "border-negative" : ""
                 }`}
                 required
               />
@@ -298,7 +299,7 @@ function TokenTransfer() {
                 name="message"
                 value={formData.message || ""}
                 onChange={(e) => handleChange(e, "message")}
-                className="w-full p-3 text-sm rounded bg-[#0B0F19] border border-white/8 text-white placeholder:text-slate-600 transition-colors duration-150 focus:border-white/20 focus:ring-0 focus:outline-none resize-none h-16"
+                className="w-full p-3 text-sm rounded bg-surface border border-white/8 text-white placeholder:text-slate-600 transition-colors duration-150 focus:border-white/20 focus:ring-0 focus:outline-none resize-none h-16"
               />
             </div>
 
@@ -313,15 +314,7 @@ function TokenTransfer() {
             )}
 
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full h-10 rounded-lg text-xs font-bold text-white transition-all duration-200 ${
-                loading
-                  ? "bg-white/5 text-[#71717a] border border-white/5 cursor-not-allowed"
-                  : "premium-btn hover:opacity-90 hover:shadow-lg hover:shadow-[#FF385C]/20"
-              }`}
-            >
+            <Button type="submit" disabled={loading} className="w-full h-10 hover:shadow-lg hover:shadow-coral/20">
               {loading ? (
                 "Processing Transfer..."
               ) : (
@@ -332,7 +325,7 @@ function TokenTransfer() {
                   Transfer Tokens
                 </>
               )}
-            </button>
+            </Button>
           </form>
         )}
 
@@ -347,7 +340,7 @@ function TokenTransfer() {
                 <button
                   type="button"
                   onClick={addBatchRow}
-                  className="bg-white/5 border border-white/5 hover:bg-white/10 text-[#38BDF8] hover:text-white px-2.5 py-1 rounded text-[10px] font-bold transition duration-150"
+                  className="bg-white/5 border border-white/5 hover:bg-white/10 text-cobalt hover:text-white px-2.5 py-1 rounded text-[10px] font-bold transition duration-150"
                 >
                   + Add Recipient
                 </button>
@@ -355,7 +348,7 @@ function TokenTransfer() {
 
               <div className="max-h-48 overflow-y-auto space-y-2.5 pr-1 py-1 border-t border-b border-white/5">
                 {batchRecipients.map((recipient, index) => (
-                  <div key={index} className="flex space-x-2 items-end bg-[#050811] p-2.5 rounded border border-white/5 relative">
+                  <div key={index} className="flex space-x-2 items-end bg-base p-2.5 rounded border border-white/5 relative">
                     <div className="flex-1">
                       <label htmlFor={`batchAddressInput_${index}`} className="block text-slate-400 text-[9px] font-semibold mb-1">
                         #{index + 1} Address
@@ -367,7 +360,7 @@ function TokenTransfer() {
                         name={`batchAddress_${index}`}
                         value={recipient.address}
                         onChange={(e) => handleBatchChange(index, "address", e.target.value)}
-                        className="w-full h-8 px-2.5 rounded bg-[#0B0F19] border border-white/8 text-xs text-white placeholder:text-slate-600 font-mono transition-colors duration-150 focus:border-white/20 focus:outline-none"
+                        className="w-full h-8 px-2.5 rounded bg-surface border border-white/8 text-xs text-white placeholder:text-slate-600 font-mono transition-colors duration-150 focus:border-white/20 focus:outline-none"
                         required
                       />
                     </div>
@@ -384,7 +377,7 @@ function TokenTransfer() {
                         name={`batchAmount_${index}`}
                         value={recipient.amount}
                         onChange={(e) => handleBatchChange(index, "amount", e.target.value)}
-                        className="w-full h-8 px-2 rounded bg-[#0B0F19] border border-white/8 text-xs text-white placeholder:text-slate-600 transition-colors duration-150 focus:border-white/20 focus:outline-none"
+                        className="w-full h-8 px-2 rounded bg-surface border border-white/8 text-xs text-white placeholder:text-slate-600 transition-colors duration-150 focus:border-white/20 focus:outline-none"
                         required
                       />
                     </div>
@@ -392,7 +385,7 @@ function TokenTransfer() {
                       <button
                         type="button"
                         onClick={() => removeBatchRow(index)}
-                        className="text-[#EF4444] hover:bg-[#EF4444]/15 px-2.5 h-8 text-[11px] font-bold rounded border border-[#EF4444]/20 transition duration-150"
+                        className="text-negative hover:bg-negative/15 px-2.5 h-8 text-[11px] font-bold rounded border border-negative/20 transition duration-150"
                         aria-label={`Remove recipient ${index + 1}`}
                       >
                         &times;
@@ -413,19 +406,11 @@ function TokenTransfer() {
                 name="batchMessage"
                 value={batchMessage}
                 onChange={(e) => setBatchMessage(e.target.value)}
-                className="w-full p-3 text-sm rounded bg-[#0B0F19] border border-white/8 text-white placeholder:text-slate-600 transition-colors duration-150 focus:border-white/20 focus:outline-none resize-none h-16"
+                className="w-full p-3 text-sm rounded bg-surface border border-white/8 text-white placeholder:text-slate-600 transition-colors duration-150 focus:border-white/20 focus:outline-none resize-none h-16"
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full h-10 rounded-lg text-xs font-bold text-white transition-all duration-200 ${
-                loading
-                  ? "bg-white/5 text-[#71717a] border border-white/5 cursor-not-allowed"
-                  : "premium-btn hover:opacity-90 hover:shadow-lg hover:shadow-[#FF385C]/20"
-              }`}
-            >
+            <Button type="submit" disabled={loading} className="w-full h-10 hover:shadow-lg hover:shadow-coral/20">
               {loading ? (
                 "Processing Batch..."
               ) : (
@@ -436,7 +421,7 @@ function TokenTransfer() {
                   Send Batch ({batchRecipients.length} transfers)
                 </>
               )}
-            </button>
+            </Button>
           </form>
         )}
       </div>

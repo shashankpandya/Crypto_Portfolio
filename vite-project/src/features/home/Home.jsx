@@ -5,6 +5,8 @@ import { ethers } from "ethers";
 import TopCoins from "../market/TopCoins";
 import ErrorBoundary from "../../components/ErrorBoundary";
 import Skeleton from "../../components/ui/Skeleton";
+import Button from "../../components/ui/Button";
+import { COLORS } from "../../utils/tokens";
 import { gsap } from "gsap";
 
 const getNetworkName = (chainIdHex) => {
@@ -140,8 +142,8 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
                 className="h-[175px] w-full rounded-lg border border-white/5 relative overflow-hidden flex flex-col justify-between p-5 cursor-pointer shadow-xl transition-all duration-300"
                 style={{
                   background: isHovered
-                    ? `radial-gradient(circle 120px at ${coords.x}px ${coords.y}px, rgba(255, 56, 92, 0.1), transparent), #0c1118`
-                    : "#0c1118",
+                    ? `radial-gradient(circle 120px at ${coords.x}px ${coords.y}px, rgba(255, 56, 92, 0.1), transparent), ${COLORS.surfaceRaised}`
+                    : COLORS.surfaceRaised,
                 }}
               >
                 <div className="flex justify-between items-center">
@@ -149,7 +151,7 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
                     Wallet
                   </span>
                   {/* Network Dot */}
-                  <span className={`w-1.5 h-1.5 rounded-full ${isTestnet ? 'bg-[#FF7B00]' : 'bg-[#2563EB]'}`}></span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isTestnet ? 'bg-coral' : 'bg-cobalt'}`}></span>
                 </div>
                 
                 <div className="flex flex-col flex-1 justify-center mt-2">
@@ -159,11 +161,11 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
                     </p>
                     <button
                       onClick={copyToClipboard}
-                      className="text-[#71717a] hover:text-white transition-colors"
+                      className="text-muted hover:text-white transition-colors"
                       title="Copy Address"
                     >
                       {copied ? (
-                        <span className="text-[10px] text-[#10B981] font-bold">✓</span>
+                        <span className="text-[10px] text-positive font-bold">✓</span>
                       ) : (
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
@@ -182,42 +184,42 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
             </div>
 
             {/* Wallet Info Grid */}
-            <div className="lg:col-span-2 bg-[#0c1118] border border-white/5 rounded-lg p-5 flex flex-col justify-between gsap-fade-in shadow-lg">
+            <div className="lg:col-span-2 bg-surface-raised border border-white/5 rounded-lg p-5 flex flex-col justify-between gsap-fade-in shadow-lg">
               <div>
                 <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
                   Asset Details
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* ETH Balance */}
-                  <div className="bg-[#050811] p-3.5 rounded border border-white/5">
-                    <p className="text-[#71717a] text-[10px] font-bold uppercase tracking-wider mb-1">Ether Balance</p>
+                  <div className="bg-base p-3.5 rounded border border-white/5">
+                    <p className="text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Ether Balance</p>
                     <p className="text-white text-2xl font-bold font-mono animate-fade-in-300">
-                      <CountUp value={ethBalance} decimals={4} /> <span className="text-xs text-[#71717a] font-normal font-sans ml-1">ETH</span>
+                      <CountUp value={ethBalance} decimals={4} /> <span className="text-xs text-muted font-normal font-sans ml-1">ETH</span>
                     </p>
                   </div>
                   {/* MTK Token Balance */}
-                  <div className="bg-[#050811] p-3.5 rounded border border-white/5">
-                    <p className="text-[#71717a] text-[10px] font-bold uppercase tracking-wider mb-1">MTK Balance</p>
+                  <div className="bg-base p-3.5 rounded border border-white/5">
+                    <p className="text-muted text-[10px] font-bold uppercase tracking-wider mb-1">MTK Balance</p>
                     <p className="text-white text-2xl font-bold font-mono animate-fade-in-300">
-                      <CountUp value={tokenBalance} decimals={2} /> <span className="text-xs text-[#71717a] font-normal font-sans ml-1">MTK</span>
+                      <CountUp value={tokenBalance} decimals={2} /> <span className="text-xs text-muted font-normal font-sans ml-1">MTK</span>
                     </p>
                   </div>
                   {/* Network */}
-                  <div className="bg-[#050811] p-3.5 rounded border border-white/5 flex flex-col justify-between">
+                  <div className="bg-base p-3.5 rounded border border-white/5 flex flex-col justify-between">
                     <div>
-                      <p className="text-[#71717a] text-[10px] font-bold uppercase tracking-wider mb-1">Network</p>
+                      <p className="text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Network</p>
                       <div className="flex items-center space-x-2">
                         {/* Dot indicator */}
-                        <span className={`h-2 w-2 rounded-full ${isTestnet ? 'bg-[#FF7B00]' : 'bg-[#2563EB]'}`}></span>
+                        <span className={`h-2 w-2 rounded-full ${isTestnet ? 'bg-coral' : 'bg-cobalt'}`}></span>
                         <p className="text-white text-sm font-semibold">{network}</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="mt-4 border-t border-white/5 pt-3 flex justify-between items-center text-[11px] text-[#71717a]">
+              <div className="mt-4 border-t border-white/5 pt-3 flex justify-between items-center text-[11px] text-muted">
                 <span>Security Check</span>
-                <span className="text-[#10B981] font-semibold flex items-center">
+                <span className="text-positive font-semibold flex items-center">
                   <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
@@ -227,24 +229,21 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
             </div>
           </div>
         ) : (
-          <div className="text-center mb-8 bg-[#0c1118] rounded-lg p-8 border border-white/5 gsap-fade-in max-w-md mx-auto flex flex-col items-center shadow-xl">
-            <div className="w-12 h-12 bg-[#FF385C]/10 rounded-full flex items-center justify-center mb-4 border border-[#FF385C]/20 shadow-inner">
-              <svg className="w-6 h-6 text-[#FF385C]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="text-center mb-8 bg-surface-raised rounded-lg p-8 border border-white/5 gsap-fade-in max-w-md mx-auto flex flex-col items-center shadow-xl">
+            <div className="w-12 h-12 bg-coral/10 rounded-full flex items-center justify-center mb-4 border border-coral/20 shadow-inner">
+              <svg className="w-6 h-6 text-coral" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
             <h2 className="text-xl font-bold mb-2 text-white tracking-tight">
               Connect Web3 Wallet
             </h2>
-            <p className="text-[#71717a] text-xs mb-6 max-w-xs leading-relaxed">
+            <p className="text-muted text-xs mb-6 max-w-xs leading-relaxed">
               Connect your Ethereum provider to explore tokens, approve token allowances, and transfer assets securely.
             </p>
-            <button
-              onClick={handleConnect}
-              className="premium-btn text-white text-xs font-bold py-2 px-6 rounded-lg transition duration-200 transform hover:scale-[1.01]"
-            >
+            <Button onClick={handleConnect} className="text-xs py-2 px-6 transform hover:scale-[1.01]">
               Connect Wallet
-            </button>
+            </Button>
           </div>
         )}
 
@@ -266,12 +265,9 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
               <div className="flex flex-col items-center gap-sm rounded-lg border border-negative/20 bg-negative/5 px-md py-lg text-center">
                 <p className="text-sm text-negative">{coinsError}</p>
                 {onRetryCoins && (
-                  <button
-                    onClick={onRetryCoins}
-                    className="premium-btn text-white text-xs font-bold py-1.5 px-4 rounded-lg transition duration-200"
-                  >
+                  <Button onClick={onRetryCoins} className="text-xs py-1.5 px-4">
                     Retry
-                  </button>
+                  </Button>
                 )}
               </div>
             ) : (
