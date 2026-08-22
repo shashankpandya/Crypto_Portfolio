@@ -1,31 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ethers } from "ethers";
 import axios from "axios";
-import { SiweMessage } from "siwe";
-
-// ---------------------------------------------------------------------------
-// Session token helpers — sessionStorage so JWT is cleared on tab close.
-// ---------------------------------------------------------------------------
-const TOKEN_KEY = "auth_token";
-const TOKEN_ADDR_KEY = "auth_address";
-
-function storeSession(address, token) {
-  sessionStorage.setItem(TOKEN_KEY, token);
-  sessionStorage.setItem(TOKEN_ADDR_KEY, address.toLowerCase());
-}
-
-function clearSession() {
-  sessionStorage.removeItem(TOKEN_KEY);
-  sessionStorage.removeItem(TOKEN_ADDR_KEY);
-}
-
-function getStoredToken() {
-  return sessionStorage.getItem(TOKEN_KEY) || null;
-}
-
-function getStoredAddress() {
-  return sessionStorage.getItem(TOKEN_ADDR_KEY) || null;
-}
 
 import {
   transactionsAddress,
@@ -40,6 +15,8 @@ import {
   getReadContract,
   getSignerContract,
 } from "../services/contractService";
+import { WalletProvider, getStoredToken } from "./WalletContext";
+import { useWallet } from "../hooks/useWallet";
 
 // Make sure these are correctly defined in your constants file
 // console.log("Contract Address:", contractAddress);
@@ -117,31 +94,17 @@ const getContractInfo = async () => {
   }
 };
 
-export const TransactionProvider = ({ children }) => {
-  const [formData, setformData] = useState({
-    addressTo: "",
-    amount: "",
-    message: "",
-  });
-  const [currentAccount, setCurrentAccount] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [transactionCount, setTransactionCount] = useState(
-    localStorage.getItem("transactionCount")
-  );
-  const [transactions, setTransactions] = useState([]);
-  // isConnectedToSite is derived — do NOT add an independent setter outside of:
-  // connectWallet, disconnectWallet, restoreSession, handleAccountsChanged (P1-16)
-  const [isConnectedToSite, setIsConnectedToSite] = useState(false);
-  const [signature, setSignature] = useState(null);
-  const [authToken, setAuthToken] = useState(getStoredToken());
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [contractOwner, setContractOwner] = useState("");
-  const [feePercentage, setFeePercentage] = useState("0");
+/**
+ * TransactionBridge — consumes WalletContext and re-exposes its wallet slice
+ * merged with TransactionContext's own (transaction/admin/watchlist) slice
+ * under the single TransactionContext, so every existing consumer keeps
+ * reading the exact same merged shape it did before the P2-10 split.
+ */
+const TransactionBridge = ({ children, transactionValue }) => {
+  const wallet = useWallet();
 
-  // ---------------------------------------------------------------------------
   // Axios interceptor — inject Authorization header on all watchlist requests.
   // Use a ref so we only register once and can clean up.
-  // ---------------------------------------------------------------------------
   const interceptorRef = useRef(null);
 
   useEffect(() => {
@@ -161,7 +124,41 @@ export const TransactionProvider = ({ children }) => {
         axios.interceptors.request.eject(interceptorRef.current);
       }
     };
-  }, [authToken]);
+  }, [wallet.authToken]);
+
+  return (
+    <TransactionContext.Provider
+      value={{
+        ...transactionValue,
+        connectWallet: wallet.connectWallet,
+        disconnectWallet: wallet.disconnectWallet,
+        currentAccount: wallet.currentAccount,
+        isConnectedToSite: wallet.isConnectedToSite,
+        signature: wallet.signature,
+        authToken: wallet.authToken,
+        getEthBalance: wallet.getEthBalance,
+        getTokenBalance: wallet.getTokenBalance,
+      }}
+    >
+      {children}
+    </TransactionContext.Provider>
+  );
+};
+
+export const TransactionProvider = ({ children }) => {
+  const [formData, setformData] = useState({
+    addressTo: "",
+    amount: "",
+    message: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [transactionCount, setTransactionCount] = useState(
+    localStorage.getItem("transactionCount")
+  );
+  const [transactions, setTransactions] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [contractOwner, setContractOwner] = useState("");
+  const [feePercentage, setFeePercentage] = useState("0");
 
   const handleChange = (e, name) => {
     setformData((prevState) => ({ ...prevState, [name]: e.target.value }));
@@ -175,12 +172,22 @@ export const TransactionProvider = ({ children }) => {
       const owner = await contract.owner();
       setContractOwner(owner);
       setIsAdmin(account.toLowerCase() === owner.toLowerCase());
-      
+
       const fee = await contract.feePercentage();
       setFeePercentage((Number(fee) / 100).toString()); // 1% = 100 basis points
     } catch (err) {
       console.error("Error checking admin status:", err);
     }
+  }, []);
+
+  // Resets admin/fee state alongside wallet disconnect/account-change resets
+  // (P2-10: WalletContext calls this via prop so isAdmin/contractOwner/
+  // feePercentage — which stay owned here — reset at the same points they
+  // always did).
+  const resetAdminState = React.useCallback(() => {
+    setIsAdmin(false);
+    setContractOwner("");
+    setFeePercentage("0");
   }, []);
 
   const updateFeePercentage = React.useCallback(async (newFeePercent) => {
@@ -267,7 +274,7 @@ export const TransactionProvider = ({ children }) => {
       const addrLower = address.toLowerCase();
       const userWatchlistKey = `watchlist_${addrLower}`;
       const mixedCaseKey = `watchlist_${address}`;
-      
+
       let localWatchlist = JSON.parse(localStorage.getItem(userWatchlistKey)) || [];
 
       // Migrate from mixed-case key if it exists and is different
@@ -339,28 +346,6 @@ export const TransactionProvider = ({ children }) => {
     }
   };
 
-  const checkIfWalletIsConnect = async () => {
-    try {
-      if (!window.ethereum) {
-        console.log("MetaMask is not installed.");
-        return;
-      }
-
-      const accounts = await window.ethereum.request({ method: "eth_accounts" });
-
-      if (accounts.length) {
-        setCurrentAccount(accounts[0]);
-        await getAllTransactions();
-        await checkAdminStatus(accounts[0]);
-        await syncLocalWatchlistToDB(accounts[0]);
-      } else {
-        console.log("No accounts found");
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   const checkIfTransactionsExists = async () => {
     try {
       if (!window.ethereum) return false;
@@ -377,82 +362,6 @@ export const TransactionProvider = ({ children }) => {
       console.error("Failed to check transaction existence:", error);
       return false;
     }
-  };
-
-  const connectWallet = async () => {
-    try {
-      if (!window.ethereum) return alert("Please install MetaMask.");
-
-      // 1. Request MetaMask account access
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
-      });
-      const account = accounts[0];
-      const accountLower = account.toLowerCase();
-
-      // 2. Fetch nonce from backend (SIWE)
-      const nonceRes = await axios.get(`/api/auth/nonce?address=${accountLower}`);
-      if (!nonceRes.data.success) throw new Error("Failed to fetch nonce.");
-      const nonce = nonceRes.data.nonce;
-
-      // 3. Build EIP-4361 SIWE message
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const network = await provider.getNetwork();
-      const siweMsg = new SiweMessage({
-        domain: window.location.host,
-        address: account,
-        statement: "Sign in with Ethereum to Crypto Portfolio.",
-        uri: window.location.origin,
-        version: "1",
-        chainId: Number(network.chainId),
-        nonce,
-      });
-      const messageText = siweMsg.prepareMessage();
-
-      // 4. Sign with MetaMask
-      const signer = await provider.getSigner();
-      const sig = await signer.signMessage(messageText);
-      setSignature(sig);
-
-      // 5. Verify on backend and receive JWT
-      const verifyRes = await axios.post("/api/auth/verify", {
-        message: messageText,
-        signature: sig,
-      });
-      if (!verifyRes.data.success) throw new Error("Server rejected signature.");
-      const token = verifyRes.data.token;
-
-      // 6. Store session securely (sessionStorage — cleared on tab/browser close)
-      storeSession(accountLower, token);
-      setAuthToken(token);
-      setCurrentAccount(account);
-      setIsConnectedToSite(true);
-
-      // Keep account in localStorage for reconnect UX (not used for auth)
-      localStorage.setItem("currentAccount", account);
-
-      await checkAdminStatus(account);
-      await syncLocalWatchlistToDB(account);
-    } catch (error) {
-      console.error("Connection failed:", error);
-      if (error.code === 4001 || error.message?.includes("rejected")) {
-        throw new Error("Connection request rejected by user.");
-      }
-      throw error;
-    }
-  };
-
-  const disconnectWallet = () => {
-    clearSession();
-    setAuthToken(null);
-    setIsConnectedToSite(false);
-    setCurrentAccount("");
-    setSignature(null);
-    setIsAdmin(false);
-    setContractOwner("");
-    setFeePercentage("0");
-    localStorage.removeItem("currentAccount");
-    localStorage.removeItem("signature"); // legacy cleanup
   };
 
   const sendTransaction = async () => {
@@ -492,133 +401,40 @@ export const TransactionProvider = ({ children }) => {
     }
   };
 
-
-
-  /** Returns native ETH balance of address as a formatted string (P1-15). */
-  const getEthBalance = async (address) => {
-    try {
-      const provider = getProvider();
-      const balance = await provider.getBalance(address);
-      return ethers.formatEther(balance);
-    } catch (error) {
-      console.error("[getEthBalance] Error:", error);
-      throw error;
-    }
-  };
-
-  /** Returns MTK (ERC-20) token balance of address as a formatted string (P1-15). */
-  const getTokenBalance = async (address) => {
-    try {
-      if (!transactionsAddress || !ethers.isAddress(transactionsAddress)) {
-        return "0";
-      }
-      const contract = getReadContract();
-      const decimals = await contract.decimals();
-      const balance = await contract.balanceOf(address);
-      return ethers.formatUnits(balance, decimals);
-    } catch (error) {
-      console.error("[getTokenBalance] Error:", error);
-      return "0";
-    }
-  };
-
   useEffect(() => {
-    checkIfWalletIsConnect();
     verifyContract();
   }, []);
 
-  // Restore session from sessionStorage on mount
-  useEffect(() => {
-    const restoreSession = async () => {
-      const storedToken = getStoredToken();
-      const storedAddress = getStoredAddress();
-      const storedAccount = localStorage.getItem("currentAccount");
-
-      if (storedToken && storedAddress) {
-        // JWT present — restore auth state without re-signing
-        setCurrentAccount(storedAccount || storedAddress);
-        setAuthToken(storedToken);
-        setIsConnectedToSite(true);
-        await checkAdminStatus(storedAddress);
-      } else if (storedAccount) {
-        // Wallet connected but no JWT (e.g. AUTH_REQUIRED=false era)
-        setCurrentAccount(storedAccount);
-        setIsConnectedToSite(true);
-        await checkAdminStatus(storedAccount);
-      } else {
-        setIsConnectedToSite(false);
-      }
-    };
-
-    restoreSession();
-  }, []);
-
-  // Listen for MetaMask account and chain changes (P1-16)
-  // Both listeners live here — single registration point, correct cleanup on unmount.
-  useEffect(() => {
-    if (!window.ethereum) return;
-
-    const handleAccountsChanged = (accounts) => {
-      // Empty accounts array means the user disconnected in MetaMask
-      clearSession();
-      setAuthToken(null);
-      setIsConnectedToSite(false);
-      setCurrentAccount("");
-      setSignature(null);
-      setIsAdmin(false);
-      setContractOwner("");
-      setFeePercentage("0");
-      localStorage.removeItem("currentAccount");
-      if (accounts.length > 0) {
-        // A new account was selected — clear state and prompt re-authentication
-        console.log("[Auth] Account changed. Please reconnect to authenticate.");
-      }
-    };
-
-    const handleChainChanged = () => {
-      // Chain change may invalidate cached contract state — safest to reload
-      window.location.reload();
-    };
-
-    window.ethereum.on("accountsChanged", handleAccountsChanged);
-    window.ethereum.on("chainChanged", handleChainChanged);
-    return () => {
-      window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
-      window.ethereum.removeListener("chainChanged", handleChainChanged);
-    };
-  }, []);
+  const transactionValue = {
+    transactionCount,
+    transactions,
+    isLoading,
+    sendTransaction,
+    sendBatchTransaction,
+    handleChange,
+    formData,
+    checkAllowance,
+    approveAllowance,
+    getContractInfo,
+    isAdmin,
+    contractOwner,
+    feePercentage,
+    updateFeePercentage,
+    fetchWatchlistDB,
+    addToWatchlistDB,
+    removeFromWatchlistDB,
+  };
 
   return (
-    <TransactionContext.Provider
-      value={{
-        transactionCount,
-        connectWallet,
-        transactions,
-        currentAccount,
-        isLoading,
-        sendTransaction,
-        sendBatchTransaction,
-        handleChange,
-        formData,
-        checkAllowance,
-        approveAllowance,
-        getEthBalance,
-        getTokenBalance,
-        getContractInfo,
-        disconnectWallet,
-        isConnectedToSite,
-        signature,
-        authToken,
-        isAdmin,
-        contractOwner,
-        feePercentage,
-        updateFeePercentage,
-        fetchWatchlistDB,
-        addToWatchlistDB,
-        removeFromWatchlistDB,
-      }}
+    <WalletProvider
+      checkAdminStatus={checkAdminStatus}
+      getAllTransactions={getAllTransactions}
+      syncLocalWatchlistToDB={syncLocalWatchlistToDB}
+      resetAdminState={resetAdminState}
     >
-      {children}
-    </TransactionContext.Provider>
+      <TransactionBridge transactionValue={transactionValue}>
+        {children}
+      </TransactionBridge>
+    </WalletProvider>
   );
 };
