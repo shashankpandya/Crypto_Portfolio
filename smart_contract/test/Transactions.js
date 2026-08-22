@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { anyUint } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 
 describe("Transactions Contract", function () {
   let transactions;
@@ -121,6 +122,168 @@ describe("Transactions Contract", function () {
       await expect(
         transactions.setFeePercentage(1001)
       ).to.be.revertedWith("Fee cannot exceed 10%");
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // P6-05 — coverage extension: fee math boundaries/rounding, the 10% cap
+  // boundary, onlyOwner on every restricted function, revert paths, event
+  // emission shape, and getTransactionCount.
+  // ---------------------------------------------------------------------------
+  describe("Fee math boundaries and rounding", function () {
+    it("charges zero fee and skips the fee transfer when feePercentage is 0", async function () {
+      await transactions.setFeePercentage(0);
+      const amount = ethers.parseEther("100");
+      await transactions.transfer(addr1.address, amount);
+      const ownerBalanceBefore = await transactions.balanceOf(owner.address);
+
+      await transactions.connect(addr1).addToBlockchain(addr2.address, amount, "", "", []);
+
+      expect(await transactions.balanceOf(addr2.address)).to.equal(amount);
+      expect(await transactions.balanceOf(owner.address)).to.equal(ownerBalanceBefore);
+    });
+
+    it("rounds the fee down (integer division) for an amount that doesn't divide evenly", async function () {
+      // 1% of 99 wei = 0.99 -> floors to 0 fee, full amount forwarded.
+      const amount = 99n;
+      await transactions.transfer(addr1.address, amount);
+      const ownerBalanceBefore = await transactions.balanceOf(owner.address);
+
+      await transactions.connect(addr1).addToBlockchain(addr2.address, amount, "", "", []);
+
+      expect(await transactions.balanceOf(addr2.address)).to.equal(amount);
+      expect(await transactions.balanceOf(owner.address)).to.equal(ownerBalanceBefore);
+    });
+
+    it("accepts exactly the 10% cap boundary (1000 basis points)", async function () {
+      await expect(transactions.setFeePercentage(1000)).to.not.be.reverted;
+      expect(await transactions.feePercentage()).to.equal(1000n);
+
+      const amount = ethers.parseEther("100");
+      await transactions.transfer(addr1.address, amount);
+      const ownerBalanceBefore = await transactions.balanceOf(owner.address);
+
+      await transactions.connect(addr1).addToBlockchain(addr2.address, amount, "", "", []);
+
+      const expectedFee = (amount * 1000n) / 10000n;
+      expect(await transactions.balanceOf(owner.address)).to.equal(ownerBalanceBefore + expectedFee);
+      expect(await transactions.balanceOf(addr2.address)).to.equal(amount - expectedFee);
+    });
+  });
+
+  describe("Ownership enforcement", function () {
+    it("onlyOwner: setFeePercentage reverts for a non-owner caller", async function () {
+      await expect(transactions.connect(addr1).setFeePercentage(200)).to.be.reverted;
+    });
+
+    it("onlyOwner: setFeePercentage succeeds for the owner", async function () {
+      await expect(transactions.setFeePercentage(200)).to.not.be.reverted;
+    });
+  });
+
+  describe("Revert paths", function () {
+    it("reverts addToBlockchain when amount is 0", async function () {
+      await expect(
+        transactions.addToBlockchain(addr1.address, 0, "", "", [])
+      ).to.be.revertedWith("Amount must be greater than 0");
+    });
+
+    it("reverts addToBlockchain when the sender's balance is insufficient", async function () {
+      const amount = ethers.parseEther("1");
+      await expect(
+        transactions.connect(addr1).addToBlockchain(addr2.address, amount, "", "", [])
+      ).to.be.revertedWith("Insufficient balance");
+    });
+
+    it("reverts addToBlockchainBatch when receivers/amounts array lengths mismatch", async function () {
+      await expect(
+        transactions.addToBlockchainBatch(
+          [addr1.address, addr2.address],
+          [ethers.parseEther("1")],
+          "",
+          "",
+          []
+        )
+      ).to.be.revertedWith("Arrays length mismatch");
+    });
+
+    it("reverts the whole batch if any single leg has an insufficient balance (no partial application)", async function () {
+      const amount = ethers.parseEther("50");
+      await transactions.transfer(addr1.address, amount);
+
+      await expect(
+        transactions.connect(addr1).addToBlockchainBatch(
+          [addr2.address, owner.address],
+          [amount, amount], // second leg exceeds addr1's remaining balance
+          "",
+          "",
+          []
+        )
+      ).to.be.revertedWith("Insufficient balance");
+
+      // First leg must not have applied either — balance unchanged.
+      expect(await transactions.balanceOf(addr1.address)).to.equal(amount);
+    });
+  });
+
+  describe("Event emission shape", function () {
+    it("emits TransactionAdded with the correct fields on a single transfer", async function () {
+      const amount = ethers.parseEther("10");
+      const message = "hi";
+      const category = "cat";
+      const tags = ["a", "b"];
+      await transactions.transfer(addr1.address, amount);
+
+      await expect(
+        transactions.connect(addr1).addToBlockchain(addr2.address, amount, message, category, tags)
+      )
+        .to.emit(transactions, "TransactionAdded")
+        .withArgs(
+          addr1.address,
+          addr2.address,
+          amount,
+          message,
+          category,
+          tags,
+          anyUint
+        );
+    });
+
+    it("emits one TransactionAdded event per leg of a batch transfer", async function () {
+      const amount1 = ethers.parseEther("5");
+      const amount2 = ethers.parseEther("7");
+      await transactions.transfer(addr1.address, amount1 + amount2);
+
+      const tx = transactions
+        .connect(addr1)
+        .addToBlockchainBatch([owner.address, addr2.address], [amount1, amount2], "m", "c", []);
+
+      await expect(tx)
+        .to.emit(transactions, "TransactionAdded")
+        .withArgs(addr1.address, owner.address, amount1, "m", "c", [], anyUint)
+        .and.to.emit(transactions, "TransactionAdded")
+        .withArgs(addr1.address, addr2.address, amount2, "m", "c", [], anyUint);
+    });
+  });
+
+  describe("getTransactionCount", function () {
+    it("returns 0 before any transaction and increments per recorded transfer (including batch legs)", async function () {
+      expect(await transactions.getTransactionCount()).to.equal(0n);
+
+      const amount = ethers.parseEther("10");
+      await transactions.transfer(addr1.address, amount);
+      await transactions.connect(addr1).addToBlockchain(addr2.address, amount, "", "", []);
+      expect(await transactions.getTransactionCount()).to.equal(1n);
+
+      await transactions.transfer(addr1.address, ethers.parseEther("2"));
+      await transactions.connect(addr1).addToBlockchainBatch(
+        [owner.address, addr2.address],
+        [ethers.parseEther("1"), ethers.parseEther("1")],
+        "",
+        "",
+        []
+      );
+      expect(await transactions.getTransactionCount()).to.equal(3n);
     });
   });
 });
