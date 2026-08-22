@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useWallet } from "../hooks/useWallet";
-import { useWatchlist } from "../hooks/useWatchlist";
-import { searchCoins } from "../api";
-import { debounce } from "../utils/debounce";
+import { useWallet } from "../../hooks/useWallet";
+import { useWatchlist } from "../../hooks/useWatchlist";
+import { searchCoins } from "../../api";
+import { debounce } from "../../utils/debounce";
 
 const generateSparklinePath = (id, change24h) => {
   const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);

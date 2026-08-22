@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getCoinDetails, getCoinHistory } from "../api";
+import { getCoinDetails, getCoinHistory } from "../../api";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,8 +12,8 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { useWallet } from "../hooks/useWallet";
-import { useWatchlist } from "../hooks/useWatchlist";
+import { useWallet } from "../../hooks/useWallet";
+import { useWatchlist } from "../../hooks/useWatchlist";
 
 ChartJS.register(
   CategoryScale,

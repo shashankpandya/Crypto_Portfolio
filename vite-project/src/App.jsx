@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import axios from "axios";
-import Navbar from "./components/Homepage/Navbar";
+import Navbar from "./features/home/Navbar";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { WalletProvider, getStoredToken } from "./context/WalletContext";
 import { useWallet } from "./hooks/useWallet";
@@ -13,12 +13,12 @@ import "./App.css";
 import { fetchCoins } from "./api";
 
 // Lazy load components directly from their source directories to avoid eager bundling via index.js
-const Home = React.lazy(() => import("./components/Homepage/Home"));
-const Watchlist = React.lazy(() => import("./components/Watchlist"));
-const TokenTransfer = React.lazy(() => import("./components/TokenTransfer"));
-const AllowanceManager = React.lazy(() => import("./components/AllowanceManager"));
-const CoinDetails = React.lazy(() => import("./components/CoinDetails"));
-const AdminPanel = React.lazy(() => import("./components/AdminPanel"));
+const Home = React.lazy(() => import("./features/home/Home"));
+const Watchlist = React.lazy(() => import("./features/market/Watchlist"));
+const TokenTransfer = React.lazy(() => import("./features/transfer/TokenTransfer"));
+const AllowanceManager = React.lazy(() => import("./features/transfer/AllowanceManager"));
+const CoinDetails = React.lazy(() => import("./features/market/CoinDetails"));
+const AdminPanel = React.lazy(() => import("./features/admin/AdminPanel"));
 
 const SuspenseFallback = () => (
   <div className="flex flex-col items-center justify-center py-20">

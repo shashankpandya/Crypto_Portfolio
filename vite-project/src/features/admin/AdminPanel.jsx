@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useWallet } from "../hooks/useWallet";
-import { useContract } from "../hooks/useContract";
+import { useWallet } from "../../hooks/useWallet";
+import { useContract } from "../../hooks/useContract";
 
 function AdminPanel() {
   const { currentAccount } = useWallet();

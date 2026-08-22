@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useWallet } from "../hooks/useWallet";
+import { useWallet } from "../../hooks/useWallet";
 import { ethers } from "ethers";
-import { checkAllowance, approveAllowance } from "../utils/constant";
+import { checkAllowance, approveAllowance } from "../../utils/constant";
 
 const isValidAddress = (addr) => {
   return /^0x[a-fA-F0-9]{40}$/.test(addr);

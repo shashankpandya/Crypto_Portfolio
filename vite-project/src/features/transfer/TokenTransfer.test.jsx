@@ -2,8 +2,8 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import TokenTransfer from "./TokenTransfer";
-import { WalletContext } from "../context/WalletContext";
-import { ContractContext } from "../context/ContractContext";
+import { WalletContext } from "../../context/WalletContext";
+import { ContractContext } from "../../context/ContractContext";
 
 const mockWalletContext = {
   currentAccount: "0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc",

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useWallet } from "../../hooks/useWallet";
 import { ethers } from "ethers";
-import TopCoins from "../TopCoins";
-import ErrorBoundary from "../ErrorBoundary";
+import TopCoins from "../market/TopCoins";
+import ErrorBoundary from "../../components/ErrorBoundary";
 import { gsap } from "gsap";
 
 const getNetworkName = (chainIdHex) => {
