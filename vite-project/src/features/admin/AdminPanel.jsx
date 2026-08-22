@@ -77,7 +77,7 @@ function AdminPanel() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m0-8V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h3 className="text-base font-bold text-white mb-2">Access Denied</h3>
+          <h1 className="text-base font-bold text-white mb-2">Access Denied</h1>
           <p className="text-muted text-xs leading-relaxed mb-4">
             Only the contract owner can access this administration panel.
           </p>
@@ -107,9 +107,9 @@ function AdminPanel() {
         {/* Contract Metadata Card */}
         <div className="bg-surface-raised border border-white/5 p-5 rounded-lg shadow-lg flex flex-col justify-between">
           <div>
-            <h3 className="text-sm font-bold mb-4 text-white border-b border-white/5 pb-2">
+            <h2 className="text-sm font-bold mb-4 text-white border-b border-white/5 pb-2">
               Contract Details
-            </h3>
+            </h2>
             {contractInfoLoading ? (
               <div className="space-y-3.5" role="status" aria-label="Loading contract details">
                 <div className="h-8 animate-pulse rounded bg-white/[0.06]" />
@@ -153,9 +153,9 @@ function AdminPanel() {
         {/* Action Card: Update Fee */}
         <div className="bg-surface-raised border border-white/5 p-5 rounded-lg shadow-lg flex flex-col justify-between">
           <div>
-            <h3 className="text-sm font-bold mb-4 text-white border-b border-white/5 pb-2">
+            <h2 className="text-sm font-bold mb-4 text-white border-b border-white/5 pb-2">
               Fee Management
-            </h3>
+            </h2>
             <div className="mb-4 p-3 bg-base rounded border border-white/5 text-xs">
               <p className="text-muted text-[10px] font-semibold uppercase">Current Contract Fee</p>
               <p className="text-2xl font-bold text-cobalt font-mono mt-0.5">{feePercentage}%</p>

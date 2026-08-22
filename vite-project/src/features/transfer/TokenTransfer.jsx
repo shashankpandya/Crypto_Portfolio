@@ -247,7 +247,10 @@ function TokenTransfer() {
                   Recipient Address
                 </label>
                 {singleAddressValid !== null && (
-                  <span className={`text-[10px] font-bold ${singleAddressValid ? "text-positive" : "text-negative"}`}>
+                  <span
+                    id="addressToInput-validity"
+                    className={`text-[10px] font-bold ${singleAddressValid ? "text-positive" : "text-negative"}`}
+                  >
                     {singleAddressValid ? "✓ Valid Address" : "✗ Invalid Address"}
                   </span>
                 )}
@@ -260,6 +263,8 @@ function TokenTransfer() {
                 value={formData.addressTo || ""}
                 onChange={(e) => handleChange(e, "addressTo")}
                 onBlur={(e) => checkSingleAddress(e.target.value)}
+                aria-invalid={singleAddressValid === false ? "true" : undefined}
+                aria-describedby={singleAddressValid !== null ? "addressToInput-validity" : undefined}
                 className={`w-full h-10 px-3 text-sm rounded bg-surface border border-white/8 text-white placeholder:text-slate-600 font-mono transition-colors duration-150 focus:border-white/20 focus:ring-0 focus:outline-none ${
                   singleAddressValid === true ? "border-positive" : singleAddressValid === false ? "border-negative" : ""
                 }`}

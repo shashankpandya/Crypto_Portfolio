@@ -314,6 +314,7 @@ const Watchlist = ({ coins }) => {
                           onClick={() => memoizedRemoveFromWatchlist(coinId)}
                           className="text-negative hover:text-white p-1 rounded font-bold text-sm leading-none transition duration-150 inline-flex items-center justify-center w-6 h-6 hover:bg-negative/15"
                           title={`Remove ${coinId}`}
+                          aria-label={`Remove ${coinId} from watchlist`}
                         >
                           &times;
                         </button>
@@ -378,6 +379,7 @@ const Watchlist = ({ coins }) => {
                         onClick={() => memoizedRemoveFromWatchlist(coinId)}
                         className="text-negative hover:text-white p-1 rounded font-bold text-sm leading-none transition duration-150 inline-flex items-center justify-center w-6 h-6 hover:bg-negative/15"
                         title={`Remove ${coin.name}`}
+                        aria-label={`Remove ${coin.name} from watchlist`}
                       >
                         &times;
                       </button>

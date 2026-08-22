@@ -177,9 +177,9 @@ const CoinDetails = () => {
               />
             )}
             <div className="leading-tight">
-              <h2 className="text-2xl font-extrabold tracking-tight text-white">
+              <h1 className="text-2xl font-extrabold tracking-tight text-white">
                 {coinDetails.name}
-              </h2>
+              </h1>
               <span className="text-[10px] text-muted font-mono font-bold uppercase">
                 {coinDetails.symbol?.toUpperCase() ?? "N/A"}
               </span>
@@ -232,9 +232,9 @@ const CoinDetails = () => {
         {/* Chart Area */}
         <div className="bg-surface-raised p-5 rounded-lg border border-white/5">
           <div className="flex justify-between items-center gap-4 mb-4">
-            <h3 className="text-sm font-bold text-white">
+            <h2 className="text-sm font-bold text-white">
               Historical Price
-            </h3>
+            </h2>
             <div className="relative">
               <select
                 value={selectedRange.days}

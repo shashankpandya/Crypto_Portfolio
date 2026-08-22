@@ -159,7 +159,10 @@ function AllowanceManager() {
                 Spender Wallet Address
               </label>
               {addressValid !== null && (
-                <span className={`text-[10px] font-bold ${addressValid ? "text-positive" : "text-negative"}`}>
+                <span
+                  id="spenderAddress-validity"
+                  className={`text-[10px] font-bold ${addressValid ? "text-positive" : "text-negative"}`}
+                >
                   {addressValid ? "✓ Valid Address" : "✗ Invalid Address"}
                 </span>
               )}
@@ -171,6 +174,8 @@ function AllowanceManager() {
               value={spender}
               onChange={(e) => setSpender(e.target.value)}
               onBlur={handleAddressBlur}
+              aria-invalid={addressValid === false ? "true" : undefined}
+              aria-describedby={addressValid !== null ? "spenderAddress-validity" : undefined}
               className={`w-full h-10 text-xs font-mono ${
                 addressValid === true ? "!border-positive" : addressValid === false ? "!border-negative" : ""
               }`}

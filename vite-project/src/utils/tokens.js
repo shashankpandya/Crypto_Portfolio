@@ -11,7 +11,7 @@ export const COLORS = {
   surface: "#0b0f19",
   surfaceRaised: "#0c1118",
   base: "#050811",
-  muted: "#71717a",
+  muted: "#7d7d87",
   positive: "#10B981",
   negative: "#EF4444",
 };

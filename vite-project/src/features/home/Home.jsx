@@ -163,6 +163,7 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
                       onClick={copyToClipboard}
                       className="text-muted hover:text-white transition-colors"
                       title="Copy Address"
+                      aria-label={copied ? "Address copied" : "Copy wallet address"}
                     >
                       {copied ? (
                         <span className="text-[10px] text-positive font-bold">✓</span>
