@@ -1,0 +1,18 @@
+{
+  "url": "http://localhost:4173",
+  "numberOfRuns": 1,
+  "budgets": {
+    "performance": 0.3,
+    "accessibility": 0.9,
+    "best-practices": 0.85,
+    "seo": 0.85
+  },
+  "measuredBaseline": {
+    "date": "2026-08-23",
+    "performance": 0.38,
+    "accessibility": 0.94,
+    "best-practices": 0.92,
+    "seo": 0.92,
+    "note": "Measured against the P6-05..P6-09 build (vite-project/dist) served via `vite preview` on this dev machine, headless Chrome, single run, no network throttling emulation beyond Lighthouse's default. Performance is scored low mainly by bundle size (see check-bundle-size.cjs budgets — the 532KB vendor + 276KB ethers chunks dominate). Budgets below are set at/near this measured baseline, not an aspirational target, so CI fails only on a real regression from where the app already is."
+  }
+}

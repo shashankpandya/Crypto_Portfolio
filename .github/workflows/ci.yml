@@ -54,3 +54,14 @@ jobs:
       - name: Build frontend
         run: npm run build
         working-directory: vite-project
+
+      - name: Check bundle size budget
+        run: node scripts/check-bundle-size.cjs
+        working-directory: vite-project
+
+      - name: Check Lighthouse budget
+        run: |
+          npx vite preview --port 4173 &
+          for i in $(seq 1 30); do curl -sf http://localhost:4173 > /dev/null && break; sleep 1; done
+          node scripts/check-lighthouse.cjs
+        working-directory: vite-project
