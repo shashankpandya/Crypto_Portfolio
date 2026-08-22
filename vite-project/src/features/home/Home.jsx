@@ -6,7 +6,7 @@ import TopCoins from "../market/TopCoins";
 import ErrorBoundary from "../../components/ErrorBoundary";
 import Skeleton from "../../components/ui/Skeleton";
 import Button from "../../components/ui/Button";
-import { COLORS } from "../../utils/tokens";
+import { COLORS, MOTION, prefersReducedMotion } from "../../utils/tokens";
 import { gsap } from "gsap";
 
 const getNetworkName = (chainIdHex) => {
@@ -82,10 +82,14 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
   };
 
   useEffect(() => {
+    if (prefersReducedMotion()) {
+      gsap.set(".gsap-fade-in", { opacity: 1, y: 0 });
+      return;
+    }
     gsap.fromTo(
       ".gsap-fade-in",
       { opacity: 0, y: 15 },
-      { opacity: 1, y: 0, duration: 0.6, stagger: 0.08, ease: "power1.out" }
+      { opacity: 1, y: 0, duration: MOTION.durationSlow, stagger: MOTION.staggerLoose, ease: MOTION.ease }
     );
   }, []);
 

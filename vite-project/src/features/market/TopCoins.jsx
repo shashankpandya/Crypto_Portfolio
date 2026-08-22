@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { gsap } from "gsap";
-import { COLORS } from "../../utils/tokens";
+import { COLORS, MOTION, prefersReducedMotion } from "../../utils/tokens";
 
 const renderSparkline = (sparklineData, isPositive) => {
   const prices = sparklineData?.price;
@@ -46,12 +46,21 @@ const TopCoins = ({ coins }) => {
     (coin.symbol || "").toLowerCase().includes(filterText.toLowerCase())
   );
 
+  // Debounced so typing in the search box doesn't re-run the stagger on
+  // every keystroke (P4-13); also skipped entirely under reduced motion.
   useEffect(() => {
-    gsap.fromTo(
-      ".coin-row",
-      { opacity: 0, y: 10 },
-      { opacity: 1, y: 0, duration: 0.3, stagger: 0.015, ease: "power1.out" }
-    );
+    if (prefersReducedMotion()) {
+      gsap.set(".coin-row", { opacity: 1, y: 0 });
+      return;
+    }
+    const id = setTimeout(() => {
+      gsap.fromTo(
+        ".coin-row",
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: MOTION.durationBase, stagger: MOTION.staggerTight, ease: MOTION.ease }
+      );
+    }, 200);
+    return () => clearTimeout(id);
   }, [filterText, coins]);
 
   const getRankBadge = (rank) => {

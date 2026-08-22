@@ -98,3 +98,18 @@ select:focus-visible {
 .animate-fade-in-300 {
   animation: fadeIn 300ms ease-out forwards;
 }
+
+/* Respect prefers-reduced-motion: let every animation/transition jump straight
+   to its end state instead of stripping it (which would leave elements whose
+   keyframes start hidden — .animate-sparkline, .animate-fade-in-300 — stuck
+   invisible). GSAP timelines are guarded in JS (see Home.jsx, TopCoins.jsx). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

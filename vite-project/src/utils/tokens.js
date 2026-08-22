@@ -15,3 +15,21 @@ export const COLORS = {
   positive: "#10B981",
   negative: "#EF4444",
 };
+
+/**
+ * Motion durations/easing (P4-13) — GSAP timelines take numeric seconds and
+ * easing name strings, which CSS's tailwind.config.js transitionDuration
+ * tokens can't express. Shared here so components don't hardcode their own.
+ */
+export const MOTION = {
+  durationFast: 0.15,
+  durationBase: 0.3,
+  durationSlow: 0.6,
+  staggerTight: 0.015,
+  staggerLoose: 0.08,
+  ease: "power1.out",
+};
+
+export const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
