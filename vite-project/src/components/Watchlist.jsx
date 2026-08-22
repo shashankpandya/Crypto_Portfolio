@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { TransactionContext } from "../context/TransactionContext";
+import { useWatchlist } from "../hooks/useWatchlist";
 import { searchCoins } from "../api";
 import { debounce } from "../utils/debounce";
 
@@ -29,7 +30,9 @@ const TelescopeIcon = () => (
 const Watchlist = ({ coins }) => {
   const { currentAccount, fetchWatchlistDB, addToWatchlistDB, removeFromWatchlistDB } =
     useContext(TransactionContext);
-  
+  const { getAnonymousWatchlist, addToAnonymousWatchlist, removeFromAnonymousWatchlist } =
+    useWatchlist();
+
   const [watchlist, setWatchlist] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -44,14 +47,12 @@ const Watchlist = ({ coins }) => {
         const dbCoins = await fetchWatchlistDB(currentAccount);
         setWatchlist(dbCoins);
       } else {
-        const storedWatchlist =
-          JSON.parse(localStorage.getItem("watchlist_anonymous")) || [];
-        setWatchlist(storedWatchlist);
+        setWatchlist(getAnonymousWatchlist());
       }
       setIsLoading(false);
     };
     loadWatchlist();
-  }, [currentAccount, fetchWatchlistDB]);
+  }, [currentAccount, fetchWatchlistDB, getAnonymousWatchlist]);
 
   const handleSearch = useCallback(
     async (term) => {
@@ -91,21 +92,14 @@ const Watchlist = ({ coins }) => {
         setWatchlist(updatedWatchlist);
         if (currentAccount) {
           await addToWatchlistDB(currentAccount, coin.id);
-          localStorage.setItem(
-            `watchlist_${currentAccount.toLowerCase()}`,
-            JSON.stringify(updatedWatchlist)
-          );
         } else {
-          localStorage.setItem(
-            "watchlist_anonymous",
-            JSON.stringify(updatedWatchlist)
-          );
+          addToAnonymousWatchlist(coin.id);
         }
       }
       setSearchTerm("");
       setSearchResults([]);
     },
-    [watchlist, currentAccount, addToWatchlistDB]
+    [watchlist, currentAccount, addToWatchlistDB, addToAnonymousWatchlist]
   );
 
   const memoizedRemoveFromWatchlist = useCallback(
@@ -114,18 +108,11 @@ const Watchlist = ({ coins }) => {
       setWatchlist(updatedWatchlist);
       if (currentAccount) {
         await removeFromWatchlistDB(currentAccount, coinId);
-        localStorage.setItem(
-          `watchlist_${currentAccount.toLowerCase()}`,
-          JSON.stringify(updatedWatchlist)
-        );
       } else {
-        localStorage.setItem(
-          "watchlist_anonymous",
-          JSON.stringify(updatedWatchlist)
-        );
+        removeFromAnonymousWatchlist(coinId);
       }
     },
-    [watchlist, currentAccount, removeFromWatchlistDB]
+    [watchlist, currentAccount, removeFromWatchlistDB, removeFromAnonymousWatchlist]
   );
 
   if (isLoading) {

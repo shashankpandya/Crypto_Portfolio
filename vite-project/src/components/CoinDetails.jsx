@@ -13,6 +13,7 @@ import {
   Legend,
 } from "chart.js";
 import { TransactionContext } from "../context/TransactionContext";
+import { useWatchlist } from "../hooks/useWatchlist";
 
 ChartJS.register(
   CategoryScale,
@@ -36,6 +37,8 @@ const CoinDetails = () => {
   const { id } = useParams();
   const { currentAccount, fetchWatchlistDB, addToWatchlistDB, removeFromWatchlistDB } =
     useContext(TransactionContext);
+  const { getAnonymousWatchlist, addToAnonymousWatchlist, removeFromAnonymousWatchlist } =
+    useWatchlist();
   const [coinDetails, setCoinDetails] = useState(null);
   const [coinHistory, setCoinHistory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,13 +52,12 @@ const CoinDetails = () => {
         const dbCoins = await fetchWatchlistDB(currentAccount);
         setIsInWatchlist(dbCoins.includes(id));
       } else {
-        const watchlist =
-          JSON.parse(localStorage.getItem("watchlist_anonymous")) || [];
+        const watchlist = getAnonymousWatchlist();
         setIsInWatchlist(watchlist.includes(id));
       }
     };
     checkWatchlist();
-  }, [id, currentAccount, fetchWatchlistDB]);
+  }, [id, currentAccount, fetchWatchlistDB, getAnonymousWatchlist]);
 
   useEffect(() => {
     async function fetchData() {
@@ -82,45 +84,15 @@ const CoinDetails = () => {
     if (isInWatchlist) {
       if (currentAccount) {
         await removeFromWatchlistDB(currentAccount, id);
-        const watchlist =
-          JSON.parse(localStorage.getItem(`watchlist_${currentAccount.toLowerCase()}`)) || [];
-        const updatedWatchlist = watchlist.filter((coinId) => coinId !== id);
-        localStorage.setItem(
-          `watchlist_${currentAccount.toLowerCase()}`,
-          JSON.stringify(updatedWatchlist)
-        );
       } else {
-        const watchlist =
-          JSON.parse(localStorage.getItem("watchlist_anonymous")) || [];
-        const updatedWatchlist = watchlist.filter((coinId) => coinId !== id);
-        localStorage.setItem(
-          "watchlist_anonymous",
-          JSON.stringify(updatedWatchlist)
-        );
+        removeFromAnonymousWatchlist(id);
       }
       setIsInWatchlist(false);
     } else {
       if (currentAccount) {
         await addToWatchlistDB(currentAccount, id);
-        const watchlist =
-          JSON.parse(localStorage.getItem(`watchlist_${currentAccount.toLowerCase()}`)) || [];
-        if (!watchlist.includes(id)) {
-          watchlist.push(id);
-          localStorage.setItem(
-            `watchlist_${currentAccount.toLowerCase()}`,
-            JSON.stringify(watchlist)
-          );
-        }
       } else {
-        const watchlist =
-          JSON.parse(localStorage.getItem("watchlist_anonymous")) || [];
-        if (!watchlist.includes(id)) {
-          watchlist.push(id);
-          localStorage.setItem(
-            "watchlist_anonymous",
-            JSON.stringify(watchlist)
-          );
-        }
+        addToAnonymousWatchlist(id);
       }
       setIsInWatchlist(true);
     }

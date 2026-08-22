@@ -17,6 +17,8 @@ import {
 } from "../services/contractService";
 import { WalletProvider, getStoredToken } from "./WalletContext";
 import { useWallet } from "../hooks/useWallet";
+import { WatchlistProvider } from "./WatchlistContext";
+import { useWatchlist } from "../hooks/useWatchlist";
 
 // Make sure these are correctly defined in your constants file
 // console.log("Contract Address:", contractAddress);
@@ -102,6 +104,7 @@ const getContractInfo = async () => {
  */
 const TransactionBridge = ({ children, transactionValue }) => {
   const wallet = useWallet();
+  const watchlist = useWatchlist();
 
   // Axios interceptor — inject Authorization header on all watchlist requests.
   // Use a ref so we only register once and can clean up.
@@ -138,10 +141,43 @@ const TransactionBridge = ({ children, transactionValue }) => {
         authToken: wallet.authToken,
         getEthBalance: wallet.getEthBalance,
         getTokenBalance: wallet.getTokenBalance,
+        fetchWatchlistDB: watchlist.fetchWatchlistDB,
+        addToWatchlistDB: watchlist.addToWatchlistDB,
+        removeFromWatchlistDB: watchlist.removeFromWatchlistDB,
       }}
     >
       {children}
     </TransactionContext.Provider>
+  );
+};
+
+/**
+ * TransactionComposition — bridges WatchlistContext's syncLocalWatchlistToDB
+ * into WalletProvider (which must call it at the same connect/restore points
+ * it always has), then renders TransactionBridge to build the final merged
+ * value. Keeps WatchlistProvider/WalletProvider/TransactionBridge composed in
+ * the same nesting order the P2-10 split established.
+ */
+const TransactionComposition = ({
+  children,
+  transactionValue,
+  checkAdminStatus,
+  getAllTransactions,
+  resetAdminState,
+}) => {
+  const watchlist = useWatchlist();
+
+  return (
+    <WalletProvider
+      checkAdminStatus={checkAdminStatus}
+      getAllTransactions={getAllTransactions}
+      syncLocalWatchlistToDB={watchlist.syncLocalWatchlistToDB}
+      resetAdminState={resetAdminState}
+    >
+      <TransactionBridge transactionValue={transactionValue}>
+        {children}
+      </TransactionBridge>
+    </WalletProvider>
   );
 };
 
@@ -208,37 +244,6 @@ export const TransactionProvider = ({ children }) => {
     }
   }, []);
 
-  const fetchWatchlistDB = React.useCallback(async (address) => {
-    try {
-      const addrLower = address.toLowerCase();
-      const res = await axios.get(`/api/watchlist/${addrLower}`);
-      if (res.data.success) {
-        return res.data.data.coins.map(c => c.coinId);
-      }
-    } catch (err) {
-      console.error("Failed to fetch watchlist from DB:", err);
-    }
-    return [];
-  }, []);
-
-  const addToWatchlistDB = React.useCallback(async (address, coinId) => {
-    try {
-      const addrLower = address.toLowerCase();
-      await axios.post(`/api/watchlist/${addrLower}/coins`, { coinId });
-    } catch (err) {
-      console.error("Failed to add to watchlist DB:", err);
-    }
-  }, []);
-
-  const removeFromWatchlistDB = React.useCallback(async (address, coinId) => {
-    try {
-      const addrLower = address.toLowerCase();
-      await axios.delete(`/api/watchlist/${addrLower}/coins/${coinId}`);
-    } catch (err) {
-      console.error("Failed to remove from watchlist DB:", err);
-    }
-  }, []);
-
   const sendBatchTransaction = React.useCallback(async (receivers, amounts, message = "") => {
     try {
       if (window.ethereum) {
@@ -268,49 +273,6 @@ export const TransactionProvider = ({ children }) => {
       throw error;
     }
   }, []);
-
-  const syncLocalWatchlistToDB = async (address) => {
-    try {
-      const addrLower = address.toLowerCase();
-      const userWatchlistKey = `watchlist_${addrLower}`;
-      const mixedCaseKey = `watchlist_${address}`;
-
-      let localWatchlist = JSON.parse(localStorage.getItem(userWatchlistKey)) || [];
-
-      // Migrate from mixed-case key if it exists and is different
-      if (mixedCaseKey !== userWatchlistKey) {
-        const mixedWatchlist = JSON.parse(localStorage.getItem(mixedCaseKey));
-        if (mixedWatchlist) {
-          localWatchlist = [...new Set([...localWatchlist, ...mixedWatchlist])];
-          localStorage.removeItem(mixedCaseKey);
-        }
-      }
-
-      // Merge anonymous watchlist if present
-      const anonWatchlist = JSON.parse(localStorage.getItem("watchlist_anonymous")) || [];
-      if (anonWatchlist.length > 0) {
-        localWatchlist = [...new Set([...localWatchlist, ...anonWatchlist])];
-        localStorage.removeItem("watchlist_anonymous");
-      }
-
-      // Save merged list back to lowercase user key
-      localStorage.setItem(userWatchlistKey, JSON.stringify(localWatchlist));
-
-      if (localWatchlist.length === 0) return;
-
-      const res = await axios.get(`/api/watchlist/${addrLower}`);
-      const dbCoins = res.data.success ? res.data.data.coins.map(c => c.coinId) : [];
-
-      for (const coinId of localWatchlist) {
-        if (!dbCoins.includes(coinId)) {
-          await axios.post(`/api/watchlist/${addrLower}/coins`, { coinId });
-        }
-      }
-      console.log("[Watchlist] Local watchlist synced to database.");
-    } catch (err) {
-      console.error("Error syncing watchlist to DB:", err);
-    }
-  };
 
   const getAllTransactions = async () => {
     try {
@@ -420,21 +382,18 @@ export const TransactionProvider = ({ children }) => {
     contractOwner,
     feePercentage,
     updateFeePercentage,
-    fetchWatchlistDB,
-    addToWatchlistDB,
-    removeFromWatchlistDB,
   };
 
   return (
-    <WalletProvider
-      checkAdminStatus={checkAdminStatus}
-      getAllTransactions={getAllTransactions}
-      syncLocalWatchlistToDB={syncLocalWatchlistToDB}
-      resetAdminState={resetAdminState}
-    >
-      <TransactionBridge transactionValue={transactionValue}>
+    <WatchlistProvider>
+      <TransactionComposition
+        checkAdminStatus={checkAdminStatus}
+        getAllTransactions={getAllTransactions}
+        resetAdminState={resetAdminState}
+        transactionValue={transactionValue}
+      >
         {children}
-      </TransactionBridge>
-    </WalletProvider>
+      </TransactionComposition>
+    </WatchlistProvider>
   );
 };
