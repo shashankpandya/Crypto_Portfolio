@@ -1,10 +1,11 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { HiMenuAlt4 } from "react-icons/hi";
 import { AiOutlineClose } from "react-icons/ai";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 
-import { TransactionContext } from "../../context/TransactionContext";
+import { useWallet } from "../../hooks/useWallet";
+import { useContract } from "../../hooks/useContract";
 
 const NavBarItem = ({ title, path, active, closeMenu, classprops }) => (
   <li className={`mx-4 relative group ${classprops || ""}`}>
@@ -57,8 +58,8 @@ const CPLogo = () => (
 
 const Navbar = () => {
   const [toggleMenu, setToggleMenu] = useState(false);
-  const { connectWallet, currentAccount, disconnectWallet, isConnectedToSite, isAdmin } =
-    useContext(TransactionContext);
+  const { connectWallet, currentAccount, disconnectWallet, isConnectedToSite } = useWallet();
+  const { isAdmin } = useContract();
   const navigate = useNavigate();
   const location = useLocation();
 

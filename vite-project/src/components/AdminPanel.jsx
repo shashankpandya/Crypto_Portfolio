@@ -1,9 +1,10 @@
-import React, { useState, useContext, useEffect } from "react";
-import { TransactionContext } from "../context/TransactionContext";
+import React, { useState, useEffect } from "react";
+import { useWallet } from "../hooks/useWallet";
+import { useContract } from "../hooks/useContract";
 
 function AdminPanel() {
-  const { currentAccount, feePercentage, updateFeePercentage, contractOwner, getContractInfo } =
-    useContext(TransactionContext);
+  const { currentAccount } = useWallet();
+  const { feePercentage, updateFeePercentage, contractOwner, getContractInfo } = useContract();
 
   const [newFee, setNewFee] = useState(0);
   const [contractInfo, setContractInfo] = useState(null);

@@ -2,23 +2,32 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import TokenTransfer from "./TokenTransfer";
-import { TransactionContext } from "../context/TransactionContext";
+import { WalletContext } from "../context/WalletContext";
+import { ContractContext } from "../context/ContractContext";
 
-const mockContext = {
+const mockWalletContext = {
   currentAccount: "0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc",
+};
+
+const mockContractContext = {
   formData: { addressTo: "", amount: "", message: "" },
   handleChange: vi.fn(),
   sendTransaction: vi.fn(),
   sendBatchTransaction: vi.fn(),
 };
 
+const renderWithProviders = () =>
+  render(
+    <WalletContext.Provider value={mockWalletContext}>
+      <ContractContext.Provider value={mockContractContext}>
+        <TokenTransfer />
+      </ContractContext.Provider>
+    </WalletContext.Provider>
+  );
+
 describe("TokenTransfer (P1-13 — No Hardcoded USD/Gas)", () => {
   it("renders recipient and amount inputs without fabricated USD rate or static gas text", () => {
-    render(
-      <TransactionContext.Provider value={mockContext}>
-        <TokenTransfer />
-      </TransactionContext.Provider>
-    );
+    renderWithProviders();
 
     expect(screen.getByLabelText(/Recipient Address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Amount \(MTK\)/i)).toBeInTheDocument();
@@ -30,11 +39,7 @@ describe("TokenTransfer (P1-13 — No Hardcoded USD/Gas)", () => {
   });
 
   it("hides network fee estimate row when input values are incomplete or estimate is unavailable", () => {
-    render(
-      <TransactionContext.Provider value={mockContext}>
-        <TokenTransfer />
-      </TransactionContext.Provider>
-    );
+    renderWithProviders();
 
     expect(screen.queryByText(/Network Fee \(Estimate\):/i)).toBeNull();
   });

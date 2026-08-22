@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { getCoinDetails, getCoinHistory } from "../api";
 import { Line } from "react-chartjs-2";
@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { TransactionContext } from "../context/TransactionContext";
+import { useWallet } from "../hooks/useWallet";
 import { useWatchlist } from "../hooks/useWatchlist";
 
 ChartJS.register(
@@ -35,10 +35,15 @@ const timeRanges = [
 
 const CoinDetails = () => {
   const { id } = useParams();
-  const { currentAccount, fetchWatchlistDB, addToWatchlistDB, removeFromWatchlistDB } =
-    useContext(TransactionContext);
-  const { getAnonymousWatchlist, addToAnonymousWatchlist, removeFromAnonymousWatchlist } =
-    useWatchlist();
+  const { currentAccount } = useWallet();
+  const {
+    fetchWatchlistDB,
+    addToWatchlistDB,
+    removeFromWatchlistDB,
+    getAnonymousWatchlist,
+    addToAnonymousWatchlist,
+    removeFromAnonymousWatchlist,
+  } = useWatchlist();
   const [coinDetails, setCoinDetails] = useState(null);
   const [coinHistory, setCoinHistory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);

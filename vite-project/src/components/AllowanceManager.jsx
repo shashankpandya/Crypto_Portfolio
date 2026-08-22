@@ -1,5 +1,5 @@
-import React, { useState, useContext, useEffect } from "react";
-import { TransactionContext } from "../context/TransactionContext";
+import React, { useState, useEffect } from "react";
+import { useWallet } from "../hooks/useWallet";
 import { ethers } from "ethers";
 import { checkAllowance, approveAllowance } from "../utils/constant";
 
@@ -8,7 +8,7 @@ const isValidAddress = (addr) => {
 };
 
 function AllowanceManager() {
-  const { currentAccount } = useContext(TransactionContext);
+  const { currentAccount } = useWallet();
   const [activeTab, setActiveTab] = useState("check");
   const [spender, setSpender] = useState("");
   const [amount, setAmount] = useState("");

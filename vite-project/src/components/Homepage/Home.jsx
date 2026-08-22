@@ -1,6 +1,6 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { TransactionContext } from "../../context/TransactionContext";
+import { useWallet } from "../../hooks/useWallet";
 import { ethers } from "ethers";
 import TopCoins from "../TopCoins";
 import ErrorBoundary from "../ErrorBoundary";
@@ -43,7 +43,7 @@ const CountUp = ({ value, duration = 800, decimals = 4 }) => {
 
 const Home = ({ coins }) => {
   const { currentAccount, getEthBalance, getTokenBalance, isConnectedToSite, connectWallet } =
-    useContext(TransactionContext);
+    useWallet();
   const [ethBalance, setEthBalance] = useState("0");
   const [tokenBalance, setTokenBalance] = useState("0");
   const [network, setNetwork] = useState("Unknown Network");

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { TransactionContext } from "../context/TransactionContext";
+import { useWallet } from "../hooks/useWallet";
 import { useWatchlist } from "../hooks/useWatchlist";
 import { searchCoins } from "../api";
 import { debounce } from "../utils/debounce";
@@ -28,10 +28,15 @@ const TelescopeIcon = () => (
 );
 
 const Watchlist = ({ coins }) => {
-  const { currentAccount, fetchWatchlistDB, addToWatchlistDB, removeFromWatchlistDB } =
-    useContext(TransactionContext);
-  const { getAnonymousWatchlist, addToAnonymousWatchlist, removeFromAnonymousWatchlist } =
-    useWatchlist();
+  const { currentAccount } = useWallet();
+  const {
+    fetchWatchlistDB,
+    addToWatchlistDB,
+    removeFromWatchlistDB,
+    getAnonymousWatchlist,
+    addToAnonymousWatchlist,
+    removeFromAnonymousWatchlist,
+  } = useWatchlist();
 
   const [watchlist, setWatchlist] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");

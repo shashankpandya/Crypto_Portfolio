@@ -1,14 +1,15 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
-import { TransactionContext } from "../context/TransactionContext";
+import { useWallet } from "../hooks/useWallet";
+import { useContract } from "../hooks/useContract";
 
 const isValidAddress = (addr) => {
   return /^0x[a-fA-F0-9]{40}$/.test(addr);
 };
 
 function TokenTransfer() {
-  const { currentAccount, formData, handleChange, sendTransaction, sendBatchTransaction } =
-    useContext(TransactionContext);
+  const { currentAccount } = useWallet();
+  const { formData, handleChange, sendTransaction, sendBatchTransaction } = useContract();
   
   const [activeTab, setActiveTab] = useState("single");
   const [batchRecipients, setBatchRecipients] = useState([{ address: "", amount: "" }]);
