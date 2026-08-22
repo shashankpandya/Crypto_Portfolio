@@ -7,18 +7,27 @@ import { Tooltip } from "react-tooltip";
 import { useWallet } from "../../hooks/useWallet";
 import { useContract } from "../../hooks/useContract";
 
-const NavBarItem = ({ title, path, active, closeMenu, classprops }) => (
+const NavBarItem = ({ title, path, active, closeMenu, classprops, requiresWallet }) => (
   <li className={`mx-4 relative group ${classprops || ""}`}>
     <Link
       to={path}
       onClick={closeMenu}
-      className={`text-sm transition duration-300 py-4 block ${
-        active
+      data-tooltip-id={requiresWallet ? "nav-wallet-required-tooltip" : undefined}
+      data-tooltip-content={requiresWallet ? "Connect your wallet to use this page" : undefined}
+      className={`text-sm transition duration-300 py-4 flex items-center justify-end gap-1.5 ${
+        requiresWallet
+          ? "text-slate-500 hover:text-slate-300"
+          : active
           ? "text-white font-medium"
           : "text-slate-400 hover:text-slate-200"
       }`}
     >
       {title}
+      {requiresWallet && (
+        <span aria-label="Requires wallet connection" className="text-[10px] text-slate-600">
+          🔒
+        </span>
+      )}
     </Link>
     {/* White sliding underline indicator */}
     <span
@@ -79,9 +88,9 @@ const Navbar = () => {
   const menuItems = [
     { title: "Dashboard", path: "/" },
     { title: "Watchlist", path: "/watchlist" },
-    { title: "Transfer", path: "/transfer" },
-    { title: "Allowance", path: "/allowance" },
-    ...(isAdmin ? [{ title: "Admin Panel", path: "/admin" }] : []),
+    { title: "Transfer", path: "/transfer", requiresWallet: true },
+    { title: "Allowance", path: "/allowance", requiresWallet: true },
+    ...(isAdmin ? [{ title: "Admin Panel", path: "/admin", requiresWallet: true }] : []),
   ];
 
   return (
@@ -99,21 +108,21 @@ const Navbar = () => {
       </div>
 
       {/* Navbar links for larger screens */}
-      {isConnectedToSite && (
-        <ul className="text-white md:flex hidden list-none flex-row justify-between items-center h-full">
-          {menuItems.map((item, index) => (
-            <NavBarItem
-              key={index}
-              title={item.title}
-              path={item.path}
-              active={
-                location.pathname === item.path ||
-                (item.path === "/allowance" && (location.pathname === "/approveallowance" || location.pathname === "/allowancecheck"))
-              }
-            />
-          ))}
-        </ul>
-      )}
+      <ul className="text-white md:flex hidden list-none flex-row justify-between items-center h-full">
+        {menuItems.map((item) => (
+          <NavBarItem
+            key={item.path}
+            title={item.title}
+            path={item.path}
+            requiresWallet={item.requiresWallet && !isConnectedToSite}
+            active={
+              location.pathname === item.path ||
+              (item.path === "/allowance" && (location.pathname === "/approveallowance" || location.pathname === "/allowancecheck"))
+            }
+          />
+        ))}
+      </ul>
+      <Tooltip id="nav-wallet-required-tooltip" />
 
       {/* Mobile menu toggle */}
       <div className="flex relative items-center">
@@ -146,17 +155,17 @@ const Navbar = () => {
                 aria-label="Close menu"
               />
             </li>
-            {isConnectedToSite &&
-              menuItems.map((item, index) => (
-                <NavBarItem
-                  key={index}
-                  title={item.title}
-                  path={item.path}
-                  active={location.pathname === item.path}
-                  classprops="my-2 text-lg w-full text-right"
-                  closeMenu={() => setToggleMenu(false)}
-                />
-              ))}
+            {menuItems.map((item) => (
+              <NavBarItem
+                key={item.path}
+                title={item.title}
+                path={item.path}
+                requiresWallet={item.requiresWallet && !isConnectedToSite}
+                active={location.pathname === item.path}
+                classprops="my-2 text-lg w-full text-right"
+                closeMenu={() => setToggleMenu(false)}
+              />
+            ))}
           </ul>
         )}
       </div>
