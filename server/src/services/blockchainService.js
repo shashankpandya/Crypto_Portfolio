@@ -146,6 +146,8 @@ class BlockchainService {
     this.contract = null;
     this._listenerAttached = false;
     this.status = 'uninitialized';
+    this.initialized = false;
+    this.initError = null;
     this._reconnectAttempts = 0;
     this._reconnectTimer = null;
     this._isShuttingDown = false;
@@ -194,39 +196,51 @@ class BlockchainService {
   getStatus() {
     return {
       status: this.status,
+      initialized: this.initialized,
+      initError: this.initError,
       listenerAttached: this._listenerAttached,
       reconnectAttempts: this._reconnectAttempts,
     };
   }
 
   _init() {
-    if (this.contract) return;
+    if (this.contract && this.initialized) return;
 
-    const alchemyUrl      = process.env.ALCHEMY_URL;
-    const contractAddress = process.env.CONTRACT_ADDRESS || process.env.VITE_CONTRACT_ADDRESS;
+    try {
+      const alchemyUrl      = process.env.ALCHEMY_URL;
+      const contractAddress = process.env.CONTRACT_ADDRESS || process.env.VITE_CONTRACT_ADDRESS;
 
-    // Validate URL format — throws a clear error instead of the cryptic
-    // "unsupported protocol" message from ethers internals.
-    validateAlchemyUrl(alchemyUrl);
+      // Validate URL format — throws a clear error instead of the cryptic
+      // "unsupported protocol" message from ethers internals.
+      validateAlchemyUrl(alchemyUrl);
 
-    if (!contractAddress) {
-      throw new Error('CONTRACT_ADDRESS environment variable is not set.');
+      if (!contractAddress) {
+        throw new Error('CONTRACT_ADDRESS environment variable is not set.');
+      }
+
+      this.provider = new ethers.JsonRpcProvider(alchemyUrl);
+
+      // Attach provider error listeners for RPC drops
+      if (typeof this.provider.on === 'function') {
+        this.provider.on('error', (err) => {
+          logger.error({ err }, '[BlockchainService] RPC Provider error detected.');
+          this._scheduleReconnect();
+        });
+      }
+
+      this.contract = new ethers.Contract(contractAddress, CONTRACT_ABI, this.provider);
+      this.initialized = true;
+      this.initError = null;
+
+      logger.info('[BlockchainService] Initialised provider and contract.');
+      logger.info(`[BlockchainService] Network URL: ${alchemyUrl.slice(0, 50)}...`);
+    } catch (err) {
+      this.initialized = false;
+      this.initError = err.message;
+      this.status = 'failed';
+      logger.error({ err }, `[BlockchainService] _init() failed: ${err.message}`);
+      throw err;
     }
-
-    this.provider = new ethers.JsonRpcProvider(alchemyUrl);
-
-    // Attach provider error listeners for RPC drops
-    if (typeof this.provider.on === 'function') {
-      this.provider.on('error', (err) => {
-        logger.error({ err }, '[BlockchainService] RPC Provider error detected.');
-        this._scheduleReconnect();
-      });
-    }
-
-    this.contract = new ethers.Contract(contractAddress, CONTRACT_ABI, this.provider);
-
-    logger.info('[BlockchainService] Initialised provider and contract.');
-    logger.info(`[BlockchainService] Network URL: ${alchemyUrl.slice(0, 50)}...`);
   }
 
   async getLastIndexedBlock(contractAddress) {
@@ -266,7 +280,7 @@ class BlockchainService {
 
     // Always mirror to local JSON fallback
     const state = readJson(INDEXER_STATE_FILE, {});
-    state[normalized] = Math.max(state[normalized] ?? 0, blockNumber);
+    state[normalized] = blockNumber;
     await writeJson(INDEXER_STATE_FILE, state);
   }
 

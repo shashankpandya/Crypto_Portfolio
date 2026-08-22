@@ -272,9 +272,10 @@ describe('blockchainService RPC reconnect and backoff (P3-07)', () => {
 // ---------------------------------------------------------------------------
 describe('blockchainService Block Cursor Persistence (P3-08)', () => {
   const blockchainService = require('./blockchainService');
-  const testContract = '0x1234567890123456789012345678901234567890';
+  const crypto = require('crypto');
 
   it('persists and retrieves last indexed block cursor', async () => {
+    const testContract = '0x' + crypto.randomBytes(20).toString('hex');
     await blockchainService.saveLastIndexedBlock(testContract, 11542600);
     const cursor = await blockchainService.getLastIndexedBlock(testContract);
     expect(cursor).toBe(11542600);
@@ -283,5 +284,25 @@ describe('blockchainService Block Cursor Persistence (P3-08)', () => {
     await blockchainService.saveLastIndexedBlock(testContract, 11542700);
     const advanced = await blockchainService.getLastIndexedBlock(testContract);
     expect(advanced).toBe(11542700);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Explicit _init Failure and Status Reporting (P3-09)
+// ---------------------------------------------------------------------------
+describe('blockchainService explicit init failure (P3-09)', () => {
+  const blockchainService = require('./blockchainService');
+
+  it('reports failure status when init is called with invalid ALCHEMY_URL', () => {
+    const originalUrl = process.env.ALCHEMY_URL;
+    process.env.ALCHEMY_URL = 'invalid-protocol://foo';
+
+    expect(() => blockchainService._init()).toThrow();
+    const status = blockchainService.getStatus();
+    expect(status.initialized).toBe(false);
+    expect(status.initError).toBeDefined();
+    expect(status.status).toBe('failed');
+
+    process.env.ALCHEMY_URL = originalUrl;
   });
 });
