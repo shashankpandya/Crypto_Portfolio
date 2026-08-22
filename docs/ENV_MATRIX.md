@@ -40,6 +40,20 @@ Separately, `VITE_CONTRACT_ADDRESS` was not set in **any** env file — added to
 
 Backend host needs: `MONGO_URI`, `ALCHEMY_URL`, `CONTRACT_ADDRESS`, `COINGECKO_API_KEY`, `AUTH_REQUIRED`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CORS_ORIGIN` (must list the frontend's exact production origin — in production `NODE_ENV=production` mode the CORS allowlist is `CORS_ORIGIN` **only**, no localhost fallback; an empty/missing `CORS_ORIGIN` in production silently blocks every cross-origin request from the browser, including watchlist, with no server-side error to point at), `PORT`, `NODE_ENV=production`.
 
-Frontend build needs: `VITE_CONTRACT_ADDRESS` (newly required — see above), `VITE_COINGECKO_API_KEY` (optional but recommended).
+Frontend build needs: `VITE_CONTRACT_ADDRESS` (newly required — see above), `VITE_COINGECKO_API_KEY` (optional but recommended), `VITE_API_BASE_URL` (see below — **required** if the frontend and backend are on different hosts).
 
-If a feature "works locally but not in production" (e.g. watchlist), the CORS_ORIGIN mismatch above is the most common cause of exactly that symptom, because the Vite dev proxy makes CORS a non-issue locally but a real, silent failure in a production deployment where the frontend and backend are different origins.
+If a feature "works locally but not in production" (e.g. watchlist), the CORS_ORIGIN mismatch above is a common cause of exactly that symptom, because the Vite dev proxy makes CORS a non-issue locally but a real, silent failure in a production deployment where the frontend and backend are different origins.
+
+## Split-host deployment (frontend on a static host, backend elsewhere) — confirmed root cause, 2026-08
+
+`cryptofolio-web3.netlify.app` serves only the built frontend — Netlify is a static host with no persistent Node process behind it. Every axios call in this app (`api.js`, `WalletContext.jsx`, `WatchlistContext.jsx`, `ContractContext.jsx`) uses a **relative** path like `/api/watchlist/...`, which resolves against whatever origin the page itself is served from. On Netlify that's Netlify's own SPA fallback, which serves `index.html` back for any unmatched route (confirmed live: `GET /api/market/coins` returns HTTP 200 with the frontend's own HTML, not JSON) — so every API call silently hits the wrong thing instead of a real backend. This is **not** a code bug in the request logic; the backend was simply never deployed anywhere reachable.
+
+Two ways to fix this for real:
+
+1. **Deploy `server/` to a host that runs a persistent Node process** (Render, Railway, Fly.io, a VPS — Netlify itself cannot run this Express app as-is; Netlify Functions would need a rewrite of every route into a serverless handler, not recommended given the working, tested Express app that already exists). Then:
+   - Set `VITE_API_BASE_URL` on the Netlify frontend build to that backend's URL (added this session — see `main.jsx`; unset, behavior is unchanged).
+   - Set `CORS_ORIGIN` on the backend to the exact Netlify URL (`https://cryptofolio-web3.netlify.app`, no trailing slash).
+   - Set every other backend var in the checklist above on that host's dashboard.
+2. Alternatively, put both frontend and backend behind one origin (e.g. a reverse proxy, or serve the built frontend from the Express app itself) — bigger change, not needed if (1) is acceptable.
+
+This agent session has no hosting credentials for Netlify or any backend host, so the actual deploy step needs to happen from your side — the code above is ready for it the moment a backend URL exists.

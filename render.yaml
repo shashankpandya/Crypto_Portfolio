@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: crypto-portfolio-server
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health/live
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render sets PORT itself — do not add a PORT var here or override it,
+      # server/index.js already reads process.env.PORT.
+      - key: MONGO_URI
+        sync: false
+      - key: ALCHEMY_URL
+        sync: false
+      - key: CONTRACT_ADDRESS
+        sync: false
+      - key: COINGECKO_API_KEY
+        sync: false
+      - key: AUTH_REQUIRED
+        value: "true"
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 24h
+      # Must be the exact Netlify frontend origin, no trailing slash — this
+      # is the CORS allowlist and the single most common cause of
+      # "works locally, breaks in production" for cross-origin deployments.
+      - key: CORS_ORIGIN
+        value: https://cryptofolio-web3.netlify.app
