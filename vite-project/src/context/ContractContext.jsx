@@ -215,12 +215,70 @@ export const ContractProvider = ({ children }) => {
         console.log(structuredTransactions);
 
         setTransactions(structuredTransactions);
+        return structuredTransactions;
       } else {
         console.log("Ethereum is not present");
+        return [];
       }
     } catch (error) {
       console.log(error);
+      return [];
     }
+  };
+
+  /**
+   * getTransactionHistory (P5-03) — paginated per-address history from the
+   * server's indexed Transaction collection, which is what
+   * `getAllTransactions()` used to be relied on for despite being an
+   * unbounded read of the *entire* global contract array. The chain read is
+   * kept only as an explicit, clearly-labeled fallback for when the server
+   * is unavailable, filtered and paginated client-side to the same shape.
+   */
+  const getTransactionHistory = async (address, { page = 1, limit = 20 } = {}) => {
+    try {
+      const res = await axios.get(`/api/transactions/${address}`, { params: { page, limit } });
+      if (res.data?.success) {
+        return {
+          source: "server",
+          transactions: res.data.data.map((tx) => ({
+            addressFrom: tx.sender,
+            addressTo: tx.recipient,
+            amount: ethers.formatEther(tx.amount),
+            message: tx.message,
+            timestamp: new Date(tx.timestamp * 1000).toLocaleString(),
+            txHash: tx.txHash,
+          })),
+          pagination: res.data.pagination,
+        };
+      }
+      throw new Error("Unexpected /api/transactions response shape");
+    } catch (err) {
+      console.warn("Server transaction history unavailable, falling back to on-chain read:", err);
+    }
+
+    const addressLower = address.toLowerCase();
+    const all = (await getAllTransactions()) || [];
+    const matching = all
+      .filter(
+        (tx) =>
+          tx.addressFrom?.toLowerCase() === addressLower || tx.addressTo?.toLowerCase() === addressLower
+      )
+      .reverse(); // most recent first, matching the server's default sort
+
+    const total = matching.length;
+    const start = (page - 1) * limit;
+
+    return {
+      source: "chain-fallback",
+      transactions: matching.slice(start, start + limit),
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit) || 1,
+        hasNextPage: page * limit < total,
+      },
+    };
   };
 
   const checkIfTransactionsExists = async () => {
@@ -299,6 +357,7 @@ export const ContractProvider = ({ children }) => {
     updateFeePercentage,
     checkAdminStatus,
     getAllTransactions,
+    getTransactionHistory,
     resetAdminState,
   };
 

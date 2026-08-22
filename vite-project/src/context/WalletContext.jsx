@@ -39,16 +39,21 @@ export const WalletContext = React.createContext();
  * SIWE session flow, ETH+MTK balance reads, and the accountsChanged/
  * chainChanged listeners. Extracted from TransactionContext.jsx.
  *
- * Contract admin status / transaction history / watchlist sync remain owned
- * by TransactionContext (later splits) but must still run at the exact same
- * points in the connect/restore/account-change flows as before this split.
- * TransactionContext injects them here as callback props so the original
- * call sequencing — and therefore observable behavior — is unchanged.
+ * Contract admin status / watchlist sync remain owned by TransactionContext
+ * (later splits) but must still run at the exact same points in the
+ * connect/restore/account-change flows as before this split. TransactionContext
+ * injects them here as callback props so the original call sequencing — and
+ * therefore observable behavior — is unchanged.
+ *
+ * (P5-03: the eager `getAllTransactions()` call that used to run here on
+ * every connect/restore was removed — it read the contract's entire,
+ * unbounded global transaction array on every page load. Transaction
+ * history is now fetched paginated and per-address, on demand, by whichever
+ * view renders it — see `ContractContext.getTransactionHistory`.)
  */
 export const WalletProvider = ({
   children,
   checkAdminStatus = async () => {},
-  getAllTransactions = async () => {},
   syncLocalWatchlistToDB = async () => {},
   resetAdminState = () => {},
 }) => {
@@ -70,7 +75,6 @@ export const WalletProvider = ({
 
       if (accounts.length) {
         setCurrentAccount(accounts[0]);
-        await getAllTransactions();
         await checkAdminStatus(accounts[0]);
         await syncLocalWatchlistToDB(accounts[0]);
       } else {

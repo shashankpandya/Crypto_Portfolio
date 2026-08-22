@@ -60,10 +60,11 @@ const AuthInterceptor = ({ children }) => {
 
 /**
  * AppProviders (P2-13) — wires ContractContext's checkAdminStatus/
- * getAllTransactions/resetAdminState and WatchlistContext's
- * syncLocalWatchlistToDB into WalletProvider at the same connect/restore
- * points they always ran at. Replaces the TransactionComposition +
- * TransactionBridge layers retired from TransactionContext.jsx.
+ * resetAdminState and WatchlistContext's syncLocalWatchlistToDB into
+ * WalletProvider at the same connect/restore points they always ran at.
+ * Replaces the TransactionComposition + TransactionBridge layers retired
+ * from TransactionContext.jsx. (P5-03: getAllTransactions was removed from
+ * this wiring — it's no longer called eagerly on connect/restore.)
  */
 const AppProviders = ({ children }) => {
   const watchlist = useWatchlist();
@@ -72,7 +73,6 @@ const AppProviders = ({ children }) => {
   return (
     <WalletProvider
       checkAdminStatus={contract.checkAdminStatus}
-      getAllTransactions={contract.getAllTransactions}
       syncLocalWatchlistToDB={watchlist.syncLocalWatchlistToDB}
       resetAdminState={contract.resetAdminState}
     >

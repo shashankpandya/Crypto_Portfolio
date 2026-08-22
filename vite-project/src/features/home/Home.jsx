@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useWallet } from "../../hooks/useWallet";
+import { useContract } from "../../hooks/useContract";
 import { ethers } from "ethers";
 import TopCoins from "../market/TopCoins";
 import ErrorBoundary from "../../components/ErrorBoundary";
 import Skeleton from "../../components/ui/Skeleton";
 import Button from "../../components/ui/Button";
+import EmptyState from "../../components/ui/EmptyState";
+import Badge from "../../components/ui/Badge";
 import { COLORS, MOTION, prefersReducedMotion } from "../../utils/tokens";
 import { gsap } from "gsap";
 
@@ -47,11 +50,20 @@ const CountUp = ({ value, duration = 800, decimals = 4 }) => {
 const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) => {
   const { currentAccount, getEthBalance, getTokenBalance, isConnectedToSite, connectWallet } =
     useWallet();
+  const { getTransactionHistory } = useContract();
   const [ethBalance, setEthBalance] = useState("0");
   const [tokenBalance, setTokenBalance] = useState("0");
   const [network, setNetwork] = useState("Unknown Network");
   const [isTestnet, setIsTestnet] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Server-backed paginated transaction history (P5-03)
+  const [historyPage, setHistoryPage] = useState(1);
+  const [history, setHistory] = useState([]);
+  const [historyPagination, setHistoryPagination] = useState(null);
+  const [historySource, setHistorySource] = useState(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const HISTORY_PAGE_SIZE = 10;
 
   // Portfolio valuation (P5-01) — ETH priced from the CoinGecko markets list
   // already fetched for the dashboard; MTK has no listed market price, so it
@@ -136,6 +148,44 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
 
     fetchBalancesAndNetwork();
   }, [currentAccount, getEthBalance, getTokenBalance]);
+
+  // Reset to page 1 whenever the connected account changes.
+  useEffect(() => {
+    setHistoryPage(1);
+  }, [currentAccount]);
+
+  // Fetch paginated transaction history (P5-03) — server first, chain-read
+  // fallback if the server is unreachable (see ContractContext.getTransactionHistory).
+  useEffect(() => {
+    if (!currentAccount) {
+      setHistory([]);
+      setHistoryPagination(null);
+      setHistorySource(null);
+      return;
+    }
+    let cancelled = false;
+    setHistoryLoading(true);
+    getTransactionHistory(currentAccount, { page: historyPage, limit: HISTORY_PAGE_SIZE })
+      .then(({ transactions, pagination, source }) => {
+        if (cancelled) return;
+        setHistory(transactions);
+        setHistoryPagination(pagination);
+        setHistorySource(source);
+      })
+      .catch((error) => {
+        console.error("Failed to load transaction history:", error);
+        if (!cancelled) {
+          setHistory([]);
+          setHistoryPagination(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setHistoryLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentAccount, historyPage, getTransactionHistory]);
 
   return (
     <div className="page-container text-white">
@@ -278,6 +328,88 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
             <Button onClick={handleConnect} className="text-xs py-2 px-6 transform hover:scale-[1.01]">
               Connect Wallet
             </Button>
+          </div>
+        )}
+
+        {isConnectedToSite && (
+          <div className="bg-surface-raised border border-white/5 rounded-lg p-5 mb-8 gsap-fade-in shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Transaction History
+              </h2>
+              {historySource === "chain-fallback" && (
+                <Badge variant="negative" title="The transaction history server is unavailable — showing a direct on-chain read instead.">
+                  Live chain read (fallback)
+                </Badge>
+              )}
+            </div>
+
+            {historyLoading ? (
+              <div className="flex flex-col gap-xs" role="status" aria-label="Loading transaction history">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ) : history.length === 0 ? (
+              <EmptyState title="No transactions yet" description="Transfers you send or receive will appear here." />
+            ) : (
+              <>
+                <div className="overflow-x-auto border border-white/5 rounded-lg">
+                  <table className="w-full table-auto border-collapse">
+                    <thead>
+                      <tr className="bg-transparent text-slate-600 text-[10px] tracking-[0.12em] uppercase font-semibold border-b border-white/5 select-none">
+                        <th className="px-4 py-2.5 text-left">From</th>
+                        <th className="px-4 py-2.5 text-left">To</th>
+                        <th className="px-4 py-2.5 text-right">Amount</th>
+                        <th className="px-4 py-2.5 text-right hidden md:table-cell">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.03]">
+                      {history.map((tx, i) => (
+                        <tr key={tx.txHash ? `${tx.txHash}-${i}` : i} className="h-11">
+                          <td className="px-4 py-2 text-xs font-mono text-slate-400">
+                            {tx.addressFrom?.slice(0, 6)}...{tx.addressFrom?.slice(-4)}
+                          </td>
+                          <td className="px-4 py-2 text-xs font-mono text-slate-400">
+                            {tx.addressTo?.slice(0, 6)}...{tx.addressTo?.slice(-4)}
+                          </td>
+                          <td className="px-4 py-2 text-right text-xs font-mono font-bold text-white">
+                            {tx.amount} MTK
+                          </td>
+                          <td className="px-4 py-2 text-right text-xs text-muted hidden md:table-cell">
+                            {tx.timestamp}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {historyPagination && historyPagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-3 text-xs text-muted">
+                    <Button
+                      variant="secondary"
+                      className="text-[10px] py-1 px-3"
+                      disabled={historyPage <= 1}
+                      onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                    >
+                      Previous
+                    </Button>
+                    <span>
+                      Page {historyPagination.page} of {historyPagination.totalPages}
+                    </span>
+                    <Button
+                      variant="secondary"
+                      className="text-[10px] py-1 px-3"
+                      disabled={!historyPagination.hasNextPage}
+                      onClick={() => setHistoryPage((p) => p + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
 
