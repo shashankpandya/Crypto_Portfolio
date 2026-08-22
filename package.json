@@ -11,9 +11,14 @@
     "client:dev": "cd vite-project && npm run dev",
     "build": "cd vite-project && npm run build",
     "install:all": "npm install && cd server && npm install && cd ../vite-project && npm install && cd ../smart_contract && npm install",
-    "postinstall": "cd vite-project && npm install"
+    "postinstall": "cd vite-project && npm install",
+    "test:integration": "vitest run tests/integration"
   },
   "devDependencies": {
-    "concurrently": "^6.5.1"
+    "concurrently": "^6.5.1",
+    "ethers": "^6.17.0",
+    "siwe": "^3.0.0",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.10"
   }
 }
