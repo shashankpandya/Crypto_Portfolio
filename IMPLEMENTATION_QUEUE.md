@@ -691,20 +691,20 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-09
+### P2-09 ✓ DONE
 **Title:** Extract contractService on the frontend
 **Goal:** One module owning address + ABI + provider/signer construction, before the context split needs it.
 **Files affected:** `vite-project/src/services/contractService.js` (new), `vite-project/src/utils/constant.js`, `vite-project/src/context/TransactionContext.jsx`
 **Risk:** M — every chain call routes through this.
 **Effort:** 90 min
 **Verification checklist:**
-- [ ] Address + ABI resolved in exactly one place
-- [ ] `constant.js` re-exports from the service so existing import paths keep working
-- [ ] `TransactionContext` uses the service
-- [ ] Transfer, batch transfer, allowance, and admin flows all still work on testnet
-- [ ] `verifyContract` behavior unchanged
+- [x] Address + ABI resolved in exactly one place (`contractService.js`)
+- [x] `constant.js` re-exports from the service so existing import paths keep working
+- [x] `TransactionContext` uses the service
+- [ ] Transfer, batch transfer, allowance, and admin flows all still work on testnet — NOT independently testable in this agent environment (no MetaMask/network access); instead traced each code path (sendTransaction, sendBatchTransaction, checkAllowance/approveAllowance, updateFeePercentage) to confirm they resolve address+ABI+signer/provider through `contractService.js` with no behavior change. Build passed and full test suites (vite-project 18, server 76, smart_contract 8) passed.
+- [x] `verifyContract` behavior unchanged
 **Rollback:** Revert.
-**Commit:** `refactor(client): extract contractService as single address+ABI source`
+**Commit:** `refactor(client): extract contractService as single address+ABI source` (9bd9ac5)
 **Blocked by:** P1-11
 
 ---
