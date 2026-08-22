@@ -595,20 +595,24 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-04
+### P2-04 ✓ DONE
 **Title:** Rebuild the corrupted smart_contract manifest
 **Goal:** `dependencies` currently lists hundreds of transitive packages (`ansi-styles`, `argparse`, `asn1`, `aes-js`…). Regenerate from actual imports.
 **Files affected:** `smart_contract/package.json`, lockfile
 **Risk:** M — can break the hardhat toolchain. Branch and gate on a clean compile.
 **Effort:** 60 min
 **Verification checklist:**
-- [ ] `dependencies` reduced to real direct deps: hardhat, toolbox/waffle, chai, ethers, dotenv
-- [ ] `node_modules` and lockfile deleted, then reinstalled clean
-- [ ] `hardhat compile` passes
-- [ ] `hardhat test` passes — all P0-09 assertions still green
-- [ ] Deploy script still runs against Sepolia (dry run)
+- [x] `dependencies`/`devDependencies` reduced to real direct deps found by grepping every `require`/`import` in `smart_contract/**/*.js` and `hardhat.config.js`: `hardhat`, `@nomicfoundation/hardhat-chai-matchers`, `@nomicfoundation/hardhat-ethers`, `ethers`, `chai`, `dotenv` (dev), and `@openzeppelin/contracts` (runtime — imported by `contracts/Transactions.sol`). Toolchain decision from P0-09 preserved: no `@nomicfoundation/hardhat-toolbox`, no legacy `@nomiclabs/*` packages.
+- [x] `node_modules` and `package-lock.json` deleted, then reinstalled clean with `npm install --legacy-peer-deps` (matches the flag already used by `.github/workflows/ci.yml` for smart_contract — `chai@^5.3.3` vs `hardhat-chai-matchers@2.1.2`'s `chai@^4.2.0` peer range is a pre-existing conflict, not introduced by this task)
+- [x] `hardhat compile` passes (7 Solidity files compiled)
+- [x] `hardhat test` passes — all 8 tests green
+- [ ] Deploy script dry run — **skipped as N/A, not out-of-scope**: `npx hardhat run scripts/deploy.js --network hardhat` fails with `Cannot read properties of undefined (reading 'parseEther')`. Root cause is a pre-existing bug in `scripts/deploy.js` (uses ethers v5 syntax `hre.ethers.utils.parseEther` / `.deployed()`) that predates this task — P0-09 only migrated `test/Transactions.js` to v6, not `scripts/deploy.js`. Confirmed the file is byte-identical before and after this change. Not fixed here per "do not refactor code this task does not name."
+- [x] `npm test --prefix server` → 68 passing
+- [x] `npm test --prefix vite-project` → 18 passing
+- [x] `npm run build --prefix vite-project` → succeeds (364 modules)
+- [x] `git diff docs/BASELINE.raw.json` → empty
 **Rollback:** Revert both files, reinstall.
-**Commit:** `chore(contract): rebuild package.json dependencies from actual imports`
+**Commit:** `chore(contract): rebuild package.json dependencies from actual imports` — commit 88b3004
 **Blocked by:** P0-09
 
 ---
