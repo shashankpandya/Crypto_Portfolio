@@ -620,19 +620,19 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-05
+### P2-05 ✓ DONE
 **Title:** Trim unused TransactionContext exports
 **Goal:** Remove exported state no consumer reads, so the Phase 2 context split has less surface to carry.
 **Files affected:** `vite-project/src/context/TransactionContext.jsx`
 **Risk:** L
 **Effort:** 30 min
 **Verification checklist:**
-- [ ] Grep-verify zero consumers for: `spender`, `amount`, `handleApprove`, `loading`, `errorMessage`, `successMessage`
-- [ ] `formData` no longer carries unused `gasLimit` / `gasPrice`
-- [ ] All screens render identically
-- [ ] `npm run build` succeeds
+- [x] Grep-verify zero consumers for: `spender`, `amount`, `handleApprove`, `loading`, `errorMessage`, `successMessage`
+- [x] `formData` no longer carries unused `gasLimit` / `gasPrice`
+- [x] All screens render identically
+- [x] `npm run build` succeeds
 **Rollback:** Revert.
-**Commit:** `refactor(client): remove unused TransactionContext exports`
+**Commit:** `refactor(client): remove unused TransactionContext exports` 6bc0d07
 **Blocked by:** P1-16
 
 ---
