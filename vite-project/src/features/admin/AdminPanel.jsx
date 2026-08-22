@@ -8,21 +8,29 @@ function AdminPanel() {
 
   const [newFee, setNewFee] = useState(0);
   const [contractInfo, setContractInfo] = useState(null);
+  const [contractInfoLoading, setContractInfoLoading] = useState(true);
+  const [contractInfoError, setContractInfoError] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchInfo = async () => {
-      try {
-        const info = await getContractInfo();
-        setContractInfo(info);
-      } catch (err) {
-        console.error("Failed to load contract info:", err);
-      }
-    };
-    fetchInfo();
+  const fetchInfo = React.useCallback(async () => {
+    setContractInfoLoading(true);
+    setContractInfoError(null);
+    try {
+      const info = await getContractInfo();
+      setContractInfo(info);
+    } catch (err) {
+      console.error("Failed to load contract info:", err);
+      setContractInfoError("Failed to load contract details. Please try again.");
+    } finally {
+      setContractInfoLoading(false);
+    }
   }, [getContractInfo]);
+
+  useEffect(() => {
+    fetchInfo();
+  }, [fetchInfo]);
 
   useEffect(() => {
     if (feePercentage !== undefined && feePercentage !== null) {
@@ -100,28 +108,46 @@ function AdminPanel() {
             <h3 className="text-sm font-bold mb-4 text-white border-b border-white/5 pb-2">
               Contract Details
             </h3>
-            <div className="space-y-3.5 text-xs text-[#a1a7bb]">
-              <div>
-                <p className="text-[#71717a] text-[10px] font-semibold uppercase">Token Name</p>
-                <p className="text-white font-bold">{contractInfo?.name || "MyToken"}</p>
+            {contractInfoLoading ? (
+              <div className="space-y-3.5" role="status" aria-label="Loading contract details">
+                <div className="h-8 animate-pulse rounded bg-white/[0.06]" />
+                <div className="h-8 animate-pulse rounded bg-white/[0.06]" />
+                <div className="h-8 animate-pulse rounded bg-white/[0.06]" />
               </div>
-              <div>
-                <p className="text-[#71717a] text-[10px] font-semibold uppercase">Token Symbol</p>
-                <p className="text-white font-mono font-bold">{contractInfo?.symbol || "MTK"}</p>
+            ) : contractInfoError ? (
+              <div className="flex flex-col items-start gap-2 text-xs">
+                <p className="text-[#EF4444]">{contractInfoError}</p>
+                <button
+                  onClick={fetchInfo}
+                  className="bg-white/5 border border-white/10 hover:bg-white/10 text-white px-3 py-1 rounded text-[10px] font-bold transition duration-150"
+                >
+                  Retry
+                </button>
               </div>
-              <div>
-                <p className="text-[#71717a] text-[10px] font-semibold uppercase">Total Supply</p>
-                <p className="text-white font-mono font-bold">
-                  {contractInfo ? (Number(contractInfo.totalSupply) / 10 ** Number(contractInfo.decimals)).toLocaleString() : "1,000,000"} MTK
-                </p>
+            ) : (
+              <div className="space-y-3.5 text-xs text-[#a1a7bb]">
+                <div>
+                  <p className="text-[#71717a] text-[10px] font-semibold uppercase">Token Name</p>
+                  <p className="text-white font-bold">{contractInfo?.name}</p>
+                </div>
+                <div>
+                  <p className="text-[#71717a] text-[10px] font-semibold uppercase">Token Symbol</p>
+                  <p className="text-white font-mono font-bold">{contractInfo?.symbol}</p>
+                </div>
+                <div>
+                  <p className="text-[#71717a] text-[10px] font-semibold uppercase">Total Supply</p>
+                  <p className="text-white font-mono font-bold">
+                    {(Number(contractInfo?.totalSupply) / 10 ** Number(contractInfo?.decimals)).toLocaleString()} MTK
+                  </p>
+                </div>
+                <div className="border-t border-white/5 pt-2.5">
+                  <p className="text-[#71717a] text-[10px] font-semibold uppercase">Contract Owner Address</p>
+                  <p className="text-white text-[10px] break-all font-mono">
+                    {contractOwner || "Unknown"}
+                  </p>
+                </div>
               </div>
-              <div className="border-t border-white/5 pt-2.5">
-                <p className="text-[#71717a] text-[10px] font-semibold uppercase">Contract Owner Address</p>
-                <p className="text-white text-[10px] break-all font-mono">
-                  {contractOwner || "0x0000..."}
-                </p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 

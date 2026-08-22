@@ -64,26 +64,27 @@ const CoinDetails = () => {
     checkWatchlist();
   }, [id, currentAccount, fetchWatchlistDB, getAnonymousWatchlist]);
 
-  useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const [details, history] = await Promise.all([
-          getCoinDetails(id),
-          getCoinHistory(id, selectedRange.days),
-        ]);
-        setCoinDetails(details);
-        setCoinHistory(history.prices);
-      } catch (err) {
-        console.error("Error fetching coin data:", err);
-        setError("Failed to load coin data. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
+  const fetchData = React.useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [details, history] = await Promise.all([
+        getCoinDetails(id),
+        getCoinHistory(id, selectedRange.days),
+      ]);
+      setCoinDetails(details);
+      setCoinHistory(history.prices);
+    } catch (err) {
+      console.error("Error fetching coin data:", err);
+      setError("Failed to load coin data. Please try again later.");
+    } finally {
+      setIsLoading(false);
     }
-    fetchData();
   }, [id, selectedRange]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const toggleWatchlist = async () => {
     if (isInWatchlist) {
@@ -110,7 +111,18 @@ const CoinDetails = () => {
       </div>
     );
   }
-  if (error) return <div className="text-[#EF4444] p-5 text-center bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg max-w-lg mx-auto">{error}</div>;
+  if (error)
+    return (
+      <div className="flex flex-col items-center gap-3 p-5 text-center bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-lg max-w-lg mx-auto">
+        <p className="text-[#EF4444]">{error}</p>
+        <button
+          onClick={fetchData}
+          className="premium-btn text-white text-xs font-bold py-1.5 px-4 rounded-lg transition duration-200"
+        >
+          Retry
+        </button>
+      </div>
+    );
   if (!coinDetails || !coinHistory)
     return <div className="text-white p-5 text-center bg-[#0c1118] border border-white/5 rounded-lg max-w-lg mx-auto text-xs">No data available for this coin.</div>;
 
