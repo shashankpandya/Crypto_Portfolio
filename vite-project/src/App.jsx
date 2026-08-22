@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate, Link } from "react-ro
 import axios from "axios";
 import Navbar from "./features/home/Navbar";
 import LedgerTicker from "./features/home/LedgerTicker";
+import RequireWallet from "./components/RequireWallet";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { WalletProvider, getStoredToken } from "./context/WalletContext";
 import { useWallet } from "./hooks/useWallet";
@@ -153,12 +154,33 @@ const App = () => {
                           }
                         />
                         <Route path="/watchlist" element={<Watchlist coins={coins} />} />
-                        <Route path="/allowance" element={<AllowanceManager />} />
+                        <Route
+                          path="/allowance"
+                          element={
+                            <RequireWallet>
+                              <AllowanceManager />
+                            </RequireWallet>
+                          }
+                        />
                         {/* Redirect deprecated routes */}
                         <Route path="/approveallowance" element={<Navigate to="/allowance" replace />} />
                         <Route path="/allowancecheck" element={<Navigate to="/allowance" replace />} />
-                        <Route path="/transfer" element={<TokenTransfer />} />
-                        <Route path="/admin" element={<AdminPanel />} />
+                        <Route
+                          path="/transfer"
+                          element={
+                            <RequireWallet>
+                              <TokenTransfer />
+                            </RequireWallet>
+                          }
+                        />
+                        <Route
+                          path="/admin"
+                          element={
+                            <RequireWallet>
+                              <AdminPanel />
+                            </RequireWallet>
+                          }
+                        />
                         <Route
                           path="/coin/:id"
                           element={

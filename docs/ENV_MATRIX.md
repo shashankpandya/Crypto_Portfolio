@@ -1,6 +1,6 @@
 # Environment Variable Matrix (P6-12)
 
-Derived by grepping every `process.env.*` / `import.meta.env.*` reference in `server/`, `vite-project/`, and `smart_contract/`. Root `.env` is loaded by `server/index.js` (`server/.env` is never loaded — see CLAUDE.md) and by `vite.config.js`'s `envDir: "../"` for `VITE_*` vars.
+Derived by grepping every `process.env.*` / `import.meta.env.*` reference in `server/`, `vite-project/`, and `smart_contract/`. `server/index.js` now loads `server/.env` first, then the root `.env` fills in anything `server/.env` doesn't define (dotenv never overwrites an already-set var) — see "Env loading fix" below; this replaces the old "server/.env is never loaded" gotcha. `vite.config.js`'s `envDir: "../"` still only loads the root `.env` for `VITE_*` vars — `server/.env`'s contents are never visible to the frontend build.
 
 | Var | Used by | Required? | Gates | Behavior when absent |
 |---|---|---|---|---|
@@ -22,8 +22,24 @@ Derived by grepping every `process.env.*` / `import.meta.env.*` reference in `se
 
 ## Files
 
-- Root `.env` — loaded by `server/index.js` and (for `VITE_*` vars) by `vite-project/vite.config.js`'s `envDir: "../"`. **Not committed** (gitignored).
+- Root `.env` — loaded by `server/index.js` (second, after `server/.env`) and (for `VITE_*` vars) by `vite-project/vite.config.js`'s `envDir: "../"`. **Not committed** (gitignored).
 - Root `.env.example` — committed template, tracked in git. No real secrets.
 - Root `.env.production` — **tracked and committed**. Per `docs/SECURITY_REVIEW.md` §4, this session could not read its contents (project's own `.env*` read-deny rule) to confirm it holds only non-secret config — flagged there for manual confirmation, same flag applies here.
 - `.env.deployment.whole` — gitignored, confirmed via `git check-ignore -v` (P6-09).
-- `server/.env` — **never loaded by the app** (`server/index.js` hardcodes the root `.env` path) — a documented gotcha, not a bug to fix here.
+- `server/.env` — loaded first by `server/index.js` (its values win over the root `.env` for any key both files define). Still gitignored, so it never reaches a hosting platform on its own.
+
+## Env loading fix (this session)
+
+`server/index.js` previously loaded only the root `.env`, so `MONGO_URI`, `ALCHEMY_URL`, `CONTRACT_ADDRESS`, and `COINGECKO_API_KEY` (all only ever defined in `server/.env`) were never actually read — the server always ran with no DB, no indexer, and no CoinGecko key, regardless of local or deployed environment. Fixed by loading both files. This was a real functional bug, not just a docs gap — verified live (real Mongo connection, 100 real coins, real SIWE auth + watchlist round-trip).
+
+Separately, `VITE_CONTRACT_ADDRESS` was not set in **any** env file — added to the root `.env` locally.
+
+## Production deployment checklist
+
+**Neither `.env` nor `server/.env` is committed to git** (both gitignored) — so nothing added or fixed in either file today reaches a deployed environment automatically. Whatever platform hosts this app (Netlify/Vercel/Render/etc.) needs each of the following set directly in its own environment-variable dashboard, independent of this repo:
+
+Backend host needs: `MONGO_URI`, `ALCHEMY_URL`, `CONTRACT_ADDRESS`, `COINGECKO_API_KEY`, `AUTH_REQUIRED`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CORS_ORIGIN` (must list the frontend's exact production origin — in production `NODE_ENV=production` mode the CORS allowlist is `CORS_ORIGIN` **only**, no localhost fallback; an empty/missing `CORS_ORIGIN` in production silently blocks every cross-origin request from the browser, including watchlist, with no server-side error to point at), `PORT`, `NODE_ENV=production`.
+
+Frontend build needs: `VITE_CONTRACT_ADDRESS` (newly required — see above), `VITE_COINGECKO_API_KEY` (optional but recommended).
+
+If a feature "works locally but not in production" (e.g. watchlist), the CORS_ORIGIN mismatch above is the most common cause of exactly that symptom, because the Vite dev proxy makes CORS a non-issue locally but a real, silent failure in a production deployment where the frontend and backend are different origins.

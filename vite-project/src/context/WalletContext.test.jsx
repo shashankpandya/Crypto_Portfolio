@@ -15,7 +15,7 @@ import { useWallet } from "../hooks/useWallet";
 // ---------------------------------------------------------------------------
 
 describe("Balance helpers (P1-15)", () => {
-  const TEST_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+  const TEST_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb922666";
 
   beforeEach(() => {
     // Mock window.ethereum
@@ -96,7 +96,7 @@ vi.mock("../services/contractService", () => ({
 const wrapper = ({ children }) => <WalletProvider>{children}</WalletProvider>;
 
 describe("WalletProvider (P6-01)", () => {
-  const ACCOUNT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb9226";
+  const ACCOUNT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
   beforeEach(() => {
     localStorage.clear();

@@ -74,9 +74,10 @@ export const WalletProvider = ({
       const accounts = await window.ethereum.request({ method: "eth_accounts" });
 
       if (accounts.length) {
-        setCurrentAccount(accounts[0]);
-        await checkAdminStatus(accounts[0]);
-        await syncLocalWatchlistToDB(accounts[0]);
+        const account = ethers.getAddress(accounts[0]);
+        setCurrentAccount(account);
+        await checkAdminStatus(account);
+        await syncLocalWatchlistToDB(account);
       } else {
         console.log("No accounts found");
       }
@@ -93,7 +94,10 @@ export const WalletProvider = ({
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
-      const account = accounts[0];
+      // Not every EIP-1193 provider returns an EIP-55 checksummed address
+      // (some hand back all-lowercase) — SiweMessage validates strictly, so
+      // normalize casing here instead of trusting the provider's casing.
+      const account = ethers.getAddress(accounts[0]);
       const accountLower = account.toLowerCase();
 
       // 2. Fetch nonce from backend (SIWE)
