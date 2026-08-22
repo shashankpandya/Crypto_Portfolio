@@ -4,6 +4,7 @@ import { ethers } from "ethers";
 import { checkAllowance, approveAllowance } from "../../utils/constant";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
+import { useToast } from "../../components/ui/Toast";
 
 const isValidAddress = (addr) => {
   return /^0x[a-fA-F0-9]{40}$/.test(addr);
@@ -11,6 +12,7 @@ const isValidAddress = (addr) => {
 
 function AllowanceManager() {
   const { currentAccount } = useWallet();
+  const { notify } = useToast();
   const [activeTab, setActiveTab] = useState("check");
   const [spender, setSpender] = useState("");
   const [amount, setAmount] = useState("");
@@ -75,11 +77,13 @@ function AllowanceManager() {
     setErrorMessage("");
     setSuccessMessage("");
     setIsLoading(true);
+    notify({ variant: "info", message: "Confirm the approval in MetaMask, then wait for on-chain confirmation..." });
 
     try {
       const amountInWei = ethers.parseEther(amount);
       const txHash = await approveAllowance(spender, amountInWei);
       setSuccessMessage(`Approval transaction sent. Hash: ${txHash}`);
+      notify({ variant: "success", message: "Allowance approved!" });
 
       // Wait 5 seconds and check updated allowance
       setTimeout(async () => {
@@ -92,7 +96,12 @@ function AllowanceManager() {
       }, 5000);
     } catch (error) {
       console.error("Error approving allowance:", error);
-      setErrorMessage(error.message || "Error approving allowance. Please try again.");
+      const message =
+        error.code === 4001 || error.message?.includes("rejected")
+          ? "Approval was rejected in MetaMask."
+          : error.reason || error.message || "Error approving allowance. Please try again.";
+      setErrorMessage(message);
+      notify({ variant: "error", message: `Approval failed: ${message}`, duration: 8000 });
     } finally {
       setIsLoading(false);
     }

@@ -3,10 +3,12 @@ import { useWallet } from "../../hooks/useWallet";
 import { useContract } from "../../hooks/useContract";
 import { COLORS } from "../../utils/tokens";
 import Button from "../../components/ui/Button";
+import { useToast } from "../../components/ui/Toast";
 
 function AdminPanel() {
   const { currentAccount } = useWallet();
   const { feePercentage, updateFeePercentage, contractOwner, getContractInfo } = useContract();
+  const { notify } = useToast();
 
   const [newFee, setNewFee] = useState(0);
   const [contractInfo, setContractInfo] = useState(null);
@@ -52,11 +54,18 @@ function AdminPanel() {
 
     try {
       setIsLoading(true);
+      notify({ variant: "info", message: "Confirm the fee change in MetaMask, then wait for on-chain confirmation..." });
       const txHash = await updateFeePercentage(newFee.toString());
       setSuccessMessage(`Transaction fee updated to ${newFee}% successfully! Tx Hash: ${txHash}`);
+      notify({ variant: "success", message: `Transaction fee updated to ${newFee}%!` });
     } catch (err) {
       console.error(err);
-      setErrorMessage(err.message || "Failed to update transaction fee.");
+      const message =
+        err.code === 4001 || err.message?.includes("rejected")
+          ? "Fee change was rejected in MetaMask."
+          : err.reason || err.message || "Failed to update transaction fee.";
+      setErrorMessage(message);
+      notify({ variant: "error", message: `Fee update failed: ${message}`, duration: 8000 });
     } finally {
       setIsLoading(false);
     }
