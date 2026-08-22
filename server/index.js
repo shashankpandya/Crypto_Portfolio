@@ -1,7 +1,17 @@
 'use strict';
 
 // Load environment variables first — before any other import reads process.env.
+//
+// Two .env files exist: server/.env (MONGO_URI, ALCHEMY_URL, CONTRACT_ADDRESS,
+// COINGECKO_API_KEY, PORT) and the root .env (AUTH_REQUIRED, JWT_SECRET,
+// JWT_EXPIRES_IN, PORT). Previously only the root file was loaded, so the
+// server always ran with no DB, no indexer, and no CoinGecko key — every
+// subsystem silently fell back (JSON storage, mock coin data, unauthenticated
+// rate-limited CoinGecko calls). Load server/.env first so its operational
+// values win, then the root .env fills in whatever server/.env doesn't define
+// (dotenv never overwrites a var that's already set).
 const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const app                    = require('./src/app');

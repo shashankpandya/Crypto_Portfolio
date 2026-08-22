@@ -5,6 +5,8 @@ import { useWatchlist } from "../../hooks/useWatchlist";
 import { searchCoins, fetchCoinsByIds } from "../../api";
 import { debounce } from "../../utils/debounce";
 import EmptyState from "../../components/ui/EmptyState";
+import Skeleton from "../../components/ui/Skeleton";
+import { useToast } from "../../components/ui/Toast";
 import { COLORS } from "../../utils/tokens";
 
 const generateSparklinePath = (id, change24h) => {
@@ -31,6 +33,7 @@ const TelescopeIcon = () => (
 
 const Watchlist = ({ coins }) => {
   const { currentAccount } = useWallet();
+  const { notify } = useToast();
   const {
     fetchWatchlistDB,
     addToWatchlistDB,
@@ -100,13 +103,14 @@ const Watchlist = ({ coins }) => {
             }
             return next;
           });
+          notify({ variant: "error", message: "Couldn't load prices for some watchlist coins." });
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [coins, watchlist, missingCoinsData]);
+  }, [coins, watchlist, missingCoinsData, notify]);
 
   const handleSearch = useCallback(
     async (term) => {
@@ -121,11 +125,12 @@ const Watchlist = ({ coins }) => {
       } catch (error) {
         console.error("Error searching for coins:", error);
         setSearchResults([]);
+        notify({ variant: "error", message: "Coin search failed. Please try again." });
       } finally {
         setIsSearching(false);
       }
     },
-    [coins]
+    [coins, notify]
   );
 
   const debouncedSearch = useMemo(
@@ -177,14 +182,6 @@ const Watchlist = ({ coins }) => {
     [watchlist, currentAccount, removeFromWatchlistDB, removeFromAnonymousWatchlist]
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-coral"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="page-container text-white">
       {/* Compact inline page header row */}
@@ -195,6 +192,14 @@ const Watchlist = ({ coins }) => {
         </div>
       </div>
 
+      {isLoading ? (
+        <div className="flex flex-col gap-xs max-w-3xl mx-auto" role="status" aria-label="Loading watchlist">
+          <Skeleton className="h-11 w-full" />
+          <Skeleton className="h-11 w-full" />
+          <Skeleton className="h-11 w-full" />
+        </div>
+      ) : (
+        <>
       {mutationError && (
         <div
           role="alert"
@@ -392,6 +397,8 @@ const Watchlist = ({ coins }) => {
             </tbody>
           </table>
         </div>
+      )}
+        </>
       )}
     </div>
   );

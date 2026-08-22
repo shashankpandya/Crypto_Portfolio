@@ -8,6 +8,7 @@ import { useWallet } from "../../hooks/useWallet";
 import { useContract } from "../../hooks/useContract";
 import { COLORS } from "../../utils/tokens";
 import Button from "../../components/ui/Button";
+import { useToast } from "../../components/ui/Toast";
 
 const NavBarItem = ({ title, path, active, closeMenu, classprops, requiresWallet }) => (
   <li className={`mx-4 relative group ${classprops || ""}`}>
@@ -69,16 +70,28 @@ const CPLogo = () => (
 
 const Navbar = () => {
   const [toggleMenu, setToggleMenu] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const { connectWallet, currentAccount, disconnectWallet, isConnectedToSite } = useWallet();
   const { isAdmin } = useContract();
   const navigate = useNavigate();
   const location = useLocation();
+  const { notify } = useToast();
 
   const handleConnect = async () => {
+    if (isConnecting) return;
+    if (!window.ethereum) {
+      notify({ variant: "error", message: "No wallet found. Install MetaMask to connect." });
+      return;
+    }
+    setIsConnecting(true);
     try {
       await connectWallet();
+      notify({ variant: "success", message: "Wallet connected." });
     } catch (error) {
       console.error("Failed to connect wallet:", error);
+      notify({ variant: "error", message: error.message || "Failed to connect wallet. Please try again." });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -198,10 +211,11 @@ const Navbar = () => {
             <Button
               className="text-xs py-1.5 px-4"
               onClick={handleConnect}
+              disabled={isConnecting}
               data-tooltip-id="connect-wallet-tooltip"
               data-tooltip-content="Connect your Ethereum wallet to access the dashboard"
             >
-              Connect Wallet
+              {isConnecting ? "Connecting…" : "Connect Wallet"}
             </Button>
           </div>
         )}

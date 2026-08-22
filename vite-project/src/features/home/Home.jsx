@@ -48,8 +48,7 @@ const CountUp = ({ value, duration = 800, decimals = 4 }) => {
 };
 
 const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) => {
-  const { currentAccount, getEthBalance, getTokenBalance, isConnectedToSite, connectWallet } =
-    useWallet();
+  const { currentAccount, getEthBalance, getTokenBalance } = useWallet();
   const { getTransactionHistory } = useContract();
   const [ethBalance, setEthBalance] = useState("0");
   const [tokenBalance, setTokenBalance] = useState("0");
@@ -88,14 +87,6 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
     });
-  };
-
-  const handleConnect = async () => {
-    try {
-      await connectWallet();
-    } catch (error) {
-      console.error("Failed to connect wallet:", error);
-    }
   };
 
   const copyToClipboard = () => {
@@ -198,8 +189,7 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
           </div>
         </div>
 
-        {isConnectedToSite ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
             {/* Wallet Card with Mouse Radial Glow */}
             <div className="lg:col-span-1 gsap-fade-in">
               <div
@@ -312,30 +302,11 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
               </div>
             </div>
           </div>
-        ) : (
-          <div className="text-center mb-8 bg-surface-raised rounded-lg p-8 border border-white/5 gsap-fade-in max-w-md mx-auto flex flex-col items-center shadow-xl">
-            <div className="w-12 h-12 bg-coral/10 rounded-full flex items-center justify-center mb-4 border border-coral/20 shadow-inner">
-              <svg className="w-6 h-6 text-coral" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold mb-2 text-white tracking-tight">
-              Connect Web3 Wallet
-            </h2>
-            <p className="text-muted text-xs mb-6 max-w-xs leading-relaxed">
-              Connect your Ethereum provider to explore tokens, approve token allowances, and transfer assets securely.
-            </p>
-            <Button onClick={handleConnect} className="text-xs py-2 px-6 transform hover:scale-[1.01]">
-              Connect Wallet
-            </Button>
-          </div>
-        )}
 
-        {isConnectedToSite && (
-          <div className="bg-surface-raised border border-white/5 rounded-lg p-5 mb-8 gsap-fade-in shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Transaction History
+        <div className="bg-surface-raised border border-white/5 rounded-lg p-5 mb-8 gsap-fade-in shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Transaction History
               </h2>
               {historySource === "chain-fallback" && (
                 <Badge variant="negative" title="The transaction history server is unavailable — showing a direct on-chain read instead.">
@@ -411,7 +382,6 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
               </>
             )}
           </div>
-        )}
 
         {/* Divider */}
         <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-6" />

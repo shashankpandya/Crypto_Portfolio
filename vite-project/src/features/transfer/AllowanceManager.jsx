@@ -92,6 +92,7 @@ function AllowanceManager() {
           setCurrentAllowance(ethers.formatEther(allowanceVal));
         } catch (err) {
           console.error("Error updating allowance:", err);
+          notify({ variant: "error", message: "Approved, but couldn't refresh the displayed allowance. Reload to see the latest value." });
         }
       }, 5000);
     } catch (error) {
@@ -109,14 +110,12 @@ function AllowanceManager() {
 
   return (
     <div className="page-container text-white max-w-md">
-      {/* Header */}
-      <div className="mb-6 flex flex-col items-center justify-center text-center">
-        <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-          <span className="premium-text-gradient-primary">Token Allowance</span>
-        </h1>
-        <p className="text-xs text-muted mt-1.5 max-w-sm">
-          Check or approve spend permissions granted to external decentralized applications.
-        </p>
+      {/* Compact inline page header row */}
+      <div className="flex items-center justify-between mb-5 pt-6">
+        <div>
+          <h1 className="text-base font-semibold text-white">Token Allowance</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Check or approve spend permissions</p>
+        </div>
       </div>
 
       <div className="w-full bg-surface-raised border border-white/5 rounded-lg p-5 shadow-lg relative">

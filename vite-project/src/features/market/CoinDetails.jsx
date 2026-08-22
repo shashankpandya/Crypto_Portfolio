@@ -16,6 +16,9 @@ import { useWallet } from "../../hooks/useWallet";
 import { useWatchlist } from "../../hooks/useWatchlist";
 import { COLORS } from "../../utils/tokens";
 import Button from "../../components/ui/Button";
+import Skeleton from "../../components/ui/Skeleton";
+import EmptyState from "../../components/ui/EmptyState";
+import { useToast } from "../../components/ui/Toast";
 
 ChartJS.register(
   CategoryScale,
@@ -38,6 +41,7 @@ const timeRanges = [
 const CoinDetails = () => {
   const { id } = useParams();
   const { currentAccount } = useWallet();
+  const { notify } = useToast();
   const {
     fetchWatchlistDB,
     addToWatchlistDB,
@@ -91,14 +95,22 @@ const CoinDetails = () => {
   const toggleWatchlist = async () => {
     if (isInWatchlist) {
       if (currentAccount) {
-        await removeFromWatchlistDB(currentAccount, id);
+        const result = await removeFromWatchlistDB(currentAccount, id);
+        if (!result?.success) {
+          notify({ variant: "error", message: `Failed to remove ${coinDetails?.name || id} from your watchlist. Please try again.` });
+          return;
+        }
       } else {
         removeFromAnonymousWatchlist(id);
       }
       setIsInWatchlist(false);
     } else {
       if (currentAccount) {
-        await addToWatchlistDB(currentAccount, id);
+        const result = await addToWatchlistDB(currentAccount, id);
+        if (!result?.success) {
+          notify({ variant: "error", message: `Failed to add ${coinDetails?.name || id} to your watchlist. Please try again.` });
+          return;
+        }
       } else {
         addToAnonymousWatchlist(id);
       }
@@ -108,22 +120,43 @@ const CoinDetails = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-coral"></div>
+      <div className="page-container text-white max-w-4xl">
+        <div className="flex items-center gap-3 mb-6 pt-6" role="status" aria-label="Loading coin details">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+        <Skeleton className="h-[300px] w-full" />
       </div>
     );
   }
   if (error)
     return (
-      <div className="flex flex-col items-center gap-3 p-5 text-center bg-negative/10 border border-negative/20 rounded-lg max-w-lg mx-auto">
-        <p className="text-negative">{error}</p>
-        <Button onClick={fetchData} className="text-xs py-1.5 px-4">
-          Retry
-        </Button>
+      <div className="page-container max-w-lg">
+        <EmptyState
+          title="Couldn't load coin data"
+          description={error}
+          action={
+            <Button onClick={fetchData} className="text-xs py-1.5 px-4">
+              Retry
+            </Button>
+          }
+        />
       </div>
     );
   if (!coinDetails || !coinHistory)
-    return <div className="text-white p-5 text-center bg-surface-raised border border-white/5 rounded-lg max-w-lg mx-auto text-xs">No data available for this coin.</div>;
+    return (
+      <div className="page-container max-w-lg">
+        <EmptyState title="No data available" description="This coin has no data to display." />
+      </div>
+    );
 
   const chartData = {
     labels: (coinHistory || []).map((price) => new Date(price[0]).toLocaleDateString()),

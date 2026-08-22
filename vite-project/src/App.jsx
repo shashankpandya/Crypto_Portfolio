@@ -15,6 +15,7 @@ import { fetchCoins } from "./api";
 
 // Lazy load components directly from their source directories to avoid eager bundling via index.js
 const Home = React.lazy(() => import("./features/home/Home"));
+const Landing = React.lazy(() => import("./features/home/Landing"));
 const Watchlist = React.lazy(() => import("./features/market/Watchlist"));
 const TokenTransfer = React.lazy(() => import("./features/transfer/TokenTransfer"));
 const AllowanceManager = React.lazy(() => import("./features/transfer/AllowanceManager"));
@@ -57,6 +58,21 @@ const AuthInterceptor = ({ children }) => {
   }, [authToken]);
 
   return children;
+};
+
+/**
+ * RootRoute — the "/" route shows the marketing Landing page (with a live
+ * market preview) before a wallet is connected, and the connected Dashboard
+ * (Home) once it is. Lives inside AppProviders/WalletProvider so it can read
+ * isConnectedToSite directly instead of App.jsx duplicating wallet state.
+ */
+const RootRoute = ({ coins, coinsLoading, coinsError, onRetryCoins }) => {
+  const { isConnectedToSite } = useWallet();
+  return isConnectedToSite ? (
+    <Home coins={coins} coinsLoading={coinsLoading} coinsError={coinsError} onRetryCoins={onRetryCoins} />
+  ) : (
+    <Landing coins={coins} coinsLoading={coinsLoading} />
+  );
 };
 
 /**
@@ -126,7 +142,7 @@ const App = () => {
                         <Route
                           path="/"
                           element={
-                            <Home
+                            <RootRoute
                               coins={coins}
                               coinsLoading={isLoading}
                               coinsError={error}

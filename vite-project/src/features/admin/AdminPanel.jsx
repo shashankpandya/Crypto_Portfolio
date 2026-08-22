@@ -102,14 +102,12 @@ function AdminPanel() {
 
   return (
     <div className="page-container text-white max-w-2xl">
-      {/* Header */}
-      <div className="mb-6 flex flex-col items-center justify-center text-center">
-        <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-          <span className="premium-text-gradient-primary">Admin Control Panel</span>
-        </h1>
-        <p className="text-xs text-muted mt-1.5 max-w-md">
-          Manage system configurations, adjust transaction fees, and audit contract variables.
-        </p>
+      {/* Compact inline page header row */}
+      <div className="flex items-center justify-between mb-5 pt-6">
+        <div>
+          <h1 className="text-base font-semibold text-white">Admin Control Panel</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Manage fees and audit contract variables</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
