@@ -53,6 +53,23 @@ coverage/
 .project
 *.sublime-workspace
 
+# Deploy/host CLI local state
+.netlify/
+.vercel/
+
+# Certs and key material
+*.pem
+*.pfx
+*.p12
+
+# Python tooling artifacts (slither/solc-select, used ad hoc for security review)
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Load/security test scratch output
+tests/**/*.log
+
 .env.deployment.whole
 
 .agents/
