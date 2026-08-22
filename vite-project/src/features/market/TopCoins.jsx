@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { gsap } from "gsap";
+import { COLORS } from "../../utils/tokens";
 
 const renderSparkline = (sparklineData, isPositive) => {
   const prices = sparklineData?.price;
@@ -28,7 +29,7 @@ const renderSparkline = (sparklineData, isPositive) => {
     <svg className="w-16 h-6" viewBox="0 0 60 24" fill="none">
       <path
         d={pathD}
-        stroke={isPositive ? "#10B981" : "#F43F5E"}
+        stroke={isPositive ? COLORS.positive : COLORS.negative}
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -65,14 +66,14 @@ const TopCoins = ({ coins }) => {
   };
 
   return (
-    <div className="w-full bg-[#0b0f19] border border-white/5 rounded-lg p-5 mt-6">
+    <div className="w-full bg-surface border border-white/5 rounded-lg p-5 mt-6">
       {/* Header and Search */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-5">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-white">
             Explore Top Cryptocurrencies
           </h2>
-          <p className="text-xs text-[#71717a] mt-0.5">Real-time market capitalizations and price trends.</p>
+          <p className="text-xs text-muted mt-0.5">Real-time market capitalizations and price trends.</p>
         </div>
         
         {/* Real-time search bar */}
@@ -84,7 +85,7 @@ const TopCoins = ({ coins }) => {
             placeholder="Search coin..."
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
-            className="w-full px-3 py-1.5 rounded bg-[#060912] border border-white/5 text-xs text-white placeholder-[#71717a] focus:outline-none focus:border-[#2563EB] transition-colors"
+            className="w-full px-3 py-1.5 rounded bg-base border border-white/5 text-xs text-white placeholder-muted focus:outline-none focus:border-cobalt transition-colors"
           />
         </div>
       </div>
@@ -125,10 +126,10 @@ const TopCoins = ({ coins }) => {
                           />
                         )}
                         <div className="leading-tight">
-                          <span className="font-bold text-xs text-white group-hover:text-[#FF385C] transition-colors duration-150">
+                          <span className="font-bold text-xs text-white group-hover:text-coral transition-colors duration-150">
                             {coin.name || "N/A"}
                           </span>
-                          <span className="text-[10px] text-[#71717a] font-mono uppercase ml-1.5">
+                          <span className="text-[10px] text-muted font-mono uppercase ml-1.5">
                             {coin.symbol?.toUpperCase() ?? "N/A"}
                           </span>
                         </div>
@@ -140,7 +141,7 @@ const TopCoins = ({ coins }) => {
                     <td className="px-4 py-2 text-right">
                       <span
                         className={`tabular-nums text-xs font-medium ${
-                          isPositive ? "text-[#10B981]" : "text-[#EF4444]"
+                          isPositive ? "text-positive" : "text-negative"
                         }`}
                       >
                         {isPositive ? "▲ " : "▼ "}
@@ -161,7 +162,7 @@ const TopCoins = ({ coins }) => {
               })
             ) : (
               <tr>
-                <td colSpan="6" className="px-4 py-8 text-center text-[#71717a] text-xs">
+                <td colSpan="6" className="px-4 py-8 text-center text-muted text-xs">
                   No assets matching search.
                 </td>
               </tr>

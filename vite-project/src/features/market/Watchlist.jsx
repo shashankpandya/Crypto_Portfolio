@@ -5,6 +5,7 @@ import { useWatchlist } from "../../hooks/useWatchlist";
 import { searchCoins, getCoinDetails } from "../../api";
 import { debounce } from "../../utils/debounce";
 import EmptyState from "../../components/ui/EmptyState";
+import { COLORS } from "../../utils/tokens";
 
 const normalizeCoinDetails = (id, details) => {
   const md = details?.market_data || {};
@@ -33,7 +34,7 @@ const generateSparklinePath = (id, change24h) => {
 };
 
 const TelescopeIcon = () => (
-  <svg className="w-10 h-10 text-[#71717a] mb-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg className="w-10 h-10 text-muted mb-3 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M10.08 9.08l-5.66 5.66M14.32 4.84l4.95 4.95M11.5 7.67l2.83-2.83" />
     <path d="M19 19l-4-4M10 21l3-6M4 21l8-8" />
     <circle cx="12.2" cy="6.2" r="1.5" />
@@ -177,7 +178,7 @@ const Watchlist = ({ coins }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FF385C]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-coral"></div>
       </div>
     );
   }
@@ -218,7 +219,7 @@ const Watchlist = ({ coins }) => {
             placeholder="Type token name or symbol (e.g. bitcoin, eth)..."
             value={searchTerm}
             onChange={handleSearchChange}
-            className="w-full h-10 px-3 pr-10 text-xs rounded bg-[#060912] border border-white/5 text-white placeholder-[#71717a] focus:outline-none focus:border-[#2563EB] transition-colors"
+            className="w-full h-10 px-3 pr-10 text-xs rounded bg-base border border-white/5 text-white placeholder-muted focus:outline-none focus:border-cobalt transition-colors"
           />
           {searchTerm && (
             <button
@@ -226,21 +227,21 @@ const Watchlist = ({ coins }) => {
                 setSearchTerm("");
                 setSearchResults([]);
               }}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[10px] text-[#71717a] hover:text-white"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[10px] text-muted hover:text-white"
             >
               Clear
             </button>
           )}
           {isSearching && (
             <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
-              <div className="animate-spin rounded-full h-3 w-3 border border-[#FF385C] border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-3 w-3 border border-coral border-t-transparent"></div>
             </div>
           )}
         </div>
 
         {/* Suggestion Dropdown Panel */}
         {searchResults.length > 0 && (
-          <div className="absolute left-0 right-0 mt-1.5 bg-[#0c1118] border border-white/5 rounded-lg shadow-2xl overflow-hidden">
+          <div className="absolute left-0 right-0 mt-1.5 bg-surface-raised border border-white/5 rounded-lg shadow-2xl overflow-hidden">
             {searchResults.map((coin) => (
               <button
                 key={coin.id}
@@ -255,10 +256,10 @@ const Watchlist = ({ coins }) => {
                   />
                   <span>
                     <span className="font-bold text-white">{coin.name}</span>
-                    <span className="text-[#71717a] text-[10px] font-mono ml-1.5 uppercase">({coin.symbol})</span>
+                    <span className="text-muted text-[10px] font-mono ml-1.5 uppercase">({coin.symbol})</span>
                   </span>
                 </span>
-                <span className="text-[#38BDF8] font-bold text-[11px] hover:text-[#2563EB]">
+                <span className="text-cobalt font-bold text-[11px] hover:text-cobalt">
                   + Add
                 </span>
               </button>
@@ -276,7 +277,7 @@ const Watchlist = ({ coins }) => {
         />
       ) : (
         /* Dense Table View */
-        <div className="overflow-x-auto border border-white/5 rounded-lg bg-[#0c1118] shadow-lg max-w-3xl mx-auto">
+        <div className="overflow-x-auto border border-white/5 rounded-lg bg-surface-raised shadow-lg max-w-3xl mx-auto">
           <table className="w-full table-auto border-collapse">
             <thead>
               <tr className="bg-transparent text-slate-600 text-[10px] tracking-[0.12em] uppercase font-semibold border-b border-white/5 select-none">
@@ -294,7 +295,7 @@ const Watchlist = ({ coins }) => {
                 if (!coin) {
                   return (
                     <tr key={coinId} className="h-11">
-                      <td colSpan={5} className="px-4 py-2 text-xs text-[#71717a] italic">
+                      <td colSpan={5} className="px-4 py-2 text-xs text-muted italic">
                         Loading {coinId}...
                       </td>
                     </tr>
@@ -305,13 +306,13 @@ const Watchlist = ({ coins }) => {
                   return (
                     <tr key={coinId} className="h-11">
                       <td className="px-4 py-2 text-xs text-white">{coinId}</td>
-                      <td colSpan={3} className="px-4 py-2 text-xs text-[#71717a] italic">
+                      <td colSpan={3} className="px-4 py-2 text-xs text-muted italic">
                         Price data unavailable
                       </td>
                       <td className="px-4 py-2 text-center">
                         <button
                           onClick={() => memoizedRemoveFromWatchlist(coinId)}
-                          className="text-[#EF4444] hover:text-white p-1 rounded font-bold text-sm leading-none transition duration-150 inline-flex items-center justify-center w-6 h-6 hover:bg-[#EF4444]/15"
+                          className="text-negative hover:text-white p-1 rounded font-bold text-sm leading-none transition duration-150 inline-flex items-center justify-center w-6 h-6 hover:bg-negative/15"
                           title={`Remove ${coinId}`}
                         >
                           &times;
@@ -336,10 +337,10 @@ const Watchlist = ({ coins }) => {
                           className="w-6 h-6 mr-2 rounded-full"
                         />
                         <div className="leading-tight">
-                          <span className="font-bold text-xs text-white group-hover:text-[#FF385C] transition-colors duration-150">
+                          <span className="font-bold text-xs text-white group-hover:text-coral transition-colors duration-150">
                             {coin.name}
                           </span>
-                          <span className="text-[10px] text-[#71717a] font-mono uppercase ml-1.5">
+                          <span className="text-[10px] text-muted font-mono uppercase ml-1.5">
                             {coin.symbol}
                           </span>
                         </div>
@@ -351,7 +352,7 @@ const Watchlist = ({ coins }) => {
                     <td className="px-4 py-2 text-right">
                       <span
                         className={`tabular-nums text-xs font-medium ${
-                          isPositive ? "text-[#10B981]" : "text-[#EF4444]"
+                          isPositive ? "text-positive" : "text-negative"
                         }`}
                       >
                         {isPositive ? "▲ " : "▼ "}
@@ -363,7 +364,7 @@ const Watchlist = ({ coins }) => {
                         <svg className="w-16 h-6" viewBox="0 0 50 24" fill="none">
                           <path
                             d={generateSparklinePath(coin.id, change24h)}
-                            stroke={isPositive ? "#10B981" : "#F43F5E"}
+                            stroke={isPositive ? COLORS.positive : COLORS.negative}
                             strokeWidth="1.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -375,7 +376,7 @@ const Watchlist = ({ coins }) => {
                     <td className="px-4 py-2 text-center">
                       <button
                         onClick={() => memoizedRemoveFromWatchlist(coinId)}
-                        className="text-[#EF4444] hover:text-white p-1 rounded font-bold text-sm leading-none transition duration-150 inline-flex items-center justify-center w-6 h-6 hover:bg-[#EF4444]/15"
+                        className="text-negative hover:text-white p-1 rounded font-bold text-sm leading-none transition duration-150 inline-flex items-center justify-center w-6 h-6 hover:bg-negative/15"
                         title={`Remove ${coin.name}`}
                       >
                         &times;
