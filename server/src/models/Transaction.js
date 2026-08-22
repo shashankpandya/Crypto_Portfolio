@@ -57,10 +57,16 @@ const transactionSchema = new mongoose.Schema(
 
     // Position of this event within the transaction's event log.
     // Combined with txHash this uniquely identifies one event in a batch tx.
-    // Null for records synced from getAllTransactions() which lack event metadata.
+    // Absent (not defaulted to null) for records synced from
+    // getAllTransactions(), which lack event metadata — a Mongoose
+    // `default: null` here would materialize an explicit null on every
+    // insert, and the txHash_logIndex_unique sparse index only excludes a
+    // document when ALL of its indexed fields are genuinely absent. With
+    // logIndex forced to null, every historical row collided on
+    // (txHash: absent, logIndex: null) and only the first of each bulk
+    // upsert survived.
     logIndex: {
-      type:    Number,
-      default: null,
+      type: Number,
     },
 
     blockNumber: {

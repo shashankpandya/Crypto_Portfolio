@@ -4,18 +4,19 @@
 
 @layer base {
   body {
-    background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(37, 99, 235, 0.07) 0%, transparent 70%), #050811;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(34, 217, 138, 0.05) 0%, transparent 70%), #0A0C0F;
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 }
 
-/* Premium styling tokens - Sunset Coral & Electric Cobalt */
+/* "Ledger Terminal" background wash — phosphor-green glow instead of a
+   generic blue radial, kept faint so it reads as ambient light, not a hero. */
 .premium-bg {
-  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(37, 99, 235, 0.07) 0%, transparent 70%), #050811;
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(34, 217, 138, 0.05) 0%, transparent 70%), #0A0C0F;
 }
 
 .premium-text-gradient-primary {
-  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 60%, #FF385C 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 60%, #22D98A 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -27,9 +28,9 @@ a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid #2563EB !important;
+  outline: 2px solid #22D98A !important;
   outline-offset: 1px !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2) !important;
+  box-shadow: 0 0 0 3px rgba(34, 217, 138, 0.2) !important;
 }
 
 /* Page container for standardized spacing */
@@ -97,6 +98,22 @@ select:focus-visible {
 
 .animate-fade-in-300 {
   animation: fadeIn 300ms ease-out forwards;
+}
+
+/* Ledger ticker marquee — the app's signature live-data strip (see
+   LedgerTicker.jsx). Duplicated content scrolls exactly -50% so the loop
+   seam is invisible. */
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.animate-ticker {
+  animation: ticker-scroll 38s linear infinite;
+}
+
+.animate-ticker:hover {
+  animation-play-state: paused;
 }
 
 /* Respect prefers-reduced-motion: let every animation/transition jump straight

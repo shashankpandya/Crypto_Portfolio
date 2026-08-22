@@ -3,15 +3,27 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      // "Ledger Terminal" palette — a block explorer / trading-desk read on a
+      // crypto portfolio, not the generic near-black-plus-one-neon-accent
+      // template. `signal` is the single brand accent (phosphor-green,
+      // reads as "verified / on-chain"); `ember` is the secondary warm
+      // accent reserved for the logo and rare highlights, never for CTAs.
       colors: {
-        coral: "#FF385C",
-        cobalt: "#2563EB",
-        surface: "#0b0f19",
-        "surface-raised": "#0c1118",
-        base: "#050811",
-        muted: "#7d7d87",
-        positive: "#10B981",
-        negative: "#EF4444",
+        signal: "#22D98A",
+        ember: "#F5A524",
+        coral: "#F5A524",
+        cobalt: "#22D98A",
+        surface: "#12151A",
+        "surface-raised": "#171B21",
+        base: "#0A0C0F",
+        ink: "#0A0C0F",
+        muted: "#7D8590",
+        positive: "#22D98A",
+        negative: "#FF5C5C",
+      },
+      fontFamily: {
+        sans: ["'Space Grotesk'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        mono: ["'JetBrains Mono'", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       spacing: {
         xs: "0.5rem",

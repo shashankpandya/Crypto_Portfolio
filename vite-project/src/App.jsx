@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate, Link } from "react-router-dom";
 import axios from "axios";
 import Navbar from "./features/home/Navbar";
+import LedgerTicker from "./features/home/LedgerTicker";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { WalletProvider, getStoredToken } from "./context/WalletContext";
 import { useWallet } from "./hooks/useWallet";
@@ -135,6 +136,7 @@ const App = () => {
               </div>
               <div className="relative z-10">
                 <Navbar />
+                <LedgerTicker coins={coins} />
                 <div className="container mx-auto px-4 py-8">
                   <ErrorBoundary>
                     <React.Suspense fallback={<SuspenseFallback />}>

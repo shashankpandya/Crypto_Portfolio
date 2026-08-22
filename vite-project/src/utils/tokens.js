@@ -6,14 +6,16 @@
  * components consuming them still have zero hex literals of their own.
  */
 export const COLORS = {
-  coral: "#FF385C",
-  cobalt: "#2563EB",
-  surface: "#0b0f19",
-  surfaceRaised: "#0c1118",
-  base: "#050811",
-  muted: "#7d7d87",
-  positive: "#10B981",
-  negative: "#EF4444",
+  signal: "#22D98A",
+  ember: "#F5A524",
+  coral: "#F5A524",
+  cobalt: "#22D98A",
+  surface: "#12151A",
+  surfaceRaised: "#171B21",
+  base: "#0A0C0F",
+  muted: "#7D8590",
+  positive: "#22D98A",
+  negative: "#FF5C5C",
 };
 
 /**

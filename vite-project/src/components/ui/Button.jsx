@@ -1,6 +1,6 @@
 const VARIANTS = {
   primary:
-    "bg-coral text-white shadow-[0_4px_12px_0_rgba(255,56,92,0.15)] hover:opacity-95 hover:shadow-[0_6px_16px_0_rgba(255,56,92,0.3)] hover:-translate-y-px active:translate-y-0",
+    "bg-signal text-ink font-semibold shadow-[0_4px_16px_0_rgba(34,217,138,0.25)] hover:opacity-95 hover:shadow-[0_6px_20px_0_rgba(34,217,138,0.4)] hover:-translate-y-px active:translate-y-0",
   secondary:
     "bg-white/[0.03] border border-white/[0.08] text-white hover:bg-white/[0.06] hover:border-white/[0.15] hover:-translate-y-px",
 };

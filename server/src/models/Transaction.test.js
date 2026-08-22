@@ -10,14 +10,18 @@
 const Transaction = require('./Transaction');
 
 describe('Transaction Schema', () => {
-  it('has a logIndex field with default null', () => {
+  it('leaves logIndex undefined (not defaulted) when omitted', () => {
+    // A `default: null` here would make Mongoose materialize an explicit
+    // null on every insert, which defeats the compound sparse index below —
+    // sparse only excludes a document when ALL indexed fields are genuinely
+    // absent (see Transaction.js for the historical-sync collision this caused).
     const doc = new Transaction({
       sender:    '0xabc',
       recipient: '0xdef',
       amount:    '1000000000000000000',
       timestamp: 1700000000,
     });
-    expect(doc.logIndex).toBeNull();
+    expect(doc.logIndex).toBeUndefined();
   });
 
   it('does NOT have a single-field unique index on txHash alone', () => {
@@ -77,6 +81,6 @@ describe('Transaction Schema', () => {
       timestamp: 1700000000,
     });
     expect(doc.txHash).toBeUndefined();
-    expect(doc.logIndex).toBeNull();
+    expect(doc.logIndex).toBeUndefined();
   });
 });

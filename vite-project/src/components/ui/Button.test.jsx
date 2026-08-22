@@ -26,12 +26,12 @@ describe("Button (P4-02 / P6-02)", () => {
 
   it("applies the primary variant class by default", () => {
     render(<Button>Go</Button>);
-    expect(screen.getByRole("button")).toHaveClass("bg-coral");
+    expect(screen.getByRole("button")).toHaveClass("bg-signal");
   });
 
   it("applies the secondary variant class when requested", () => {
     render(<Button variant="secondary">Go</Button>);
-    expect(screen.getByRole("button")).not.toHaveClass("bg-coral");
+    expect(screen.getByRole("button")).not.toHaveClass("bg-signal");
   });
 
   it("merges a custom className with the base classes", () => {
