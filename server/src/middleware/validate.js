@@ -39,7 +39,10 @@ function validate(schemas) {
           field: e.path ? e.path.join('.') : '',
           message: e.message,
         }));
-        const primaryMessage = issues[0]?.message || 'Validation failed.';
+        let primaryMessage = issues[0]?.message || 'Validation failed.';
+        if (primaryMessage.startsWith('Invalid input') && issues[0]?.path?.length) {
+          primaryMessage = `${issues[0].path.join('.')} is required.`;
+        }
         return next(AppError.badRequest(primaryMessage, { errors: details }));
       }
       return next(err);

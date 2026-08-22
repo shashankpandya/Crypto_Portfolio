@@ -42,4 +42,34 @@ describe('Zod validation for market and transactions routes (P3-03)', () => {
       expect(res2.status).toBe(400);
     });
   });
+
+  describe('Auth and Watchlist route validation (P3-04)', () => {
+    it('GET /api/auth/nonce rejects invalid address', async () => {
+      const res = await request(app).get('/api/auth/nonce?address=bad-address');
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body).toHaveProperty('details');
+    });
+
+    it('POST /api/auth/verify rejects missing message or signature', async () => {
+      const res = await request(app).post('/api/auth/verify').send({});
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body).toHaveProperty('details');
+    });
+
+    it('POST /api/watchlist/:walletAddress/coins rejects invalid coinId or address', async () => {
+      const jwt = require('jsonwebtoken');
+      const testToken = jwt.sign({ address: '0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc' }, process.env.JWT_SECRET || 'dev_secret_change_in_production_32char_minimum!');
+
+      const res = await request(app)
+        .post('/api/watchlist/0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc/coins')
+        .set('Authorization', `Bearer ${testToken}`)
+        .send({ coinId: '' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body).toHaveProperty('details');
+    });
+  });
 });

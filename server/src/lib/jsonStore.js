@@ -78,7 +78,29 @@ function writeJsonNow(filePath, data) {
   const json = JSON.stringify(data, null, 2);
 
   fs.writeFileSync(tmpFile, json, 'utf8');
-  fs.renameSync(tmpFile, filePath);
+
+  let retries = 5;
+  while (retries > 0) {
+    try {
+      fs.renameSync(tmpFile, filePath);
+      return;
+    } catch (err) {
+      retries -= 1;
+      if (retries === 0) {
+        try {
+          fs.writeFileSync(filePath, json, 'utf8');
+          if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
+          return;
+        } catch {
+          throw err;
+        }
+      }
+      const start = Date.now();
+      while (Date.now() - start < 15) {
+        // spin
+      }
+    }
+  }
 }
 
 module.exports = { readJson, writeJson };
