@@ -543,20 +543,21 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-01
+### P2-01 ✓ DONE
 **Title:** Delete dead frontend files
 **Goal:** Remove three files nothing references.
 **Files affected:** delete `vite-project/src/index.js`, `vite-project/src/serviceWorker.js`, `vite-project/src/components/index.js`
 **Risk:** L
 **Effort:** 30 min
 **Verification checklist:**
-- [ ] Grep each filename and every symbol it exports → zero references
-- [ ] `index.js` is the CRA-era duplicate entrypoint; `main.jsx` is the real one (confirm in `index.html`)
-- [ ] `serviceWorker.js` references `/static/js/bundle.js` and is never registered
-- [ ] `components/index.js` barrel is bypassed by `App.jsx`
-- [ ] `npm run build` succeeds; bundle size unchanged or smaller
+- [x] Grep each filename and every symbol it exports → zero references
+- [x] `index.js` is the CRA-era duplicate entrypoint; `main.jsx` is the real one (confirm in `index.html`)
+- [x] `serviceWorker.js` references `/static/js/bundle.js` and is never registered
+- [x] `components/index.js` barrel is bypassed by `App.jsx`
+- [x] `npm run build` succeeds; bundle size unchanged (364 modules, same as baseline)
+- [x] All 68 server + 18 vite + 8 contract tests pass
 **Rollback:** Revert.
-**Commit:** `chore(client): delete dead entrypoint, service worker, and barrel file`
+**Commit:** `chore(client): delete dead entrypoint, service worker, and barrel file` — commit afe74fd
 **Blocked by:** —
 
 ---
