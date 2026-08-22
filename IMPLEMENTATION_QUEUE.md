@@ -630,19 +630,19 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-06
+### P2-06 ✓ DONE
 **Title:** Add atomic jsonStore
 **Goal:** Replace non-atomic `readFileSync`/`writeFileSync` with write-temp-then-rename plus an in-process write queue. Additive — no caller migrated yet.
 **Files affected:** `server/src/lib/jsonStore.js` (new)
 **Risk:** L — nothing consumes it.
 **Effort:** 60 min
 **Verification checklist:**
-- [ ] Writes go to a temp file, then `rename` (atomic on POSIX and NTFS)
-- [ ] In-process write queue serializes concurrent writes to the same path
-- [ ] Test: 100 parallel writes → zero lost records, file always parseable
-- [ ] Test: read of a file that does not exist returns the default, does not throw
+- [x] Writes go to a temp file, then `rename` (atomic on POSIX and NTFS)
+- [x] In-process write queue serializes concurrent writes to the same path
+- [x] Test: 100 parallel writes → zero lost records, file always parseable
+- [x] Test: read of a file that does not exist returns the default, does not throw
 **Rollback:** Revert; no caller depends on it.
-**Commit:** `feat(server): add atomic jsonStore with write queue`
+**Commit:** `feat(server): add atomic jsonStore with write queue` f0ebe63
 **Blocked by:** —
 
 ---
