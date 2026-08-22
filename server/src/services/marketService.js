@@ -159,6 +159,46 @@ class MarketService {
 
     return coins;
   }
+
+  // -------------------------------------------------------------------------
+  // getCoinsByIds
+  // Batches an arbitrary set of coin ids into a single CoinGecko request
+  // (P5-06) — used for watchlist entries outside the top-N `getCoins()`
+  // window. Not cached: id sets are per-user/per-watchlist and would not
+  // benefit from the same top-N PriceCache the dashboard listing uses.
+  //
+  // @param {string[]} ids  – CoinGecko coin ids.
+  // @returns {Promise<Array>} Array of coin market objects (may be shorter
+  //   than `ids` if some ids don't exist — CoinGecko silently omits them).
+  // -------------------------------------------------------------------------
+  async getCoinsByIds(ids) {
+    const apiKey = process.env.COINGECKO_API_KEY || process.env.VITE_COINGECKO_API_KEY;
+    const headers = {
+      Accept: 'application/json',
+    };
+    if (apiKey) {
+      headers['x-cg-demo-api-key'] = apiKey;
+    }
+
+    try {
+      const response = await axios.get(COINGECKO_MARKETS_URL, {
+        headers,
+        params: {
+          vs_currency: DEFAULT_VS_CURRENCY,
+          ids:         ids.join(','),
+          sparkline:   false,
+        },
+        timeout: 10_000,
+      });
+
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (err) {
+      const status  = err.response?.status;
+      const message = err.response?.data?.error ?? err.message;
+      logger.error({ err, status }, `[MarketService] CoinGecko getCoinsByIds failed (HTTP ${status}): ${message}`);
+      throw new Error(`CoinGecko API error: ${message}`);
+    }
+  }
 }
 
 // Export a singleton.

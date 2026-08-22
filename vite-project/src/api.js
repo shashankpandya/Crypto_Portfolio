@@ -259,6 +259,41 @@ export const fetchCoins = async (limit = 100) => {
   }
 };
 
+/**
+ * fetchCoinsByIds (P5-06) — batches an arbitrary set of coin ids into one
+ * request instead of N individual `/coins/:id` calls. Used for watchlist
+ * entries outside the top-100 dashboard fetch (P4-05). Server first (own
+ * batched CoinGecko `ids=` call), direct CoinGecko as an explicit fallback.
+ * A coin id CoinGecko doesn't recognize is simply absent from the returned
+ * array — callers should treat a missing id as a per-row failure, not fail
+ * the whole batch.
+ */
+export const fetchCoinsByIds = async (ids) => {
+  if (!ids || ids.length === 0) return [];
+  const idsParam = ids.join(',');
+
+  try {
+    const response = await axios.get('/api/market/coins', { params: { ids: idsParam } });
+    if (response.data?.success && Array.isArray(response.data.data)) {
+      return response.data.data;
+    }
+    throw new Error('Unexpected /api/market/coins response shape');
+  } catch (serverError) {
+    console.warn("Server market API unavailable for batched ids, falling back to direct CoinGecko call:", serverError);
+  }
+
+  try {
+    return await cachedRequest('/coins/markets', {
+      vs_currency: 'usd',
+      ids: idsParam,
+      sparkline: false,
+    });
+  } catch (error) {
+    console.warn("Error fetching coins by id from API:", error);
+    return MOCK_COINS.filter((c) => ids.includes(c.id));
+  }
+};
+
 export const fetchAllCoins = async () => {
   try {
     return await cachedRequest('/coins/markets', {

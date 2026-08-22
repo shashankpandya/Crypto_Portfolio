@@ -19,6 +19,29 @@ const MAX_LIMIT          = 250;
 // Delegates to marketService which handles caching transparently.
 // ---------------------------------------------------------------------------
 async function getCoins(req, res) {
+  // P5-06: explicit id batch (e.g. watchlist entries outside the top-N)
+  // takes a separate, uncached path — the PriceCache is keyed to the top-N
+  // by rank, not to arbitrary id sets, so mixing them would either miss
+  // cache entirely or return stale/wrong coins for ids outside that window.
+  if (req.query.ids) {
+    const ids = req.query.ids
+      .split(',')
+      .map((id) => id.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (ids.length === 0) {
+      throw AppError.badRequest('ids parameter must contain at least one coin id.');
+    }
+
+    const coins = await marketService.getCoinsByIds(ids);
+
+    return res.status(200).json({
+      success: true,
+      count:   coins.length,
+      data:    coins,
+    });
+  }
+
   const limit = Math.min(
     MAX_LIMIT,
     Math.max(1, parseInt(req.query.limit, 10) || DEFAULT_LIMIT),

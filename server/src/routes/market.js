@@ -13,6 +13,9 @@ const router = Router();
 const getCoinsSchema = {
   query: z.object({
     limit: z.coerce.number().int().min(1).max(250).optional(),
+    // Comma-separated CoinGecko coin ids (P5-06) — batches an arbitrary set of
+    // coins (e.g. watchlist entries outside the top-N) into one request.
+    ids: z.string().trim().min(1).max(2000).optional(),
   }),
 };
 

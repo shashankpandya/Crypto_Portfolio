@@ -2,22 +2,10 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useWallet } from "../../hooks/useWallet";
 import { useWatchlist } from "../../hooks/useWatchlist";
-import { searchCoins, getCoinDetails } from "../../api";
+import { searchCoins, fetchCoinsByIds } from "../../api";
 import { debounce } from "../../utils/debounce";
 import EmptyState from "../../components/ui/EmptyState";
 import { COLORS } from "../../utils/tokens";
-
-const normalizeCoinDetails = (id, details) => {
-  const md = details?.market_data || {};
-  return {
-    id,
-    name: details?.name || id,
-    symbol: details?.symbol || "",
-    image: details?.image?.large || details?.image?.small || "",
-    current_price: md.current_price?.usd,
-    price_change_percentage_24h: md.price_change_percentage_24h,
-  };
-};
 
 const generateSparklinePath = (id, change24h) => {
   const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -77,8 +65,9 @@ const Watchlist = ({ coins }) => {
     loadWatchlist();
   }, [currentAccount, fetchWatchlistDB, getAnonymousWatchlist]);
 
-  // Fetch coins outside the top-100 fetch individually so watched coins
-  // outside the top 100 still render (P4-05).
+  // Fetch coins outside the top-100 fetch in a single batched request by id
+  // (P5-06, completing the P4-05 fix at the data layer — that version made
+  // N individual /coins/:id calls; this makes one /coins/markets?ids=... call).
   useEffect(() => {
     const topCoinIds = new Set((coins || []).map((c) => c.id));
     const missingIds = watchlist.filter(
@@ -87,19 +76,32 @@ const Watchlist = ({ coins }) => {
     if (missingIds.length === 0) return;
 
     let cancelled = false;
-    missingIds.forEach(async (id) => {
-      try {
-        const details = await getCoinDetails(id);
+    fetchCoinsByIds(missingIds)
+      .then((results) => {
+        if (cancelled) return;
+        const byId = new Map(results.map((c) => [c.id, c]));
+        setMissingCoinsData((prev) => {
+          const next = { ...prev };
+          for (const id of missingIds) {
+            // A coin id CoinGecko doesn't recognize is simply absent from
+            // the response — treated as a per-row failure, not a batch failure.
+            next[id] = byId.get(id) || { id, failed: true };
+          }
+          return next;
+        });
+      })
+      .catch((err) => {
+        console.error("Failed to fetch watchlist coins by id:", err);
         if (!cancelled) {
-          setMissingCoinsData((prev) => ({ ...prev, [id]: normalizeCoinDetails(id, details) }));
+          setMissingCoinsData((prev) => {
+            const next = { ...prev };
+            for (const id of missingIds) {
+              next[id] = { id, failed: true };
+            }
+            return next;
+          });
         }
-      } catch (err) {
-        console.error(`Failed to fetch watchlist coin ${id}:`, err);
-        if (!cancelled) {
-          setMissingCoinsData((prev) => ({ ...prev, [id]: { id, failed: true } }));
-        }
-      }
-    });
+      });
 
     return () => {
       cancelled = true;
