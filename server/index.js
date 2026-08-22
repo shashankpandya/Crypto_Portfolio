@@ -12,6 +12,42 @@ const logger                 = require('./src/lib/logger');
 const PORT = process.env.PORT || 5000;
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 
+/**
+ * checkBootEnvironment (P5-07) — the baseline captured on this repo had none
+ * of VITE_CONTRACT_ADDRESS, MONGO_URI, or ALCHEMY_URL set, so chain and DB
+ * features were silently off. Individual subsystems already degrade
+ * gracefully and log their own failures (dbState fallback in config/db.js,
+ * blockchainService._init()'s error log from P3-09) — this adds one loud,
+ * consolidated summary at boot so "why is chain/DB stuff not working" is
+ * answerable from the first few log lines instead of scattered warnings.
+ * Never throws — missing optional vars degrade, they don't crash the server.
+ */
+function checkBootEnvironment() {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const logAtSeverity = isProduction ? 'error' : 'warn';
+
+  const disabled = [];
+  if (!process.env.MONGO_URI) {
+    disabled.push('MongoDB persistence (MONGO_URI not set — falling back to server/data/*.json)');
+  }
+  if (!process.env.ALCHEMY_URL) {
+    disabled.push('Blockchain indexer (ALCHEMY_URL not set — no on-chain event listening or sync)');
+  }
+  if (!process.env.CONTRACT_ADDRESS && !process.env.VITE_CONTRACT_ADDRESS) {
+    disabled.push('Contract reads (CONTRACT_ADDRESS/VITE_CONTRACT_ADDRESS not set — transaction indexing disabled)');
+  }
+
+  if (disabled.length > 0) {
+    logger[logAtSeverity](
+      { disabledFeatures: disabled },
+      `[Server] Starting with ${disabled.length} feature(s) disabled due to missing environment variables:\n` +
+        disabled.map((line) => `  - ${line}`).join('\n'),
+    );
+  } else {
+    logger.info('[Server] All optional environment variables present — no features disabled at boot.');
+  }
+}
+
 async function createShutdownHandler(server, blockchain = blockchainService) {
   let isShuttingDown = false;
 
@@ -64,6 +100,8 @@ async function createShutdownHandler(server, blockchain = blockchainService) {
 }
 
 async function start() {
+  checkBootEnvironment();
+
   const dbConnected = await connectDB();
 
   if (!dbConnected) {
