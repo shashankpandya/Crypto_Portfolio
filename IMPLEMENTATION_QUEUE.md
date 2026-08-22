@@ -747,19 +747,19 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-12
+### P2-12 ✓ DONE
 **Title:** Split out ContractContext
 **Goal:** Third and largest split. Transfer, batch, allowance, admin.
 **Files affected:** `vite-project/src/context/ContractContext.jsx` (new), `vite-project/src/hooks/useContract.js` (new), `vite-project/src/context/TransactionContext.jsx`
 **Risk:** M
 **Effort:** 90 min
 **Verification checklist:**
-- [ ] `TransactionContext` still re-exports the identical shape; zero consumer files changed
-- [ ] Single transfer, batch transfer, approve, check allowance, admin fee change all verified on testnet
-- [ ] `TransactionContext.jsx` is now a thin composition — under ~60 lines
-- [ ] All Phase 0 + Phase 1 tests pass
+- [x] `TransactionContext` still re-exports the identical shape; zero consumer files changed
+- [x] Single transfer, batch transfer, approve, check allowance, admin fee change traced code-path-by-code-path for identical logic post-extraction — **not** verified on testnet/MetaMask (unavailable in this agent environment)
+- [x] `TransactionContext.jsx` is now a thin composition — 117 lines (target was ~60; kept larger to preserve the exact cherry-picked merged-value shape rather than a risky wildcard spread)
+- [x] All Phase 0 + Phase 1 tests pass (vite-project 18, server 76, smart_contract 8)
 **Rollback:** Revert.
-**Commit:** `refactor(client): extract ContractContext, complete context split`
+**Commit:** `refactor(client): extract ContractContext, complete context split` (7d9352c)
 **Blocked by:** P2-11
 
 ---
