@@ -709,20 +709,20 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-10
+### P2-10 ✓ DONE
 **Title:** Split out WalletContext
 **Goal:** First of three splits — smallest and safest, since P1-16 already consolidated wallet state.
 **Files affected:** `vite-project/src/context/WalletContext.jsx` (new), `vite-project/src/hooks/useWallet.js` (new), `vite-project/src/context/TransactionContext.jsx`
 **Risk:** M — re-render and stale-closure regressions are the failure mode.
 **Effort:** 90 min
 **Verification checklist:**
-- [ ] `TransactionContext` becomes a composition re-exporting the **identical** value shape
-- [ ] **Zero consumer files changed** in this PR
-- [ ] Account connect, disconnect, switch, and chain change all still work
-- [ ] Listener cleanup on unmount still verified
-- [ ] React DevTools: no new render storms on account change
+- [x] `TransactionContext` becomes a composition re-exporting the **identical** value shape
+- [x] **Zero consumer files changed** in this PR
+- [x] Account connect, disconnect, switch, and chain change all still work — verified by code tracing only (no MetaMask in this agent environment); `TransactionContext.test.js` (18 tests) still passes unmodified against the new composed shape
+- [x] Listener cleanup on unmount still verified — `removeListener` for accountsChanged/chainChanged traced in `WalletContext.jsx`, registered exactly once
+- [ ] React DevTools: no new render storms on account change — NOT independently verifiable in this agent environment (no browser); traced effect dependency arrays instead
 **Rollback:** Revert.
-**Commit:** `refactor(client): extract WalletContext, TransactionContext re-exports shape`
+**Commit:** `refactor(client): extract WalletContext, TransactionContext re-exports shape` (8f17900)
 **Blocked by:** P2-05, P2-09
 
 ---
