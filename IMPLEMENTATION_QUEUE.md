@@ -727,21 +727,23 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-11
+### P2-11 ✓ DONE
 **Title:** Split out WatchlistContext and consolidate the triplicated localStorage logic
 **Goal:** Second split. `CoinDetails.jsx` inlines a third copy of the read/modify/write pattern — fold all three into one hook.
 **Files affected:** `vite-project/src/context/WatchlistContext.jsx` (new), `vite-project/src/hooks/useWatchlist.js` (new), `vite-project/src/context/TransactionContext.jsx`, `vite-project/src/components/CoinDetails.jsx`
 **Risk:** M
 **Effort:** 90 min
 **Verification checklist:**
-- [ ] `watchlist_${account.toLowerCase()}` and `watchlist_anonymous` keys written from exactly one module — grep proves it
-- [ ] `CoinDetails` uses the hook, no inline localStorage
-- [ ] `TransactionContext` still re-exports the identical shape
-- [ ] Anonymous → connected watchlist sync behavior unchanged
-- [ ] Add and remove work from Watchlist page and CoinDetails page alike
+- [x] `watchlist_${account.toLowerCase()}` and `watchlist_anonymous` keys written from exactly one module — grep proves it
+- [x] `CoinDetails` uses the hook, no inline localStorage
+- [x] `TransactionContext` still re-exports the identical shape
+- [x] Anonymous → connected watchlist sync behavior unchanged
+- [x] Add and remove work from Watchlist page and CoinDetails page alike (traced code paths; no browser/MetaMask available in this agent environment to click through — see note below)
 **Rollback:** Revert.
-**Commit:** `refactor(client): extract WatchlistContext and consolidate localStorage logic`
+**Commit:** `refactor(client): extract WatchlistContext and consolidate localStorage logic` (283390f)
 **Blocked by:** P2-10
+
+**Note:** `Watchlist.jsx` also had a copy of this pattern (not just `CoinDetails.jsx`) and required a small surgical edit (replaced its inline `localStorage.getItem/setItem("watchlist_*")` calls with the new `useWatchlist()` hook functions) to satisfy the "exactly one module" grep-proof requirement — flagged per the task's "stop and reconsider" instruction rather than silently expanding scope.
 
 ---
 
