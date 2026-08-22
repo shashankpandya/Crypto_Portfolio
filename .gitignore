@@ -61,3 +61,16 @@ coverage/
 CLAUDE.md
 graphify-out/
 backup/
+
+# Internal planning / implementation-tracking docs (not for the remote)
+IMPLEMENTATION_QUEUE.md
+MASTER_IMPLEMENTATION_PLAN.md
+PROJECT_MEMORY.md
+PHASE_1_RETROSPECTIVE.md
+AGENTS.md
+docs/BASELINE.md
+docs/MANUAL_TEST_CHECKLIST.md
+docs/DEPENDENCY_AUDIT.md
+docs/CONTRACT_STATE.md
+docs/FREEZE_LIST.md
+docs/api-smoke.http
