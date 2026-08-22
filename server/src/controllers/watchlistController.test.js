@@ -1,14 +1,18 @@
 'use strict';
 
 /**
- * watchlistController.test.js (P6-03)
- * Controller tests against the repository's Mongo branch — `dbState.connected`
- * is flipped true and the Mongoose `Watchlist` model's methods are mocked
- * (vi.spyOn), following the same pattern marketService.test.js already uses.
- * The JSON-fallback branch (dbState.connected = false, no live Mongo needed)
- * is covered separately by P6-04.
+ * watchlistController.test.js (P6-03 / P6-04)
+ * P6-03: controller tests against the repository's Mongo branch —
+ * `dbState.connected` is flipped true and the Mongoose `Watchlist` model's
+ * methods are mocked (vi.spyOn), following the same pattern
+ * marketService.test.js already uses.
+ * P6-04: the same controller routes exercised against the JSON-fallback
+ * branch (see that describe block for why it spies on the built-in `fs`
+ * module rather than mocking jsonStore's exports).
  */
 
+const fs = require('fs');
+const path = require('path');
 const request = require('supertest');
 const app = require('../app');
 const Watchlist = require('../models/Watchlist');
@@ -139,6 +143,143 @@ describe('watchlistController — Mongo path (P6-03)', () => {
 
       const res = await request(app).delete(`/api/watchlist/${ADDRESS}/coins/bitcoin`);
 
+      expect(res.status).toBe(404);
+      expect(res.body.success).toBe(false);
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// P6-04 — JSON-fallback branch (dbState.connected = false / undefined).
+//
+// watchlistRepo.js destructures `const { readJson, writeJson } =
+// require('../lib/jsonStore')` at import time, so `vi.mock('../lib/jsonStore')`
+// / `vi.spyOn(jsonStore, 'readJson')` cannot intercept the repo's already
+// -bound local reference (confirmed by hand: the real filesystem functions
+// ran regardless of the mock).
+//
+// jsonStore itself, however, accesses the built-in `fs` module via
+// `fs.readFileSync(...)`/`fs.renameSync(...)` — NOT destructured — so
+// spying on the shared `fs` module object DOES work. Earlier version of
+// this block wrote directly to the real server/data/watchlist.json with a
+// snapshot/restore around it; that raced with addressNormalization.test.js
+// (P1-07), which also exercises this same JSON-fallback path against the
+// real file with no such isolation, and both run in parallel worker
+// threads — confirmed flaky (~1-in-4 runs) with real cross-file data
+// bleed. Instead, `fs.readFileSync`/`fs.renameSync` (the two calls that
+// touch a *real* path: jsonStore reads the target file directly, and
+// commits a write by renaming its temp file onto the target path) are
+// intercepted ONLY when the path resolves to WATCHLIST_FILE, backed by an
+// in-memory store; every other path (including jsonStore's own temp files)
+// falls through to the real fs unmodified. The real watchlist.json file is
+// never touched by this block at all.
+// ---------------------------------------------------------------------------
+describe('watchlistController — JSON fallback path (P6-04)', () => {
+  const WATCHLIST_FILE = path.resolve(__dirname, '../../data/watchlist.json');
+  const realReadFileSync = fs.readFileSync.bind(fs);
+  const realRenameSync = fs.renameSync.bind(fs);
+  const realUnlinkSync = fs.unlinkSync.bind(fs);
+
+  let store; // null = simulates the file not existing yet
+  let originalLocalsDbState;
+
+  beforeEach(() => {
+    store = null;
+
+    vi.spyOn(fs, 'readFileSync').mockImplementation((filePath, ...rest) => {
+      if (typeof filePath === 'string' && path.resolve(filePath) === WATCHLIST_FILE) {
+        if (store === null) {
+          const err = new Error('ENOENT: no such file or directory');
+          err.code = 'ENOENT';
+          throw err;
+        }
+        return JSON.stringify(store);
+      }
+      return realReadFileSync(filePath, ...rest);
+    });
+
+    // jsonStore's writeJson commits by renaming a real temp file onto the
+    // target path — intercept only that final rename, then clean up the
+    // real temp file jsonStore actually created on disk.
+    vi.spyOn(fs, 'renameSync').mockImplementation((src, dest) => {
+      if (typeof dest === 'string' && path.resolve(dest) === WATCHLIST_FILE) {
+        store = JSON.parse(realReadFileSync(src, 'utf8'));
+        realUnlinkSync(src);
+        return;
+      }
+      return realRenameSync(src, dest);
+    });
+
+    originalLocalsDbState = app.locals.dbState;
+    app.locals.dbState = { connected: false };
+  });
+
+  afterEach(() => {
+    app.locals.dbState = originalLocalsDbState;
+    vi.restoreAllMocks();
+  });
+
+  const seed = (data) => {
+    store = data;
+  };
+  const readStore = () => store;
+
+  describe('GET /api/watchlist/:walletAddress', () => {
+    it('returns an empty coins array when no local entry exists yet', async () => {
+      const res = await request(app).get(`/api/watchlist/${ADDRESS}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual({ walletAddress: ADDRESS, coins: [] });
+    });
+
+    it('matches the Mongo-path response shape for an existing entry', async () => {
+      seed({ [ADDRESS]: ['bitcoin', 'ethereum'] });
+      const res = await request(app).get(`/api/watchlist/${ADDRESS}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data.walletAddress).toBe(ADDRESS);
+      expect(res.body.data.coins.map((c) => c.coinId)).toEqual(['bitcoin', 'ethereum']);
+      expect(res.body.data.coins[0]).toHaveProperty('addedAt');
+    });
+  });
+
+  describe('POST /api/watchlist/:walletAddress/coins', () => {
+    it('creates the local entry and adds the coin', async () => {
+      const res = await request(app)
+        .post(`/api/watchlist/${ADDRESS}/coins`)
+        .send({ coinId: 'bitcoin' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.coins.map((c) => c.coinId)).toEqual(['bitcoin']);
+      expect(readStore()[ADDRESS]).toEqual(['bitcoin']);
+    });
+
+    it('does not duplicate a coin already on the local list', async () => {
+      seed({ [ADDRESS]: ['bitcoin'] });
+      const res = await request(app)
+        .post(`/api/watchlist/${ADDRESS}/coins`)
+        .send({ coinId: 'bitcoin' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.coins).toHaveLength(1);
+    });
+
+    it('returns 400 for a missing coinId, matching the Mongo path', async () => {
+      const res = await request(app).post(`/api/watchlist/${ADDRESS}/coins`).send({});
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('DELETE /api/watchlist/:walletAddress/coins/:coinId', () => {
+    it('removes the coin from the local list', async () => {
+      seed({ [ADDRESS]: ['bitcoin', 'ethereum'] });
+      const res = await request(app).delete(`/api/watchlist/${ADDRESS}/coins/bitcoin`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.coins.map((c) => c.coinId)).toEqual(['ethereum']);
+      expect(readStore()[ADDRESS]).toEqual(['ethereum']);
+    });
+
+    it('returns 404 when no local entry exists for the wallet, matching the Mongo path', async () => {
+      const res = await request(app).delete(`/api/watchlist/${ADDRESS}/coins/bitcoin`);
       expect(res.status).toBe(404);
       expect(res.body.success).toBe(false);
     });

@@ -1,12 +1,13 @@
 'use strict';
 
 /**
- * marketController.test.js (P6-03)
- * Controller tests against the Mongo-backed PriceCache path — `dbState.connected`
- * is flipped true and `PriceCache.find` is mocked with a fresh cache hit, the
- * same pattern marketService.test.js already established. `getCoinDetails`
- * never touches Mongo (it's an uncached passthrough), so it's exercised via
- * a mocked axios instead. The JSON/no-cache fallback path is covered by P6-04.
+ * marketController.test.js (P6-03 / P6-04)
+ * P6-03: controller tests against the Mongo-backed PriceCache path —
+ * `dbState.connected` is flipped true and `PriceCache.find` is mocked with a
+ * fresh cache hit, the same pattern marketService.test.js already
+ * established. `getCoinDetails` never touches Mongo (it's an uncached
+ * passthrough), so it's exercised via a mocked axios instead.
+ * P6-04: the no-cache fallback branch (dbState.connected = false).
  */
 
 const request = require('supertest');
@@ -59,6 +60,31 @@ describe('marketController — Mongo cache path (P6-03)', () => {
       expect(res.status).toBe(400);
       expect(findSpy).not.toHaveBeenCalled();
     });
+
+    it('routes ?ids= through the uncached id-batch path, bypassing PriceCache entirely (P5-06)', async () => {
+      const findSpy = vi.spyOn(PriceCache, 'find');
+      vi.spyOn(axios, 'get').mockResolvedValue({
+        data: [{ id: 'bitcoin' }, { id: 'ethereum' }],
+      });
+
+      const res = await request(app).get('/api/market/coins?ids=bitcoin,ethereum');
+
+      expect(res.status).toBe(200);
+      expect(res.body.count).toBe(2);
+      expect(res.body.data.map((c) => c.id)).toEqual(['bitcoin', 'ethereum']);
+      expect(findSpy).not.toHaveBeenCalled();
+    });
+
+    it('lower-cases and trims ids and de-duplicates whitespace-only entries', async () => {
+      const getSpy = vi.spyOn(axios, 'get').mockResolvedValue({ data: [] });
+
+      await request(app).get('/api/market/coins?ids= Bitcoin ,, Ethereum ');
+
+      expect(getSpy).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ params: expect.objectContaining({ ids: 'bitcoin,ethereum' }) })
+      );
+    });
   });
 
   describe('GET /api/market/coins/:coinId', () => {
@@ -90,5 +116,69 @@ describe('marketController — Mongo cache path (P6-03)', () => {
       expect(res.status).toBe(429);
       expect(res.body.success).toBe(false);
     });
+
+    it('falls back to a 500 for a network-level failure with no HTTP response at all', async () => {
+      vi.spyOn(axios, 'get').mockRejectedValue(new Error('ECONNRESET'));
+
+      const res = await request(app).get('/api/market/coins/bitcoin');
+
+      expect(res.status).toBe(500);
+      expect(res.body.success).toBe(false);
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// P6-04 — no-cache fallback branch (dbState.connected = false). marketService
+// reads the config/db.js `dbState` singleton directly (not via app.locals),
+// and unlike jsonStore's destructured readJson/writeJson, dbState is a
+// mutable object reference — mutating `dbState.connected` here IS visible to
+// marketService, so no filesystem workaround is needed for this controller.
+// ---------------------------------------------------------------------------
+describe('marketController — no-cache fallback path (P6-04)', () => {
+  let originalConnected;
+
+  beforeEach(() => {
+    originalConnected = dbState.connected;
+    dbState.connected = false;
+  });
+
+  afterEach(() => {
+    dbState.connected = originalConnected;
+    vi.restoreAllMocks();
+  });
+
+  it('fetches directly from CoinGecko and skips the PriceCache read entirely', async () => {
+    const findSpy = vi.spyOn(PriceCache, 'find');
+    vi.spyOn(axios, 'get').mockResolvedValue({
+      data: [{ id: 'bitcoin', symbol: 'btc', market_cap_rank: 1, current_price: 60000 }],
+    });
+
+    const res = await request(app).get('/api/market/coins?limit=1');
+
+    expect(res.status).toBe(200);
+    expect(res.body.data[0].id).toBe('bitcoin');
+    expect(findSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not attempt a PriceCache write when the DB is disconnected', async () => {
+    const bulkWriteSpy = vi.spyOn(PriceCache, 'bulkWrite');
+    vi.spyOn(axios, 'get').mockResolvedValue({
+      data: [{ id: 'bitcoin', symbol: 'btc', market_cap_rank: 1, current_price: 60000 }],
+    });
+
+    const res = await request(app).get('/api/market/coins?limit=1');
+
+    expect(res.status).toBe(200);
+    expect(bulkWriteSpy).not.toHaveBeenCalled();
+  });
+
+  it('surfaces a CoinGecko outage as a 500, matching the cached-path error contract', async () => {
+    vi.spyOn(axios, 'get').mockRejectedValue(new Error('ETIMEDOUT'));
+
+    const res = await request(app).get('/api/market/coins?limit=1');
+
+    expect(res.status).toBe(500);
+    expect(res.body.success).toBe(false);
   });
 });
