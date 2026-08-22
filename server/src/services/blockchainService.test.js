@@ -266,3 +266,22 @@ describe('blockchainService RPC reconnect and backoff (P3-07)', () => {
     expect(status).toHaveProperty('reconnectAttempts');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Indexer Block Cursor Persistence (P3-08)
+// ---------------------------------------------------------------------------
+describe('blockchainService Block Cursor Persistence (P3-08)', () => {
+  const blockchainService = require('./blockchainService');
+  const testContract = '0x1234567890123456789012345678901234567890';
+
+  it('persists and retrieves last indexed block cursor', async () => {
+    await blockchainService.saveLastIndexedBlock(testContract, 11542600);
+    const cursor = await blockchainService.getLastIndexedBlock(testContract);
+    expect(cursor).toBe(11542600);
+
+    // Advances cursor to higher block
+    await blockchainService.saveLastIndexedBlock(testContract, 11542700);
+    const advanced = await blockchainService.getLastIndexedBlock(testContract);
+    expect(advanced).toBe(11542700);
+  });
+});

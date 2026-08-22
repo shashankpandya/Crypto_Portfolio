@@ -13,25 +13,21 @@ const fs = require('fs');
 const path = require('path');
 const { ethers } = require('ethers');
 const Transaction = require('../models/Transaction');
+const IndexerState = require('../models/IndexerState');
+const { readJson, writeJson } = require('../lib/jsonStore');
 const { dbState } = require('../config/db');
 const logger = require('../lib/logger');
 
 const DATA_DIR = path.resolve(__dirname, '../../data');
 const TRANSACTIONS_FILE = path.join(DATA_DIR, 'transactions.json');
+const INDEXER_STATE_FILE = path.join(DATA_DIR, 'indexer_state.json');
 
 function getLocalTransactions() {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(TRANSACTIONS_FILE)) return [];
-  try {
-    return JSON.parse(fs.readFileSync(TRANSACTIONS_FILE, 'utf8'));
-  } catch (e) {
-    return [];
-  }
+  return readJson(TRANSACTIONS_FILE, []);
 }
 
 function saveLocalTransactions(txs) {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(TRANSACTIONS_FILE, JSON.stringify(txs, null, 2), 'utf8');
+  writeJson(TRANSACTIONS_FILE, txs);
 }
 
 // ---------------------------------------------------------------------------
@@ -233,6 +229,47 @@ class BlockchainService {
     logger.info(`[BlockchainService] Network URL: ${alchemyUrl.slice(0, 50)}...`);
   }
 
+  async getLastIndexedBlock(contractAddress) {
+    const address = contractAddress || process.env.CONTRACT_ADDRESS || process.env.VITE_CONTRACT_ADDRESS;
+    const normalized = address?.toLowerCase().trim();
+    if (!normalized) return 0;
+
+    if (dbState && dbState.connected) {
+      try {
+        const doc = await IndexerState.findOne({ contractAddress: normalized });
+        return doc ? doc.lastIndexedBlock : 0;
+      } catch (err) {
+        logger.error({ err }, '[BlockchainService] Failed to read IndexerState from DB');
+      }
+    }
+
+    const state = readJson(INDEXER_STATE_FILE, {});
+    return state[normalized] ?? 0;
+  }
+
+  async saveLastIndexedBlock(contractAddress, blockNumber) {
+    const address = contractAddress || process.env.CONTRACT_ADDRESS || process.env.VITE_CONTRACT_ADDRESS;
+    const normalized = address?.toLowerCase().trim();
+    if (!normalized || blockNumber == null) return;
+
+    if (dbState && dbState.connected) {
+      try {
+        await IndexerState.findOneAndUpdate(
+          { contractAddress: normalized },
+          { lastIndexedBlock: blockNumber },
+          { upsert: true, new: true, setDefaultsOnInsert: true },
+        );
+      } catch (err) {
+        logger.error({ err }, '[BlockchainService] Failed to persist IndexerState to DB');
+      }
+    }
+
+    // Always mirror to local JSON fallback
+    const state = readJson(INDEXER_STATE_FILE, {});
+    state[normalized] = Math.max(state[normalized] ?? 0, blockNumber);
+    await writeJson(INDEXER_STATE_FILE, state);
+  }
+
   async startEventListener() {
     try {
       this._init();
@@ -246,6 +283,8 @@ class BlockchainService {
       logger.warn('[BlockchainService] Event listener already attached — skipping.');
       return;
     }
+
+    const contractAddress = process.env.CONTRACT_ADDRESS || process.env.VITE_CONTRACT_ADDRESS;
 
     this.contract.on(
       'TransactionAdded',
@@ -299,7 +338,12 @@ class BlockchainService {
             saveLocalTransactions(txs);
           }
 
-          logger.info({ txHash, logIndex }, `[BlockchainService] Saved transaction — txHash: ${txHash}, logIndex: ${logIndex}`);
+          // Advance block cursor
+          if (blockNumber != null && contractAddress) {
+            await this.saveLastIndexedBlock(contractAddress, blockNumber);
+          }
+
+          logger.info({ txHash, logIndex, blockNumber }, `[BlockchainService] Saved transaction — txHash: ${txHash}, logIndex: ${logIndex}`);
         } catch (err) {
           logger.error({ err, txHash, logIndex }, '[BlockchainService] Failed to save event transaction');
         }
