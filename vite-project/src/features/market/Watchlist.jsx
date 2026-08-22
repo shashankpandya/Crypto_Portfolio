@@ -2,8 +2,21 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useWallet } from "../../hooks/useWallet";
 import { useWatchlist } from "../../hooks/useWatchlist";
-import { searchCoins } from "../../api";
+import { searchCoins, getCoinDetails } from "../../api";
 import { debounce } from "../../utils/debounce";
+import EmptyState from "../../components/ui/EmptyState";
+
+const normalizeCoinDetails = (id, details) => {
+  const md = details?.market_data || {};
+  return {
+    id,
+    name: details?.name || id,
+    symbol: details?.symbol || "",
+    image: details?.image?.large || details?.image?.small || "",
+    current_price: md.current_price?.usd,
+    price_change_percentage_24h: md.price_change_percentage_24h,
+  };
+};
 
 const generateSparklinePath = (id, change24h) => {
   const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -43,6 +56,9 @@ const Watchlist = ({ coins }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
+  // Coins watched but outside the top-100 `coins` prop (P4-05) — fetched
+  // individually by id so they still render instead of silently vanishing.
+  const [missingCoinsData, setMissingCoinsData] = useState({});
 
   // Load watchlist on connect
   useEffect(() => {
@@ -58,6 +74,35 @@ const Watchlist = ({ coins }) => {
     };
     loadWatchlist();
   }, [currentAccount, fetchWatchlistDB, getAnonymousWatchlist]);
+
+  // Fetch coins outside the top-100 fetch individually so watched coins
+  // outside the top 100 still render (P4-05).
+  useEffect(() => {
+    const topCoinIds = new Set((coins || []).map((c) => c.id));
+    const missingIds = watchlist.filter(
+      (id) => !topCoinIds.has(id) && !(id in missingCoinsData)
+    );
+    if (missingIds.length === 0) return;
+
+    let cancelled = false;
+    missingIds.forEach(async (id) => {
+      try {
+        const details = await getCoinDetails(id);
+        if (!cancelled) {
+          setMissingCoinsData((prev) => ({ ...prev, [id]: normalizeCoinDetails(id, details) }));
+        }
+      } catch (err) {
+        console.error(`Failed to fetch watchlist coin ${id}:`, err);
+        if (!cancelled) {
+          setMissingCoinsData((prev) => ({ ...prev, [id]: { id, failed: true } }));
+        }
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [coins, watchlist, missingCoinsData]);
 
   const handleSearch = useCallback(
     async (term) => {
@@ -198,12 +243,12 @@ const Watchlist = ({ coins }) => {
       </div>
 
       {watchlist.length === 0 ? (
-        /* Styled Empty State - Inline */
-        <div className="text-center py-16">
-          <TelescopeIcon />
-          <p className="text-slate-600 text-sm mt-3 font-medium">No coins tracked yet</p>
-          <p className="text-slate-700 text-xs mt-1">Search above to add your first asset</p>
-        </div>
+        <EmptyState
+          icon={<TelescopeIcon />}
+          title="No coins tracked yet"
+          description="Search above to add your first asset"
+          className="max-w-lg mx-auto"
+        />
       ) : (
         /* Dense Table View */
         <div className="overflow-x-auto border border-white/5 rounded-lg bg-[#0c1118] shadow-lg max-w-3xl mx-auto">
@@ -219,8 +264,38 @@ const Watchlist = ({ coins }) => {
             </thead>
             <tbody className="divide-y divide-white/[0.03]">
               {watchlist.map((coinId) => {
-                const coin = coins.find((c) => c.id === coinId);
-                if (!coin) return null;
+                const coin = coins.find((c) => c.id === coinId) || missingCoinsData[coinId];
+
+                if (!coin) {
+                  return (
+                    <tr key={coinId} className="h-11">
+                      <td colSpan={5} className="px-4 py-2 text-xs text-[#71717a] italic">
+                        Loading {coinId}...
+                      </td>
+                    </tr>
+                  );
+                }
+
+                if (coin.failed) {
+                  return (
+                    <tr key={coinId} className="h-11">
+                      <td className="px-4 py-2 text-xs text-white">{coinId}</td>
+                      <td colSpan={3} className="px-4 py-2 text-xs text-[#71717a] italic">
+                        Price data unavailable
+                      </td>
+                      <td className="px-4 py-2 text-center">
+                        <button
+                          onClick={() => memoizedRemoveFromWatchlist(coinId)}
+                          className="text-[#EF4444] hover:text-white p-1 rounded font-bold text-sm leading-none transition duration-150 inline-flex items-center justify-center w-6 h-6 hover:bg-[#EF4444]/15"
+                          title={`Remove ${coinId}`}
+                        >
+                          &times;
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                }
+
                 const change24h = coin.price_change_percentage_24h ?? 0;
                 const isPositive = change24h >= 0;
                 return (
