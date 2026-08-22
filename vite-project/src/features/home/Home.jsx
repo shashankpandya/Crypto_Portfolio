@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useWallet } from "../../hooks/useWallet";
 import { ethers } from "ethers";
@@ -52,6 +52,19 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
   const [network, setNetwork] = useState("Unknown Network");
   const [isTestnet, setIsTestnet] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Portfolio valuation (P5-01) — ETH priced from the CoinGecko markets list
+  // already fetched for the dashboard; MTK has no listed market price, so it
+  // is never priced or folded into a blended total (no fabricated numbers).
+  const ethPriceUsd = useMemo(
+    () => (coins || []).find((c) => c.id === "ethereum")?.current_price ?? null,
+    [coins]
+  );
+  const ethValueUsd = useMemo(() => {
+    const balance = parseFloat(ethBalance);
+    if (ethPriceUsd == null || isNaN(balance)) return null;
+    return balance * ethPriceUsd;
+  }, [ethBalance, ethPriceUsd]);
 
   // Mouse radial reflection state
   const [coords, setCoords] = useState({ x: 0, y: 0 });
@@ -191,15 +204,30 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
             {/* Wallet Info Grid */}
             <div className="lg:col-span-2 bg-surface-raised border border-white/5 rounded-lg p-5 flex flex-col justify-between gsap-fade-in shadow-lg">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
-                  Asset Details
-                </h2>
+                <div className="flex items-baseline justify-between mb-4">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Asset Details
+                  </h2>
+                  {ethValueUsd != null && (
+                    <p className="text-[10px] text-muted">
+                      Portfolio Value (ETH only):{" "}
+                      <span className="text-white font-mono font-semibold">
+                        ${ethValueUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </p>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* ETH Balance */}
                   <div className="bg-base p-3.5 rounded border border-white/5">
                     <p className="text-muted text-[10px] font-bold uppercase tracking-wider mb-1">Ether Balance</p>
                     <p className="text-white text-2xl font-bold font-mono animate-fade-in-300">
                       <CountUp value={ethBalance} decimals={4} /> <span className="text-xs text-muted font-normal font-sans ml-1">ETH</span>
+                    </p>
+                    <p className="text-[10px] text-muted mt-1">
+                      {ethValueUsd != null
+                        ? `≈ $${ethValueUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                        : "No price data"}
                     </p>
                   </div>
                   {/* MTK Token Balance */}
@@ -208,6 +236,7 @@ const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) 
                     <p className="text-white text-2xl font-bold font-mono animate-fade-in-300">
                       <CountUp value={tokenBalance} decimals={2} /> <span className="text-xs text-muted font-normal font-sans ml-1">MTK</span>
                     </p>
+                    <p className="text-[10px] text-muted mt-1">No price data</p>
                   </div>
                   {/* Network */}
                   <div className="bg-base p-3.5 rounded border border-white/5 flex flex-col justify-between">
