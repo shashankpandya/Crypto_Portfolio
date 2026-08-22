@@ -17,6 +17,7 @@ const jwt           = require('jsonwebtoken');
 const { SiweMessage } = require('siwe');
 const User          = require('../models/User');
 const { normalizeAddress } = require('../utils/addressUtils');
+const logger        = require('../lib/logger');
 
 // ---------------------------------------------------------------------------
 // Nonce store — in-memory Map: address → { nonce, expiresAt }
@@ -68,8 +69,9 @@ async function getNonce(req, res) {
 
     return res.status(200).json({ success: true, nonce });
   } catch (err) {
-    console.error('[authController.getNonce]', err);
-    return res.status(500).json({ success: false, message: 'Internal server error.' });
+    const reqLogger = req?.log || logger;
+    reqLogger.error({ err }, '[authController.getNonce]');
+    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
   }
 }
 
@@ -134,8 +136,9 @@ async function verify(req, res) {
     // Issue a JWT. Stateless — no session store needed.
     const secret = process.env.JWT_SECRET;
     if (!secret) {
-      console.error('[authController.verify] JWT_SECRET is not set.');
-      return res.status(500).json({ success: false, message: 'Server misconfiguration.' });
+      const reqLogger = req?.log || logger;
+      reqLogger.error('[authController.verify] JWT_SECRET is not set.');
+      return res.status(500).json({ success: false, message: 'Server misconfiguration.', correlationId: req.id });
     }
 
     const token = jwt.sign(
@@ -150,8 +153,9 @@ async function verify(req, res) {
       token,
     });
   } catch (err) {
-    console.error('[authController.verify]', err);
-    return res.status(500).json({ success: false, message: 'Internal server error.' });
+    const reqLogger = req?.log || logger;
+    reqLogger.error({ err }, '[authController.verify]');
+    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
   }
 }
 

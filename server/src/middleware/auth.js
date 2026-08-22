@@ -8,6 +8,7 @@
 
 const jwt = require('jsonwebtoken');
 const { normalizeAddress } = require('../utils/addressUtils');
+const logger = require('../lib/logger');
 
 function requireAuth(req, res, next) {
   const isAuthRequired = process.env.AUTH_REQUIRED === 'true';
@@ -26,7 +27,8 @@ function requireAuth(req, res, next) {
   const token = authHeader.split(' ')[1];
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    console.error('[requireAuth] JWT_SECRET is not configured.');
+    const reqLogger = req?.log || logger;
+    reqLogger.error('[requireAuth] JWT_SECRET is not configured.');
     return res.status(500).json({ success: false, message: 'Server configuration error.' });
   }
 

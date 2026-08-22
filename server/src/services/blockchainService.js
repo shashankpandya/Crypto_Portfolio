@@ -14,6 +14,7 @@ const path = require('path');
 const { ethers } = require('ethers');
 const Transaction = require('../models/Transaction');
 const { dbState } = require('../config/db');
+const logger = require('../lib/logger');
 
 const DATA_DIR = path.resolve(__dirname, '../../data');
 const TRANSACTIONS_FILE = path.join(DATA_DIR, 'transactions.json');
@@ -167,20 +168,20 @@ class BlockchainService {
     this.provider = new ethers.JsonRpcProvider(alchemyUrl);
     this.contract = new ethers.Contract(contractAddress, CONTRACT_ABI, this.provider);
 
-    console.log('[BlockchainService] Initialised provider and contract.');
-    console.log(`[BlockchainService] Network URL: ${alchemyUrl.slice(0, 50)}...`);
+    logger.info('[BlockchainService] Initialised provider and contract.');
+    logger.info(`[BlockchainService] Network URL: ${alchemyUrl.slice(0, 50)}...`);
   }
 
   async startEventListener() {
     try {
       this._init();
     } catch (err) {
-      console.warn('[BlockchainService] Initialization failed (non-fatal listener):', err.message);
+      logger.warn({ err }, `[BlockchainService] Initialization failed (non-fatal listener): ${err.message}`);
       return;
     }
 
     if (this._listenerAttached) {
-      console.warn('[BlockchainService] Event listener already attached — skipping.');
+      logger.warn('[BlockchainService] Event listener already attached — skipping.');
       return;
     }
 
@@ -194,7 +195,7 @@ class BlockchainService {
         // and the second write silently clobbers the first.
         const logIndex    = event?.log?.index            ?? null;
 
-        console.log(`[BlockchainService] TransactionAdded event — txHash: ${txHash}, logIndex: ${logIndex}`);
+        logger.info({ txHash, logIndex }, `[BlockchainService] TransactionAdded event — txHash: ${txHash}, logIndex: ${logIndex}`);
 
         try {
           const data = normalizeTx(
@@ -236,41 +237,41 @@ class BlockchainService {
             saveLocalTransactions(txs);
           }
 
-          console.log(`[BlockchainService] Saved transaction — txHash: ${txHash}, logIndex: ${logIndex}`);
+          logger.info({ txHash, logIndex }, `[BlockchainService] Saved transaction — txHash: ${txHash}, logIndex: ${logIndex}`);
         } catch (err) {
-          console.error('[BlockchainService] Failed to save event transaction:', err);
+          logger.error({ err, txHash, logIndex }, '[BlockchainService] Failed to save event transaction');
         }
       },
     );
 
     this._listenerAttached = true;
-    console.log('[BlockchainService] Listening for TransactionAdded events.');
+    logger.info('[BlockchainService] Listening for TransactionAdded events.');
   }
 
   async syncHistoricalTransactions() {
     try {
       this._init();
     } catch (err) {
-      console.warn('[BlockchainService] Initialization failed (non-fatal sync):', err.message);
+      logger.warn({ err }, `[BlockchainService] Initialization failed (non-fatal sync): ${err.message}`);
       return [];
     }
 
-    console.log('[BlockchainService] Fetching historical transactions from contract.');
+    logger.info('[BlockchainService] Fetching historical transactions from contract.');
 
     let rawTxs;
     try {
       rawTxs = await this.contract.getAllTransactions();
     } catch (err) {
-      console.error('[BlockchainService] getAllTransactions() call failed:', err.message);
+      logger.error({ err }, `[BlockchainService] getAllTransactions() call failed: ${err.message}`);
       throw err;
     }
 
     if (!rawTxs || rawTxs.length === 0) {
-      console.log('[BlockchainService] No historical transactions found.');
+      logger.info('[BlockchainService] No historical transactions found.');
       return [];
     }
 
-    console.log(`[BlockchainService] Processing ${rawTxs.length} historical transaction(s).`);
+    logger.info({ count: rawTxs.length }, `[BlockchainService] Processing ${rawTxs.length} historical transaction(s).`);
 
     if (dbState && dbState.connected) {
       // Historical sync via getAllTransactions() returns contract storage tuples.
@@ -293,13 +294,13 @@ class BlockchainService {
 
       try {
         const result = await Transaction.bulkWrite(ops, { ordered: false });
-        console.log(
-          `[BlockchainService] Sync complete — ` +
-          `upserted: ${result.upsertedCount}, modified: ${result.modifiedCount}`,
+        logger.info(
+          { upsertedCount: result.upsertedCount, modifiedCount: result.modifiedCount },
+          `[BlockchainService] Sync complete — upserted: ${result.upsertedCount}, modified: ${result.modifiedCount}`,
         );
         return rawTxs;
       } catch (err) {
-        console.error('[BlockchainService] Bulk upsert failed:', err.message);
+        logger.error({ err }, `[BlockchainService] Bulk upsert failed: ${err.message}`);
         throw err;
       }
     } else {
@@ -321,9 +322,9 @@ class BlockchainService {
       });
 
       saveLocalTransactions(txs);
-      console.log(
-        `[BlockchainService] Local JSON sync complete — ` +
-        `upserted: ${upsertedCount}, modified: ${updatedCount}`,
+      logger.info(
+        { upsertedCount, modifiedCount: updatedCount },
+        `[BlockchainService] Local JSON sync complete — upserted: ${upsertedCount}, modified: ${updatedCount}`,
       );
       return rawTxs;
     }
@@ -333,7 +334,7 @@ class BlockchainService {
     if (this.contract && this._listenerAttached) {
       this.contract.removeAllListeners('TransactionAdded');
       this._listenerAttached = false;
-      console.log('[BlockchainService] Event listener removed.');
+      logger.info('[BlockchainService] Event listener removed.');
     }
   }
 }

@@ -2,6 +2,7 @@
 
 const axios         = require('axios');
 const marketService = require('../services/marketService');
+const logger        = require('../lib/logger');
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -31,13 +32,14 @@ async function getCoins(req, res) {
       data:    coins,
     });
   } catch (err) {
-    console.error('[marketController.getCoins]', err);
+    const reqLogger = req?.log || logger;
+    reqLogger.error({ err }, '[marketController.getCoins]');
 
     if (err.message?.includes('429')) {
       return res.status(429).json({ success: false, message: 'CoinGecko rate limit reached. Please try again shortly.' });
     }
 
-    return res.status(500).json({ success: false, message: err.message || 'Internal server error.' });
+    return res.status(500).json({ success: false, message: err.message || 'Internal server error.', correlationId: req.id });
   }
 }
 
@@ -77,7 +79,8 @@ async function getCoinDetails(req, res) {
 
     return res.status(200).json({ success: true, data: response.data });
   } catch (err) {
-    console.error('[marketController.getCoinDetails]', err);
+    const reqLogger = req?.log || logger;
+    reqLogger.error({ err }, '[marketController.getCoinDetails]');
 
     const status  = err.response?.status;
     const message = err.response?.data?.error ?? err.message;
@@ -89,7 +92,7 @@ async function getCoinDetails(req, res) {
       return res.status(429).json({ success: false, message: 'CoinGecko rate limit reached. Please try again shortly.' });
     }
 
-    return res.status(500).json({ success: false, message: message || 'Internal server error.' });
+    return res.status(500).json({ success: false, message: message || 'Internal server error.', correlationId: req.id });
   }
 }
 

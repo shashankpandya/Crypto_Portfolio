@@ -2,6 +2,7 @@
 
 const watchlistRepo = require('../repositories/watchlistRepo');
 const { normalizeAddress } = require('../utils/addressUtils');
+const logger = require('../lib/logger');
 
 // ---------------------------------------------------------------------------
 // get
@@ -22,8 +23,9 @@ async function get(req, res) {
 
     return res.status(200).json({ success: true, data });
   } catch (err) {
-    console.error('[watchlistController.get]', err);
-    return res.status(500).json({ success: false, message: 'Internal server error.' });
+    const reqLogger = req?.log || logger;
+    reqLogger.error({ err }, '[watchlistController.get]');
+    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
   }
 }
 
@@ -54,8 +56,9 @@ async function addCoin(req, res) {
       data,
     });
   } catch (err) {
-    console.error('[watchlistController.addCoin]', err);
-    return res.status(500).json({ success: false, message: 'Internal server error.' });
+    const reqLogger = req?.log || logger;
+    reqLogger.error({ err }, '[watchlistController.addCoin]');
+    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
   }
 }
 
@@ -90,8 +93,9 @@ async function removeCoin(req, res) {
       data,
     });
   } catch (err) {
-    console.error('[watchlistController.removeCoin]', err);
-    return res.status(500).json({ success: false, message: 'Internal server error.' });
+    const reqLogger = req?.log || logger;
+    reqLogger.error({ err }, '[watchlistController.removeCoin]');
+    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
   }
 }
 

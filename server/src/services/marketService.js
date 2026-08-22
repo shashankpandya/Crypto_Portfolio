@@ -9,6 +9,7 @@
 const axios   = require('axios');
 const PriceCache = require('../models/PriceCache');
 const { dbState } = require('../config/db');
+const logger    = require('../lib/logger');
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -46,21 +47,21 @@ class MarketService {
         ).lean();
 
         if (cachedCoins.length >= limit) {
-          console.log(`[MarketService] Serving ${cachedCoins.length} coins from cache.`);
+          logger.info({ count: cachedCoins.length }, `[MarketService] Serving ${cachedCoins.length} coins from cache.`);
           return cachedCoins.map(({ _id, updatedAt, coinId, ...rest }) => ({
             id: coinId,
             ...rest,
           }));
         }
       } catch (err) {
-        console.error('[MarketService] Failed to read from PriceCache (non-fatal):', err.message);
+        logger.error({ err }, `[MarketService] Failed to read from PriceCache (non-fatal): ${err.message}`);
       }
     }
 
     // -----------------------------------------------------------------------
     // 2. Cache miss (or stale, or DB offline) – fetch from CoinGecko.
     // -----------------------------------------------------------------------
-    console.log('[MarketService] Cache miss – fetching from CoinGecko…');
+    logger.info('[MarketService] Cache miss – fetching from CoinGecko…');
 
     const apiKey = process.env.COINGECKO_API_KEY || process.env.VITE_COINGECKO_API_KEY;
     const headers = {
@@ -89,7 +90,7 @@ class MarketService {
     } catch (err) {
       const status  = err.response?.status;
       const message = err.response?.data?.error ?? err.message;
-      console.error(`[MarketService] CoinGecko request failed (HTTP ${status}): ${message}`);
+      logger.error({ err, status }, `[MarketService] CoinGecko request failed (HTTP ${status}): ${message}`);
       throw new Error(`CoinGecko API error: ${message}`);
     }
 
@@ -145,13 +146,13 @@ class MarketService {
 
       try {
         const result = await PriceCache.bulkWrite(ops, { ordered: false });
-        console.log(
-          `[MarketService] Cache updated – ` +
-          `upserted: ${result.upsertedCount}, modified: ${result.modifiedCount}`,
+        logger.info(
+          { upsertedCount: result.upsertedCount, modifiedCount: result.modifiedCount },
+          `[MarketService] Cache updated – upserted: ${result.upsertedCount}, modified: ${result.modifiedCount}`,
         );
       } catch (err) {
         // Non-fatal: we still have fresh data to return even if the cache write fails.
-        console.error('[MarketService] Failed to update PriceCache:', err);
+        logger.error({ err }, '[MarketService] Failed to update PriceCache');
       }
     }
 

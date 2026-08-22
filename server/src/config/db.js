@@ -2,6 +2,7 @@
 
 const dns      = require('dns');
 const mongoose = require('mongoose');
+const logger   = require('../lib/logger');
 
 // ---------------------------------------------------------------------------
 // DNS resolver override
@@ -13,7 +14,7 @@ const mongoose = require('mongoose');
 // MongoDB is even attempted.
 // ---------------------------------------------------------------------------
 dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
-console.log('[DB] DNS resolvers set to:', dns.getServers());
+logger.info({ dnsServers: dns.getServers() }, '[DB] DNS resolvers set');
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -51,13 +52,13 @@ async function connectDB() {
   const uri = process.env.MONGO_URI;
 
   if (!uri) {
-    console.error('[DB] MONGO_URI environment variable is not set.');
+    logger.error('[DB] MONGO_URI environment variable is not set.');
     return false;
   }
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      console.log(`[DB] Connection attempt ${attempt}/${MAX_RETRIES}...`);
+      logger.info({ attempt, maxRetries: MAX_RETRIES }, `[DB] Connection attempt ${attempt}/${MAX_RETRIES}...`);
 
       await mongoose.connect(uri, {
         serverSelectionTimeoutMS: 5_000, // per-attempt timeout
@@ -65,35 +66,35 @@ async function connectDB() {
       });
 
       dbState.connected = true;
-      console.log(`[DB] MongoDB connected: ${mongoose.connection.host}`);
+      logger.info({ host: mongoose.connection.host }, `[DB] MongoDB connected: ${mongoose.connection.host}`);
 
       // Register runtime listeners once - after the first successful connect.
       mongoose.connection.on('error', (err) => {
-        console.error('[DB] Mongoose connection error:', err.message);
+        logger.error({ err }, `[DB] Mongoose connection error: ${err.message}`);
       });
 
       mongoose.connection.on('disconnected', () => {
         dbState.connected = false;
-        console.warn('[DB] MongoDB disconnected. API routes will return 503.');
+        logger.warn('[DB] MongoDB disconnected. API routes will return 503.');
       });
 
       mongoose.connection.on('reconnected', () => {
         dbState.connected = true;
-        console.log('[DB] MongoDB reconnected. API routes restored.');
+        logger.info('[DB] MongoDB reconnected. API routes restored.');
       });
 
       return true;
     } catch (err) {
-      console.error(`[DB] Attempt ${attempt}/${MAX_RETRIES} failed: ${err.message}`);
+      logger.error({ err, attempt, maxRetries: MAX_RETRIES }, `[DB] Attempt ${attempt}/${MAX_RETRIES} failed: ${err.message}`);
 
       if (attempt < MAX_RETRIES) {
-        console.log(`[DB] Retrying in ${RETRY_DELAY_MS / 1000}s...`);
+        logger.info({ retryInSeconds: RETRY_DELAY_MS / 1000 }, `[DB] Retrying in ${RETRY_DELAY_MS / 1000}s...`);
         await sleep(RETRY_DELAY_MS);
       }
     }
   }
 
-  console.error(`[DB] All ${MAX_RETRIES} connection attempts failed. Server will start without DB.`);
+  logger.error(`[DB] All ${MAX_RETRIES} connection attempts failed. Server will start without DB.`);
   return false;
 }
 

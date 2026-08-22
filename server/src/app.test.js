@@ -55,3 +55,22 @@ describe("Security Hardening (P1-15)", () => {
     });
   });
 });
+
+describe("Structured Logging & Request IDs (P3-01)", () => {
+  it("assigns X-Request-Id and X-Correlation-Id response headers to requests", async () => {
+    const res = await request(app).get("/health");
+    expect(res.headers["x-request-id"]).toBeDefined();
+    expect(res.headers["x-correlation-id"]).toBeDefined();
+    expect(res.headers["x-request-id"]).toBe(res.headers["x-correlation-id"]);
+  });
+
+  it("propagates incoming X-Request-Id / X-Correlation-Id header", async () => {
+    const customId = "custom-test-req-id-12345";
+    const res = await request(app)
+      .get("/health")
+      .set("X-Request-Id", customId);
+    expect(res.headers["x-request-id"]).toBe(customId);
+    expect(res.headers["x-correlation-id"]).toBe(customId);
+  });
+});
+

@@ -5,6 +5,9 @@ const express   = require('express');
 const helmet    = require('helmet');
 const cors      = require('cors');
 const rateLimit = require('express-rate-limit');
+const pinoHttp  = require('pino-http');
+const logger    = require('./lib/logger');
+const requestId = require('./middleware/requestId');
 
 // ---------------------------------------------------------------------------
 // Route modules
@@ -21,6 +24,22 @@ const app = express();
 
 // Trust reverse proxy (e.g. Nginx, Cloudflare, ALB) - 1 hop
 app.set('trust proxy', 1);
+
+// ---------------------------------------------------------------------------
+// Request ID & Logging middleware
+// ---------------------------------------------------------------------------
+app.use(requestId);
+app.use(
+  pinoHttp({
+    logger,
+    genReqId: (req) => req.id,
+    customLogLevel: (_req, res, err) => {
+      if (res.statusCode >= 500 || err) return 'error';
+      if (res.statusCode >= 400) return 'warn';
+      return 'info';
+    },
+  }),
+);
 
 // ---------------------------------------------------------------------------
 // Security & parsing middleware
@@ -113,16 +132,17 @@ app.use((_req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// Global error handler (P1-15)
+// Global error handler (P1-15, P3-01)
 // Error redaction in production with correlation IDs.
 // ---------------------------------------------------------------------------
 // eslint-disable-next-line no-unused-vars
-app.use((err, _req, res, _next) => {
+app.use((err, req, res, _next) => {
   const isDev = process.env.NODE_ENV === 'development';
   const status = err.status ?? err.statusCode ?? 500;
-  const correlationId = `req-${crypto.randomUUID()}`;
+  const correlationId = req?.id || req?.correlationId || `req-${crypto.randomUUID()}`;
 
-  console.error(`[GlobalErrorHandler] [${correlationId}]`, err);
+  const reqLogger = req?.log || logger;
+  reqLogger.error({ err, correlationId, status }, `[GlobalErrorHandler] [${correlationId}] ${err.message || 'Internal server error.'}`);
 
   if (status >= 500 && !isDev) {
     return res.status(status).json({
@@ -135,6 +155,7 @@ app.use((err, _req, res, _next) => {
   res.status(status).json({
     success: false,
     message: err.message || 'Internal server error.',
+    correlationId,
     ...(isDev && { stack: err.stack }),
   });
 });

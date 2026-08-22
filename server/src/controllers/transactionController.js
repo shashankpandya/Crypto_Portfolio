@@ -2,6 +2,7 @@
 
 const { normalizeAddress } = require('../utils/addressUtils');
 const transactionRepo = require('../repositories/transactionRepo');
+const logger = require('../lib/logger');
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -59,8 +60,9 @@ async function getByAddress(req, res) {
       },
     });
   } catch (err) {
-    console.error('[transactionController.getByAddress]', err);
-    return res.status(500).json({ success: false, message: 'Internal server error.' });
+    const reqLogger = req?.log || logger;
+    reqLogger.error({ err }, '[transactionController.getByAddress]');
+    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
   }
 }
 
@@ -75,8 +77,9 @@ async function getCount(req, res) {
     const count = await transactionRepo.countAll(dbState);
     return res.status(200).json({ success: true, count });
   } catch (err) {
-    console.error('[transactionController.getCount]', err);
-    return res.status(500).json({ success: false, message: 'Internal server error.' });
+    const reqLogger = req?.log || logger;
+    reqLogger.error({ err }, '[transactionController.getCount]');
+    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
   }
 }
 
