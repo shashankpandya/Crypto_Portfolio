@@ -2,7 +2,8 @@
 
 const axios         = require('axios');
 const marketService = require('../services/marketService');
-const logger        = require('../lib/logger');
+const AppError      = require('../lib/AppError');
+const { asyncHandler } = require('../middleware/errorHandler');
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -18,29 +19,18 @@ const MAX_LIMIT          = 250;
 // Delegates to marketService which handles caching transparently.
 // ---------------------------------------------------------------------------
 async function getCoins(req, res) {
-  try {
-    const limit = Math.min(
-      MAX_LIMIT,
-      Math.max(1, parseInt(req.query.limit, 10) || DEFAULT_LIMIT),
-    );
+  const limit = Math.min(
+    MAX_LIMIT,
+    Math.max(1, parseInt(req.query.limit, 10) || DEFAULT_LIMIT),
+  );
 
-    const coins = await marketService.getCoins(limit);
+  const coins = await marketService.getCoins(limit);
 
-    return res.status(200).json({
-      success: true,
-      count:   coins.length,
-      data:    coins,
-    });
-  } catch (err) {
-    const reqLogger = req?.log || logger;
-    reqLogger.error({ err }, '[marketController.getCoins]');
-
-    if (err.message?.includes('429')) {
-      return res.status(429).json({ success: false, message: 'CoinGecko rate limit reached. Please try again shortly.' });
-    }
-
-    return res.status(500).json({ success: false, message: err.message || 'Internal server error.', correlationId: req.id });
-  }
+  return res.status(200).json({
+    success: true,
+    count:   coins.length,
+    data:    coins,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -49,22 +39,23 @@ async function getCoins(req, res) {
 // Fetches full coin details directly from CoinGecko - no cache.
 // ---------------------------------------------------------------------------
 async function getCoinDetails(req, res) {
+  const coinId = req.params.coinId?.toLowerCase().trim();
+
+  if (!coinId) {
+    throw AppError.badRequest('coinId parameter is required.');
+  }
+
+  const apiKey = process.env.COINGECKO_API_KEY || process.env.VITE_COINGECKO_API_KEY;
+  const headers = {
+    Accept: 'application/json',
+  };
+  if (apiKey) {
+    headers['x-cg-demo-api-key'] = apiKey;
+  }
+
+  let response;
   try {
-    const coinId = req.params.coinId?.toLowerCase().trim();
-
-    if (!coinId) {
-      return res.status(400).json({ success: false, message: 'coinId parameter is required.' });
-    }
-
-    const apiKey = process.env.COINGECKO_API_KEY || process.env.VITE_COINGECKO_API_KEY;
-    const headers = {
-      Accept: 'application/json',
-    };
-    if (apiKey) {
-      headers['x-cg-demo-api-key'] = apiKey;
-    }
-
-    const response = await axios.get(`${COINGECKO_COIN_URL}/${coinId}`, {
+    response = await axios.get(`${COINGECKO_COIN_URL}/${coinId}`, {
       headers,
       params: {
         localization:   false,
@@ -76,24 +67,23 @@ async function getCoinDetails(req, res) {
       },
       timeout: 10_000,
     });
-
-    return res.status(200).json({ success: true, data: response.data });
   } catch (err) {
-    const reqLogger = req?.log || logger;
-    reqLogger.error({ err }, '[marketController.getCoinDetails]');
-
     const status  = err.response?.status;
     const message = err.response?.data?.error ?? err.message;
 
     if (status === 404) {
-      return res.status(404).json({ success: false, message: `Coin not found: ${req.params.coinId}` });
+      throw AppError.notFound(`Coin not found: ${req.params.coinId}`);
     }
     if (status === 429) {
-      return res.status(429).json({ success: false, message: 'CoinGecko rate limit reached. Please try again shortly.' });
+      throw AppError.rateLimit('CoinGecko rate limit reached. Please try again shortly.');
     }
-
-    return res.status(500).json({ success: false, message: message || 'Internal server error.', correlationId: req.id });
+    throw new AppError(message || 'Internal server error.', status || 500);
   }
+
+  return res.status(200).json({ success: true, data: response.data });
 }
 
-module.exports = { getCoins, getCoinDetails };
+module.exports = {
+  getCoins: asyncHandler(getCoins),
+  getCoinDetails: asyncHandler(getCoinDetails),
+};

@@ -2,7 +2,8 @@
 
 const watchlistRepo = require('../repositories/watchlistRepo');
 const { normalizeAddress } = require('../utils/addressUtils');
-const logger = require('../lib/logger');
+const AppError = require('../lib/AppError');
+const { asyncHandler } = require('../middleware/errorHandler');
 
 // ---------------------------------------------------------------------------
 // get
@@ -11,22 +12,16 @@ const logger = require('../lib/logger');
 // no document exists yet (avoids a 404 on first visit).
 // ---------------------------------------------------------------------------
 async function get(req, res) {
-  try {
-    const walletAddress = normalizeAddress(req.params.walletAddress);
+  const walletAddress = normalizeAddress(req.params.walletAddress);
 
-    if (!walletAddress) {
-      return res.status(400).json({ success: false, message: 'Invalid or missing walletAddress.' });
-    }
-
-    const { dbState } = req.app.locals;
-    const data = await watchlistRepo.getWatchlist(dbState, walletAddress);
-
-    return res.status(200).json({ success: true, data });
-  } catch (err) {
-    const reqLogger = req?.log || logger;
-    reqLogger.error({ err }, '[watchlistController.get]');
-    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
+  if (!walletAddress) {
+    throw AppError.badRequest('Invalid or missing walletAddress.');
   }
+
+  const { dbState } = req.app.locals;
+  const data = await watchlistRepo.getWatchlist(dbState, walletAddress);
+
+  return res.status(200).json({ success: true, data });
 }
 
 // ---------------------------------------------------------------------------
@@ -36,30 +31,24 @@ async function get(req, res) {
 // Upserts the watchlist document and adds the coin if not already present.
 // ---------------------------------------------------------------------------
 async function addCoin(req, res) {
-  try {
-    const walletAddress = normalizeAddress(req.params.walletAddress);
-    const coinId        = req.body.coinId?.toLowerCase().trim();
+  const walletAddress = normalizeAddress(req.params.walletAddress);
+  const coinId        = req.body.coinId?.toLowerCase().trim();
 
-    if (!walletAddress) {
-      return res.status(400).json({ success: false, message: 'Invalid or missing walletAddress.' });
-    }
-    if (!coinId) {
-      return res.status(400).json({ success: false, message: 'coinId is required in the request body.' });
-    }
-
-    const { dbState } = req.app.locals;
-    const data = await watchlistRepo.addCoin(dbState, walletAddress, coinId);
-
-    return res.status(200).json({
-      success: true,
-      message: `${coinId} added to watchlist.`,
-      data,
-    });
-  } catch (err) {
-    const reqLogger = req?.log || logger;
-    reqLogger.error({ err }, '[watchlistController.addCoin]');
-    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
+  if (!walletAddress) {
+    throw AppError.badRequest('Invalid or missing walletAddress.');
   }
+  if (!coinId) {
+    throw AppError.badRequest('coinId is required in the request body.');
+  }
+
+  const { dbState } = req.app.locals;
+  const data = await watchlistRepo.addCoin(dbState, walletAddress, coinId);
+
+  return res.status(200).json({
+    success: true,
+    message: `${coinId} added to watchlist.`,
+    data,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -69,34 +58,32 @@ async function addCoin(req, res) {
 // Returns 404 if the watchlist document does not exist.
 // ---------------------------------------------------------------------------
 async function removeCoin(req, res) {
-  try {
-    const walletAddress = normalizeAddress(req.params.walletAddress);
-    const coinId        = req.params.coinId?.toLowerCase().trim();
+  const walletAddress = normalizeAddress(req.params.walletAddress);
+  const coinId        = req.params.coinId?.toLowerCase().trim();
 
-    if (!walletAddress) {
-      return res.status(400).json({ success: false, message: 'Invalid or missing walletAddress.' });
-    }
-    if (!coinId) {
-      return res.status(400).json({ success: false, message: 'coinId is required.' });
-    }
-
-    const { dbState } = req.app.locals;
-    const data = await watchlistRepo.removeCoin(dbState, walletAddress, coinId);
-
-    if (!data) {
-      return res.status(404).json({ success: false, message: 'Watchlist not found for this wallet.' });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: `${coinId} removed from watchlist.`,
-      data,
-    });
-  } catch (err) {
-    const reqLogger = req?.log || logger;
-    reqLogger.error({ err }, '[watchlistController.removeCoin]');
-    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
+  if (!walletAddress) {
+    throw AppError.badRequest('Invalid or missing walletAddress.');
   }
+  if (!coinId) {
+    throw AppError.badRequest('coinId is required.');
+  }
+
+  const { dbState } = req.app.locals;
+  const data = await watchlistRepo.removeCoin(dbState, walletAddress, coinId);
+
+  if (!data) {
+    throw AppError.notFound('Watchlist not found for this wallet.');
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: `${coinId} removed from watchlist.`,
+    data,
+  });
 }
 
-module.exports = { get, addCoin, removeCoin };
+module.exports = {
+  get: asyncHandler(get),
+  addCoin: asyncHandler(addCoin),
+  removeCoin: asyncHandler(removeCoin),
+};

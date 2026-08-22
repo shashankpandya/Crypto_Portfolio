@@ -2,7 +2,8 @@
 
 const { normalizeAddress } = require('../utils/addressUtils');
 const transactionRepo = require('../repositories/transactionRepo');
-const logger = require('../lib/logger');
+const AppError = require('../lib/AppError');
+const { asyncHandler } = require('../middleware/errorHandler');
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -36,34 +37,28 @@ function parsePagination(query) {
 // Returns paginated transactions where sender OR recipient matches address.
 // ---------------------------------------------------------------------------
 async function getByAddress(req, res) {
-  try {
-    const address = normalizeAddress(req.params.address);
+  const address = normalizeAddress(req.params.address);
 
-    if (!address) {
-      return res.status(400).json({ success: false, message: 'Invalid or missing wallet address.' });
-    }
-
-    const { page, limit, skip } = parsePagination(req.query);
-    const { dbState } = req.app.locals;
-
-    const { total, transactions } = await transactionRepo.findByAddress(dbState, address, { skip, limit });
-
-    return res.status(200).json({
-      success: true,
-      data: transactions,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-        hasNextPage: page * limit < total,
-      },
-    });
-  } catch (err) {
-    const reqLogger = req?.log || logger;
-    reqLogger.error({ err }, '[transactionController.getByAddress]');
-    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
+  if (!address) {
+    throw AppError.badRequest('Invalid or missing wallet address.');
   }
+
+  const { page, limit, skip } = parsePagination(req.query);
+  const { dbState } = req.app.locals;
+
+  const { total, transactions } = await transactionRepo.findByAddress(dbState, address, { skip, limit });
+
+  return res.status(200).json({
+    success: true,
+    data: transactions,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page * limit < total,
+    },
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -72,15 +67,12 @@ async function getByAddress(req, res) {
 // Returns the total number of transaction documents in the collection.
 // ---------------------------------------------------------------------------
 async function getCount(req, res) {
-  try {
-    const { dbState } = req.app.locals;
-    const count = await transactionRepo.countAll(dbState);
-    return res.status(200).json({ success: true, count });
-  } catch (err) {
-    const reqLogger = req?.log || logger;
-    reqLogger.error({ err }, '[transactionController.getCount]');
-    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
-  }
+  const { dbState } = req.app.locals;
+  const count = await transactionRepo.countAll(dbState);
+  return res.status(200).json({ success: true, count });
 }
 
-module.exports = { getByAddress, getCount };
+module.exports = {
+  getByAddress: asyncHandler(getByAddress),
+  getCount: asyncHandler(getCount),
+};

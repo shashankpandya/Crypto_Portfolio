@@ -12,12 +12,12 @@
  */
 
 const crypto = require('crypto');
-const { ethers }    = require('ethers');
 const jwt           = require('jsonwebtoken');
 const { SiweMessage } = require('siwe');
 const User          = require('../models/User');
 const { normalizeAddress } = require('../utils/addressUtils');
-const logger        = require('../lib/logger');
+const AppError      = require('../lib/AppError');
+const { asyncHandler } = require('../middleware/errorHandler');
 
 // ---------------------------------------------------------------------------
 // Nonce store — in-memory Map: address → { nonce, expiresAt }
@@ -55,24 +55,15 @@ function _getNonceStore() {
 // GET /api/auth/nonce?address=0x…
 // ---------------------------------------------------------------------------
 async function getNonce(req, res) {
-  try {
-    const address = normalizeAddress(req.query.address);
-    if (!address) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid or missing address query parameter.',
-      });
-    }
-
-    const nonce = generateNonce();
-    setNonce(address, nonce);
-
-    return res.status(200).json({ success: true, nonce });
-  } catch (err) {
-    const reqLogger = req?.log || logger;
-    reqLogger.error({ err }, '[authController.getNonce]');
-    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
+  const address = normalizeAddress(req.query.address);
+  if (!address) {
+    throw AppError.badRequest('Invalid or missing address query parameter.');
   }
+
+  const nonce = generateNonce();
+  setNonce(address, nonce);
+
+  return res.status(200).json({ success: true, nonce });
 }
 
 // ---------------------------------------------------------------------------
@@ -80,83 +71,78 @@ async function getNonce(req, res) {
 // Body: { message: string (EIP-4361 text), signature: string (0x…) }
 // ---------------------------------------------------------------------------
 async function verify(req, res) {
-  try {
-    const { message, signature } = req.body;
+  const { message, signature } = req.body;
 
-    if (!message || typeof message !== 'string') {
-      return res.status(400).json({ success: false, message: 'message is required.' });
-    }
-    if (!signature || typeof signature !== 'string') {
-      return res.status(400).json({ success: false, message: 'signature is required.' });
-    }
-
-    // Parse and verify the SIWE message
-    let siweMessage;
-    try {
-      siweMessage = new SiweMessage(message);
-    } catch {
-      return res.status(400).json({ success: false, message: 'Malformed SIWE message.' });
-    }
-
-    // Recover the signer address
-    let recoveredAddress;
-    try {
-      const fields = await siweMessage.verify({ signature });
-      recoveredAddress = normalizeAddress(fields.data.address);
-    } catch {
-      return res.status(401).json({ success: false, message: 'Signature verification failed.' });
-    }
-
-    if (!recoveredAddress) {
-      return res.status(401).json({ success: false, message: 'Could not recover signer address.' });
-    }
-
-    // Validate nonce — single-use, must match address, must not be expired
-    const expectedNonce = consumeNonce(recoveredAddress);
-    if (!expectedNonce) {
-      return res.status(401).json({
-        success: false,
-        message: 'Nonce is invalid, expired, or already used. Request a new nonce.',
-      });
-    }
-    if (siweMessage.nonce !== expectedNonce) {
-      return res.status(401).json({ success: false, message: 'Nonce mismatch.' });
-    }
-
-    // Upsert the user record (create on first login, update lastActive on subsequent logins)
-    const { dbState } = req.app.locals ?? {};
-    if (dbState && dbState.connected) {
-      await User.findOneAndUpdate(
-        { walletAddress: recoveredAddress },
-        { lastActive: new Date() },
-        { upsert: true, new: true, setDefaultsOnInsert: true },
-      );
-    }
-
-    // Issue a JWT. Stateless — no session store needed.
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      const reqLogger = req?.log || logger;
-      reqLogger.error('[authController.verify] JWT_SECRET is not set.');
-      return res.status(500).json({ success: false, message: 'Server misconfiguration.', correlationId: req.id });
-    }
-
-    const token = jwt.sign(
-      { address: recoveredAddress },
-      secret,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' },
-    );
-
-    return res.status(200).json({
-      success: true,
-      address: recoveredAddress,
-      token,
-    });
-  } catch (err) {
-    const reqLogger = req?.log || logger;
-    reqLogger.error({ err }, '[authController.verify]');
-    return res.status(500).json({ success: false, message: 'Internal server error.', correlationId: req.id });
+  if (!message || typeof message !== 'string') {
+    throw AppError.badRequest('message is required.');
   }
+  if (!signature || typeof signature !== 'string') {
+    throw AppError.badRequest('signature is required.');
+  }
+
+  // Parse and verify the SIWE message
+  let siweMessage;
+  try {
+    siweMessage = new SiweMessage(message);
+  } catch {
+    throw AppError.badRequest('Malformed SIWE message.');
+  }
+
+  // Recover the signer address
+  let recoveredAddress;
+  try {
+    const fields = await siweMessage.verify({ signature });
+    recoveredAddress = normalizeAddress(fields.data.address);
+  } catch {
+    throw AppError.unauthorized('Signature verification failed.');
+  }
+
+  if (!recoveredAddress) {
+    throw AppError.unauthorized('Could not recover signer address.');
+  }
+
+  // Validate nonce — single-use, must match address, must not be expired
+  const expectedNonce = consumeNonce(recoveredAddress);
+  if (!expectedNonce) {
+    throw AppError.unauthorized('Nonce is invalid, expired, or already used. Request a new nonce.');
+  }
+  if (siweMessage.nonce !== expectedNonce) {
+    throw AppError.unauthorized('Nonce mismatch.');
+  }
+
+  // Upsert the user record (create on first login, update lastActive on subsequent logins)
+  const { dbState } = req.app.locals ?? {};
+  if (dbState && dbState.connected) {
+    await User.findOneAndUpdate(
+      { walletAddress: recoveredAddress },
+      { lastActive: new Date() },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+  }
+
+  // Issue a JWT. Stateless — no session store needed.
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw AppError.internal('Server misconfiguration.');
+  }
+
+  const token = jwt.sign(
+    { address: recoveredAddress },
+    secret,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '24h' },
+  );
+
+  return res.status(200).json({
+    success: true,
+    address: recoveredAddress,
+    token,
+  });
 }
 
-module.exports = { getNonce, verify, _getNonceStore, setNonce, consumeNonce };
+module.exports = {
+  getNonce: asyncHandler(getNonce),
+  verify: asyncHandler(verify),
+  _getNonceStore,
+  setNonce,
+  consumeNonce,
+};

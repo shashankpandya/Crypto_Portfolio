@@ -124,6 +124,8 @@ app.use('/api/market',       marketRoutes);
 app.use('/api/watchlist',    watchlistRoutes);
 app.use('/api/auth',         authRoutes);
 
+const { errorHandler } = require('./middleware/errorHandler');
+
 // ---------------------------------------------------------------------------
 // 404 handler — catches any request that didn't match a route above.
 // ---------------------------------------------------------------------------
@@ -132,32 +134,8 @@ app.use((_req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// Global error handler (P1-15, P3-01)
-// Error redaction in production with correlation IDs.
+// Global error handler (P1-15, P3-01, P3-02)
 // ---------------------------------------------------------------------------
-// eslint-disable-next-line no-unused-vars
-app.use((err, req, res, _next) => {
-  const isDev = process.env.NODE_ENV === 'development';
-  const status = err.status ?? err.statusCode ?? 500;
-  const correlationId = req?.id || req?.correlationId || `req-${crypto.randomUUID()}`;
-
-  const reqLogger = req?.log || logger;
-  reqLogger.error({ err, correlationId, status }, `[GlobalErrorHandler] [${correlationId}] ${err.message || 'Internal server error.'}`);
-
-  if (status >= 500 && !isDev) {
-    return res.status(status).json({
-      success: false,
-      message: 'Internal server error.',
-      correlationId,
-    });
-  }
-
-  res.status(status).json({
-    success: false,
-    message: err.message || 'Internal server error.',
-    correlationId,
-    ...(isDev && { stack: err.stack }),
-  });
-});
+app.use(errorHandler);
 
 module.exports = app;
