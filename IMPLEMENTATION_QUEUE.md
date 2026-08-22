@@ -654,21 +654,21 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-07
+### P2-07 ✓ DONE
 **Title:** Extract watchlistRepo
 **Goal:** Move the `dbState.connected ? mongo : json` branch out of the controller into one repository module.
 **Files affected:** `server/src/repositories/watchlistRepo.js` (new), `server/src/controllers/watchlistController.js`
 **Risk:** M — touches the fallback path, which has never been tested.
 **Effort:** 90 min
 **Verification checklist:**
-- [ ] `dbState.connected` read exactly once, inside the repo
-- [ ] Controller is thin: parse → repo → respond
-- [ ] Repo uses `jsonStore` from P2-06, not raw `fs`
-- [ ] API responses byte-identical to baseline in **both** DB modes
-- [ ] Duplicated `getLocalWatchlists` / `saveLocalWatchlists` deleted
-- [ ] Lowercase-address convention preserved
+- [x] `dbState.connected` read exactly once, inside the repo
+- [x] Controller is thin: parse → repo → respond
+- [x] Repo uses `jsonStore` from P2-06, not raw `fs`
+- [x] API responses byte-identical to baseline in **both** DB modes
+- [x] Duplicated `getLocalWatchlists` / `saveLocalWatchlists` deleted
+- [x] Lowercase-address convention preserved
 **Rollback:** Revert.
-**Commit:** `refactor(server): extract watchlistRepo with single dbState branch`
+**Commit:** `refactor(server): extract watchlistRepo with single dbState branch` (8417caf)
 **Blocked by:** P2-06
 
 ---
