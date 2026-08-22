@@ -9,6 +9,7 @@ const {
   removeCoin,
 } = require('../controllers/watchlistController');
 const { requireAuth } = require('../middleware/auth');
+const { readLimiter, writeLimiter } = require('../middleware/rateLimiters');
 
 const router = Router();
 
@@ -35,12 +36,12 @@ const removeCoinSchema = {
 };
 
 // GET /api/watchlist/:walletAddress
-router.get('/:walletAddress', requireAuth, validate(walletParamSchema), get);
+router.get('/:walletAddress', readLimiter, requireAuth, validate(walletParamSchema), get);
 
 // POST /api/watchlist/:walletAddress/coins  — body: { coinId }
-router.post('/:walletAddress/coins', requireAuth, validate(addCoinSchema), addCoin);
+router.post('/:walletAddress/coins', writeLimiter, requireAuth, validate(addCoinSchema), addCoin);
 
 // DELETE /api/watchlist/:walletAddress/coins/:coinId
-router.delete('/:walletAddress/coins/:coinId', requireAuth, validate(removeCoinSchema), removeCoin);
+router.delete('/:walletAddress/coins/:coinId', writeLimiter, requireAuth, validate(removeCoinSchema), removeCoin);
 
 module.exports = router;

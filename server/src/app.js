@@ -101,28 +101,17 @@ app.get('/health', (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// Rate limiting — 100 requests per 15 minutes per IP (applies to API routes).
+// Rate limiting policies (P3-05)
 // ---------------------------------------------------------------------------
-const limiter = rateLimit({
-  windowMs:        15 * 60 * 1000, // 15 minutes
-  max:             100,
-  standardHeaders: true,  // Return rate-limit info in RateLimit-* headers
-  legacyHeaders:   false, // Disable X-RateLimit-* headers
-  message: {
-    success: false,
-    message: 'Too many requests from this IP. Please try again after 15 minutes.',
-  },
-});
-
-app.use(limiter);
+const { authLimiter, readLimiter } = require('./middleware/rateLimiters');
 
 // ---------------------------------------------------------------------------
 // Routes
 // ---------------------------------------------------------------------------
-app.use('/api/transactions', transactionRoutes);
-app.use('/api/market',       marketRoutes);
+app.use('/api/transactions', readLimiter, transactionRoutes);
+app.use('/api/market',       readLimiter, marketRoutes);
 app.use('/api/watchlist',    watchlistRoutes);
-app.use('/api/auth',         authRoutes);
+app.use('/api/auth',         authLimiter, authRoutes);
 
 const { errorHandler } = require('./middleware/errorHandler');
 
