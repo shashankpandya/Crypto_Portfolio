@@ -579,18 +579,21 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-03
+### P2-03 ✓ DONE
 **Title:** Remove unused server dependency (express-slow-down)
 **Goal:** Drop a dependency that is installed but never required.
 **Files affected:** `server/package.json`, lockfile
 **Risk:** L
 **Effort:** 30 min
 **Verification checklist:**
-- [ ] `grep -r "express-slow-down" server/src` → zero hits
-- [ ] `SLOW_DOWN_*` env vars removed or documented as dead
-- [ ] Server boots; `/health` returns 200
+- [x] `grep -r "express-slow-down" server/src` → zero hits
+- [x] `SLOW_DOWN_*` env vars removed or documented as dead — no `SLOW_DOWN_*` refs found anywhere in `server`
+- [x] Server boots; `/health` responds — `503 degraded` (db disconnected), matching documented baseline (`docs/BASELINE.md` "DB down — observed"); not a regression
+- [x] All 68 server + 18 vite + 8 contract tests pass
+- [x] `npm run build --prefix vite-project` succeeds (364 modules, unchanged)
+- [x] Baseline re-capture diff reviewed — differences are CoinGecko live-network noise (this host now has network access, unlike the network-blocked capture environment), unrelated to this change; not committed, scope belongs to the tracked baseline-gap follow-up
 **Rollback:** Revert.
-**Commit:** `chore(server): remove unused express-slow-down dependency`
+**Commit:** `chore(server): remove unused express-slow-down dependency` — commit 958d842
 **Blocked by:** —
 
 ---
