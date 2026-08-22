@@ -154,6 +154,14 @@ const priceCacheSchema = new mongoose.Schema(
       default: '',
     },
 
+    // 7-day sparkline prices, shape { price: number[] } — CoinGecko's own
+    // shape, stored as-is so the frontend's real-data sparkline (P1-14)
+    // keeps working when served from this cache instead of direct CoinGecko.
+    sparkline_in_7d: {
+      type:    mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+
     // Explicitly managed so the TTL index has a concrete field to target.
     updatedAt: {
       type:    Date,

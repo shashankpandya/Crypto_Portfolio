@@ -232,6 +232,19 @@ export const getCoinHistory = async (id, days) => {
 };
 
 export const fetchCoins = async (limit = 100) => {
+  // Route through the server first (P5-02) — it shields per-user rate limits
+  // behind PriceCache and keeps the CoinGecko key server-side. Direct
+  // CoinGecko stays as an explicit fallback for when the server is down.
+  try {
+    const response = await axios.get('/api/market/coins', { params: { limit } });
+    if (response.data?.success && Array.isArray(response.data.data)) {
+      return response.data.data;
+    }
+    throw new Error('Unexpected /api/market/coins response shape');
+  } catch (serverError) {
+    console.warn("Server market API unavailable, falling back to direct CoinGecko call:", serverError);
+  }
+
   try {
     return await cachedRequest('/coins/markets', {
       vs_currency: 'usd',

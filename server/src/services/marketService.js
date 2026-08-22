@@ -80,7 +80,7 @@ class MarketService {
           order:                  DEFAULT_ORDER,
           per_page:               limit,
           page:                   1,
-          sparkline:              false,
+          sparkline:              true,
           price_change_percentage: '1h,24h,7d',
         },
         timeout: 10_000, // 10 s
@@ -137,6 +137,7 @@ class MarketService {
               atl_change_percentage:               coin.atl_change_percentage,
               atl_date:                            coin.atl_date,
               last_updated:                        coin.last_updated,
+              sparkline_in_7d:                     coin.sparkline_in_7d,
               updatedAt:                           now,
             },
           },

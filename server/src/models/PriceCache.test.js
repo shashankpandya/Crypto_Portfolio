@@ -39,6 +39,7 @@ describe('PriceCache Schema', () => {
       atl_date: '2013-07-06T00:00:00.000Z',
       last_updated: '2026-08-02T00:00:00.000Z',
       updatedAt: new Date('2026-08-02T00:00:00.000Z'),
+      sparkline_in_7d: { price: [59000, 59500, 60200, 60000] },
     };
 
     const doc = new PriceCache(fullCoinData).toObject();
