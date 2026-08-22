@@ -72,6 +72,7 @@ export const WatchlistProvider = ({ children }) => {
       await axios.post(`/api/watchlist/${addrLower}/coins`, { coinId });
     } catch (err) {
       console.error("Failed to add to watchlist DB:", err);
+      return { success: false };
     }
     const key = userKey(address);
     const list = readList(key);
@@ -79,6 +80,7 @@ export const WatchlistProvider = ({ children }) => {
       list.push(coinId);
       writeList(key, list);
     }
+    return { success: true };
   }, []);
 
   const removeFromWatchlistDB = React.useCallback(async (address, coinId) => {
@@ -87,9 +89,11 @@ export const WatchlistProvider = ({ children }) => {
       await axios.delete(`/api/watchlist/${addrLower}/coins/${coinId}`);
     } catch (err) {
       console.error("Failed to remove from watchlist DB:", err);
+      return { success: false };
     }
     const key = userKey(address);
     writeList(key, readList(key).filter((id) => id !== coinId));
+    return { success: true };
   }, []);
 
   const syncLocalWatchlistToDB = React.useCallback(async (address) => {

@@ -59,6 +59,7 @@ const Watchlist = ({ coins }) => {
   // Coins watched but outside the top-100 `coins` prop (P4-05) — fetched
   // individually by id so they still render instead of silently vanishing.
   const [missingCoinsData, setMissingCoinsData] = useState({});
+  const [mutationError, setMutationError] = useState(null);
 
   // Load watchlist on connect
   useEffect(() => {
@@ -138,10 +139,14 @@ const Watchlist = ({ coins }) => {
   const memoizedAddToWatchlist = useCallback(
     async (coin) => {
       if (!watchlist.includes(coin.id)) {
-        const updatedWatchlist = [...watchlist, coin.id];
-        setWatchlist(updatedWatchlist);
+        const previousWatchlist = watchlist;
+        setWatchlist([...watchlist, coin.id]);
         if (currentAccount) {
-          await addToWatchlistDB(currentAccount, coin.id);
+          const result = await addToWatchlistDB(currentAccount, coin.id);
+          if (!result?.success) {
+            setWatchlist(previousWatchlist);
+            setMutationError(`Failed to add ${coin.name || coin.id} to your watchlist. Please try again.`);
+          }
         } else {
           addToAnonymousWatchlist(coin.id);
         }
@@ -154,10 +159,14 @@ const Watchlist = ({ coins }) => {
 
   const memoizedRemoveFromWatchlist = useCallback(
     async (coinId) => {
-      const updatedWatchlist = watchlist.filter((id) => id !== coinId);
-      setWatchlist(updatedWatchlist);
+      const previousWatchlist = watchlist;
+      setWatchlist(watchlist.filter((id) => id !== coinId));
       if (currentAccount) {
-        await removeFromWatchlistDB(currentAccount, coinId);
+        const result = await removeFromWatchlistDB(currentAccount, coinId);
+        if (!result?.success) {
+          setWatchlist(previousWatchlist);
+          setMutationError(`Failed to remove ${coinId} from your watchlist. Please try again.`);
+        }
       } else {
         removeFromAnonymousWatchlist(coinId);
       }
@@ -182,6 +191,22 @@ const Watchlist = ({ coins }) => {
           <p className="text-xs text-slate-500 mt-0.5">Track your favorite assets</p>
         </div>
       </div>
+
+      {mutationError && (
+        <div
+          role="alert"
+          className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-negative/20 bg-negative/5 px-4 py-2.5 text-xs text-negative max-w-lg mx-auto w-full"
+        >
+          <span>{mutationError}</span>
+          <button
+            onClick={() => setMutationError(null)}
+            aria-label="Dismiss error"
+            className="text-negative hover:text-white"
+          >
+            &times;
+          </button>
+        </div>
+      )}
 
       {/* Autocomplete Search suggestions dropdown */}
       <div className="mb-6 relative max-w-lg mx-auto w-full z-30">
