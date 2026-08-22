@@ -238,3 +238,31 @@ describe('blockchainService JSON fallback dedupe', () => {
     expect(dedupeIndex(txs, null, null, { sender: '0xaaa', timestamp: 1700000001 })).toBe(-1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Exponential backoff and service status (P3-07)
+// ---------------------------------------------------------------------------
+describe('blockchainService RPC reconnect and backoff (P3-07)', () => {
+  const blockchainService = require('./blockchainService');
+
+  it('calculates jittered exponential backoff with max 60s cap', () => {
+    const delay0 = blockchainService._calculateBackoff(0);
+    expect(delay0).toBeGreaterThanOrEqual(1000);
+    expect(delay0).toBeLessThanOrEqual(1500);
+
+    const delay1 = blockchainService._calculateBackoff(1);
+    expect(delay1).toBeGreaterThanOrEqual(2000);
+    expect(delay1).toBeLessThanOrEqual(2500);
+
+    const delay10 = blockchainService._calculateBackoff(10);
+    expect(delay10).toBeGreaterThanOrEqual(60000);
+    expect(delay10).toBeLessThanOrEqual(60500);
+  });
+
+  it('exposes initial status via getStatus()', () => {
+    const status = blockchainService.getStatus();
+    expect(status).toHaveProperty('status');
+    expect(status).toHaveProperty('listenerAttached');
+    expect(status).toHaveProperty('reconnectAttempts');
+  });
+});

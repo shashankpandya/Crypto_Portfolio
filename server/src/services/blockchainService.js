@@ -149,6 +149,58 @@ class BlockchainService {
     this.provider = null;
     this.contract = null;
     this._listenerAttached = false;
+    this.status = 'uninitialized';
+    this._reconnectAttempts = 0;
+    this._reconnectTimer = null;
+    this._isShuttingDown = false;
+  }
+
+  _calculateBackoff(attempt) {
+    const base = 1000;  // 1s
+    const max = 60000;  // 60s
+    const factor = 2;
+    const jitter = Math.random() * 500;
+    return Math.min(max, base * Math.pow(factor, attempt)) + jitter;
+  }
+
+  _scheduleReconnect() {
+    if (this._isShuttingDown) return;
+    if (this._reconnectTimer) clearTimeout(this._reconnectTimer);
+
+    this.status = 'reconnecting';
+    const delay = this._calculateBackoff(this._reconnectAttempts);
+    this._reconnectAttempts += 1;
+
+    logger.warn(
+      { attempt: this._reconnectAttempts, delayMs: Math.round(delay) },
+      `[BlockchainService] Scheduling RPC reconnect attempt ${this._reconnectAttempts} in ${Math.round(delay)}ms...`,
+    );
+
+    this._reconnectTimer = setTimeout(async () => {
+      this._reconnectTimer = null;
+      try {
+        this.stopEventListener();
+        this.provider = null;
+        this.contract = null;
+        await this.startEventListener();
+        if (this._listenerAttached) {
+          this._reconnectAttempts = 0;
+          this.status = 'connected';
+          logger.info('[BlockchainService] RPC reconnect successful.');
+        }
+      } catch (err) {
+        logger.error({ err }, '[BlockchainService] Reconnect attempt failed.');
+        this._scheduleReconnect();
+      }
+    }, delay);
+  }
+
+  getStatus() {
+    return {
+      status: this.status,
+      listenerAttached: this._listenerAttached,
+      reconnectAttempts: this._reconnectAttempts,
+    };
   }
 
   _init() {
@@ -166,6 +218,15 @@ class BlockchainService {
     }
 
     this.provider = new ethers.JsonRpcProvider(alchemyUrl);
+
+    // Attach provider error listeners for RPC drops
+    if (typeof this.provider.on === 'function') {
+      this.provider.on('error', (err) => {
+        logger.error({ err }, '[BlockchainService] RPC Provider error detected.');
+        this._scheduleReconnect();
+      });
+    }
+
     this.contract = new ethers.Contract(contractAddress, CONTRACT_ABI, this.provider);
 
     logger.info('[BlockchainService] Initialised provider and contract.');
@@ -176,6 +237,7 @@ class BlockchainService {
     try {
       this._init();
     } catch (err) {
+      this.status = 'failed';
       logger.warn({ err }, `[BlockchainService] Initialization failed (non-fatal listener): ${err.message}`);
       return;
     }
@@ -245,6 +307,7 @@ class BlockchainService {
     );
 
     this._listenerAttached = true;
+    this.status = 'connected';
     logger.info('[BlockchainService] Listening for TransactionAdded events.');
   }
 
@@ -331,9 +394,14 @@ class BlockchainService {
   }
 
   stopEventListener() {
+    if (this._reconnectTimer) {
+      clearTimeout(this._reconnectTimer);
+      this._reconnectTimer = null;
+    }
     if (this.contract && this._listenerAttached) {
       this.contract.removeAllListeners('TransactionAdded');
       this._listenerAttached = false;
+      this.status = 'disconnected';
       logger.info('[BlockchainService] Event listener removed.');
     }
   }
