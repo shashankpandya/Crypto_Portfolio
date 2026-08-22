@@ -1,8 +1,15 @@
 import { ethers } from "ethers";
-import abi from "./Transactions.json";
+import {
+  transactionsABI,
+  transactionsAddress,
+  getReadContract,
+  getSignerContract,
+} from "../services/contractService";
 
-export const transactionsABI = abi.abi;
-export const transactionsAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
+// Re-exported from contractService (P2-09) so existing
+// `import { transactionsABI, transactionsAddress } from '../utils/constant'`
+// call sites keep working unchanged.
+export { transactionsABI, transactionsAddress };
 
 // Utility function for retrying operations
 const retry = async (fn, retries = 3, delay = 1000) => {
@@ -27,12 +34,7 @@ export const verifyContract = async () => {
   }
 
   return retry(async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const transactionsContract = new ethers.Contract(
-      transactionsAddress,
-      transactionsABI,
-      provider
-    );
+    const transactionsContract = getReadContract();
     try {
       const transactionCount = await transactionsContract.getTransactionCount();
       console.log(
@@ -100,12 +102,7 @@ export const checkAllowance = async (owner, spender) => {
   }
 
   return retry(async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const contract = new ethers.Contract(
-      transactionsAddress,
-      transactionsABI,
-      provider
-    );
+    const contract = getReadContract();
 
     if (typeof contract.allowance !== "function") {
       console.warn(
@@ -145,13 +142,7 @@ export const approveAllowance = async (spender, amountWei) => {
 
   return retry(async () => {
     await window.ethereum.request({ method: "eth_requestAccounts" });
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const contract = new ethers.Contract(
-      transactionsAddress,
-      transactionsABI,
-      signer
-    );
+    const contract = await getSignerContract();
     try {
       const tx = await contract.approve(spender, amountWei);
       await tx.wait();

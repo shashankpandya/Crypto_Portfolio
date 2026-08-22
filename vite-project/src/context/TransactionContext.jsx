@@ -28,7 +28,6 @@ function getStoredAddress() {
 }
 
 import {
-  transactionsABI,
   transactionsAddress,
   verifyContract,
   logContractMethods,
@@ -36,6 +35,11 @@ import {
   checkAllowance,
   approveAllowance,
 } from "../utils/constant";
+import {
+  getProvider,
+  getReadContract,
+  getSignerContract,
+} from "../services/contractService";
 
 // Make sure these are correctly defined in your constants file
 // console.log("Contract Address:", contractAddress);
@@ -71,15 +75,7 @@ export const getTxOptions = async (contract, methodName, args = [], customOption
 
 const getEthereumContract = async () => {
   if (!window.ethereum) throw new Error("Please install MetaMask.");
-  const provider = new ethers.BrowserProvider(window.ethereum);
-  const signer = await provider.getSigner();
-  const transactionsContract = new ethers.Contract(
-    transactionsAddress,
-    transactionsABI,
-    signer
-  );
-
-  return transactionsContract;
+  return getSignerContract();
 };
 
 const fetchContractABI = async (contractAddress) => {
@@ -101,12 +97,7 @@ const fetchContractABI = async (contractAddress) => {
 
 const getContractInfo = async () => {
   if (!window.ethereum) throw new Error("Please install MetaMask.");
-  const provider = new ethers.BrowserProvider(window.ethereum);
-  const contract = new ethers.Contract(
-    transactionsAddress,
-    transactionsABI,
-    provider
-  );
+  const contract = getReadContract();
 
   try {
     const name = await contract.name();
@@ -321,12 +312,7 @@ export const TransactionProvider = ({ children }) => {
           console.warn("VITE_CONTRACT_ADDRESS is not set or invalid. Skipping fetching transactions.");
           return;
         }
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const transactionsContract = new ethers.Contract(
-          transactionsAddress,
-          transactionsABI,
-          provider
-        );
+        const transactionsContract = getReadContract();
         const availableTransactions =
           await transactionsContract.getAllTransactions();
 
@@ -511,7 +497,7 @@ export const TransactionProvider = ({ children }) => {
   /** Returns native ETH balance of address as a formatted string (P1-15). */
   const getEthBalance = async (address) => {
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      const provider = getProvider();
       const balance = await provider.getBalance(address);
       return ethers.formatEther(balance);
     } catch (error) {
@@ -526,8 +512,7 @@ export const TransactionProvider = ({ children }) => {
       if (!transactionsAddress || !ethers.isAddress(transactionsAddress)) {
         return "0";
       }
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const contract = new ethers.Contract(transactionsAddress, transactionsABI, provider);
+      const contract = getReadContract();
       const decimals = await contract.decimals();
       const balance = await contract.balanceOf(address);
       return ethers.formatUnits(balance, decimals);
