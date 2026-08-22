@@ -2,6 +2,7 @@
 
 const crypto    = require('crypto');
 const express   = require('express');
+const compression = require('compression');
 const helmet    = require('helmet');
 const cors      = require('cors');
 const rateLimit = require('express-rate-limit');
@@ -21,6 +22,9 @@ const authRoutes        = require('./routes/auth');
 // App & Proxy settings
 // ---------------------------------------------------------------------------
 const app = express();
+
+// Response compression (P3-06)
+app.use(compression());
 
 // Trust reverse proxy (e.g. Nginx, Cloudflare, ALB) - 1 hop
 app.set('trust proxy', 1);

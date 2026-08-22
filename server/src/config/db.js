@@ -74,13 +74,15 @@ async function connectDB() {
       });
 
       mongoose.connection.on('disconnected', () => {
+        const previousState = dbState.connected;
         dbState.connected = false;
-        logger.warn('[DB] MongoDB disconnected. API routes will return 503.');
+        logger.warn({ from: previousState, to: false }, '[DB] MongoDB disconnected. Falling back to JSON storage.');
       });
 
       mongoose.connection.on('reconnected', () => {
+        const previousState = dbState.connected;
         dbState.connected = true;
-        logger.info('[DB] MongoDB reconnected. API routes restored.');
+        logger.warn({ from: previousState, to: true }, '[DB] MongoDB reconnected. Primary storage restored.');
       });
 
       return true;
@@ -94,7 +96,7 @@ async function connectDB() {
     }
   }
 
-  logger.error(`[DB] All ${MAX_RETRIES} connection attempts failed. Server will start without DB.`);
+  logger.warn({ connected: false }, `[DB] All ${MAX_RETRIES} connection attempts failed. Server running with JSON fallback.`);
   return false;
 }
 
