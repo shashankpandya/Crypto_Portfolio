@@ -9,6 +9,7 @@ import { WatchlistProvider } from "./context/WatchlistContext";
 import { useWatchlist } from "./hooks/useWatchlist";
 import { ContractProvider } from "./context/ContractContext";
 import { useContract } from "./hooks/useContract";
+import { ToastProvider } from "./components/ui/Toast";
 import "./App.css";
 import { fetchCoins } from "./api";
 
@@ -106,6 +107,7 @@ const App = () => {
 
   return (
     <Router>
+      <ToastProvider>
       <WatchlistProvider>
         <ContractProvider>
           <AppProviders>
@@ -174,6 +176,7 @@ const App = () => {
           </AppProviders>
         </ContractProvider>
       </WatchlistProvider>
+      </ToastProvider>
     </Router>
   );
 };

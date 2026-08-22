@@ -4,6 +4,7 @@ import { describe, it, expect, vi } from "vitest";
 import TokenTransfer from "./TokenTransfer";
 import { WalletContext } from "../../context/WalletContext";
 import { ContractContext } from "../../context/ContractContext";
+import { ToastProvider } from "../../components/ui/Toast";
 
 const mockWalletContext = {
   currentAccount: "0xcb9d0aa389456eb5a46c772f38b59c40b092ebcc",
@@ -18,11 +19,13 @@ const mockContractContext = {
 
 const renderWithProviders = () =>
   render(
-    <WalletContext.Provider value={mockWalletContext}>
-      <ContractContext.Provider value={mockContractContext}>
-        <TokenTransfer />
-      </ContractContext.Provider>
-    </WalletContext.Provider>
+    <ToastProvider>
+      <WalletContext.Provider value={mockWalletContext}>
+        <ContractContext.Provider value={mockContractContext}>
+          <TokenTransfer />
+        </ContractContext.Provider>
+      </WalletContext.Provider>
+    </ToastProvider>
   );
 
 describe("TokenTransfer (P1-13 — No Hardcoded USD/Gas)", () => {

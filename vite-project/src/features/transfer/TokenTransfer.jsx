@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { useWallet } from "../../hooks/useWallet";
 import { useContract } from "../../hooks/useContract";
 import Button from "../../components/ui/Button";
+import { useToast } from "../../components/ui/Toast";
 
 const isValidAddress = (addr) => {
   return /^0x[a-fA-F0-9]{40}$/.test(addr);
@@ -11,6 +12,7 @@ const isValidAddress = (addr) => {
 function TokenTransfer() {
   const { currentAccount } = useWallet();
   const { formData, handleChange, sendTransaction, sendBatchTransaction } = useContract();
+  const { notify } = useToast();
   
   const [activeTab, setActiveTab] = useState("single");
   const nextBatchRowId = useRef(1);
@@ -122,14 +124,17 @@ function TokenTransfer() {
 
       const result = await sendTransaction();
       setSuccessMessage("Transaction sent. Waiting for confirmation...");
+      notify({ variant: "info", message: `Transaction submitted — waiting for confirmation (${result.hash.slice(0, 10)}...)` });
       await result.wait();
       setSuccessMessage(`Transaction successful! Hash: ${result.hash}`);
+      notify({ variant: "success", message: "Transaction confirmed!" });
     } catch (error) {
-      if (error.message === "Transaction was rejected in MetaMask.") {
-        setErrorMessage("Transaction was rejected.");
-      } else {
-        setErrorMessage(error.message || "Unknown error occurred");
-      }
+      const message =
+        error.message === "Transaction was rejected in MetaMask."
+          ? "Transaction was rejected."
+          : error.reason || error.message || "Unknown error occurred";
+      setErrorMessage(message);
+      notify({ variant: "error", message: `Transaction failed: ${message}`, duration: 8000 });
     } finally {
       setLoading(false);
     }
@@ -166,12 +171,19 @@ function TokenTransfer() {
 
       const result = await sendBatchTransaction(receivers, amounts, batchMessage);
       setSuccessMessage("Batch transaction sent. Waiting for confirmation...");
+      notify({ variant: "info", message: `Batch transaction submitted — waiting for confirmation (${result.hash.slice(0, 10)}...)` });
       await result.wait();
       setSuccessMessage(`Batch transaction successful! Hash: ${result.hash}`);
-      setBatchRecipients([{ address: "", amount: "" }]);
+      notify({ variant: "success", message: `Batch transfer confirmed! ${receivers.length} recipients paid.` });
+      setBatchRecipients([{ id: nextBatchRowId.current++, address: "", amount: "" }]);
       setBatchMessage("");
     } catch (error) {
-      setErrorMessage(error.message || "Unknown error occurred");
+      const message =
+        error.message === "Transaction was rejected in MetaMask."
+          ? "Transaction was rejected."
+          : error.reason || error.message || "Unknown error occurred";
+      setErrorMessage(message);
+      notify({ variant: "error", message: `Batch transaction failed: ${message}`, duration: 8000 });
     } finally {
       setLoading(false);
     }
