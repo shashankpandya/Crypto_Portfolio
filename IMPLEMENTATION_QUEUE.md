@@ -562,19 +562,19 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-02
+### P2-02 ✓ DONE
 **Title:** Remove unused frontend dependency (framer-motion)
 **Goal:** Drop a dependency with zero imports.
 **Files affected:** `vite-project/package.json`, lockfile
 **Risk:** L
 **Effort:** 30 min
 **Verification checklist:**
-- [ ] `grep -r "framer-motion" vite-project/src` → zero hits
-- [ ] Removed from `package.json`; lockfile regenerated
-- [ ] `npm run build` succeeds; bundle size drops
-- [ ] `gsap` **kept** — it is used in `Home.jsx` and `TopCoins.jsx`
+- [x] `grep -r "framer-motion" vite-project/src` → zero hits
+- [x] Removed from `package.json`; lockfile regenerated
+- [x] `npm run build` succeeds; bundle size unchanged (vendor chunk 522.30 kB before and after — framer-motion had zero footprint since it was never imported/tree-shaken)
+- [x] `gsap` **kept** — it is used in `Home.jsx` and `TopCoins.jsx`
 **Rollback:** Revert.
-**Commit:** `chore(client): remove unused framer-motion dependency`
+**Commit:** `chore(client): remove unused framer-motion dependency` — commit 5addd8d
 **Blocked by:** —
 
 ---
