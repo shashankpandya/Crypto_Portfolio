@@ -64,14 +64,20 @@ function killProcessTree(child) {
  * for the next run).
  */
 function killWhoeverOwnsPort(port) {
+  // Only match LISTENING rows (not any line mentioning the port — an
+  // ESTABLISHED row for this same process's own outbound connection to
+  // that port also matches and reports this process's own PID, which a
+  // sibling script, tests/load/api.js, was confirmed to self-kill via
+  // when called after establishing its own connections rather than
+  // before). Excluding process.pid is a second, defense-in-depth guard.
   try {
     if (process.platform === 'win32') {
-      const out = execSync(`netstat -ano | findstr :${port}`, { encoding: 'utf8' });
+      const out = execSync(`netstat -ano | findstr :${port} | findstr LISTENING`, { encoding: 'utf8' });
       const pids = new Set(
         out
           .split('\n')
           .map((line) => line.trim().split(/\s+/).pop())
-          .filter((pid) => pid && /^\d+$/.test(pid)),
+          .filter((pid) => pid && /^\d+$/.test(pid) && Number(pid) !== process.pid),
       );
       for (const pid of pids) {
         try {
@@ -81,7 +87,16 @@ function killWhoeverOwnsPort(port) {
         }
       }
     } else {
-      execSync(`lsof -ti tcp:${port} | xargs -r kill -9`, { stdio: 'ignore', shell: '/bin/sh' });
+      const pids = execSync(`lsof -ti tcp:${port} -sTCP:LISTEN`, { encoding: 'utf8' })
+        .split('\n')
+        .filter((pid) => pid && Number(pid) !== process.pid);
+      for (const pid of pids) {
+        try {
+          execSync(`kill -9 ${pid}`, { stdio: 'ignore' });
+        } catch {
+          // already gone
+        }
+      }
     }
   } catch {
     // no process found on that port — nothing to do

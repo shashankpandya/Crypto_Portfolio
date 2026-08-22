@@ -214,16 +214,30 @@ describe('Restart-resume: kill mid-index, restart, cursor resumes, zero duplicat
   let originalTransactionsSnapshot;
   let originalIndexerStateSnapshot;
 
+  // Only match LISTENING rows, and exclude this process's own PID — see the
+  // matching note in tests/load/api.js's killWhoeverOwnsPort (an earlier
+  // version there self-killed the script via a false match on its own
+  // outbound connection to the port being scanned).
   function killWhoeverOwnsPort(port) {
     try {
       if (process.platform === 'win32') {
-        const out = execSync(`netstat -ano | findstr :${port}`, { encoding: 'utf8' });
-        const pids = new Set(out.split('\n').map((l) => l.trim().split(/\s+/).pop()).filter((p) => p && /^\d+$/.test(p)));
+        const out = execSync(`netstat -ano | findstr :${port} | findstr LISTENING`, { encoding: 'utf8' });
+        const pids = new Set(
+          out
+            .split('\n')
+            .map((l) => l.trim().split(/\s+/).pop())
+            .filter((p) => p && /^\d+$/.test(p) && Number(p) !== process.pid),
+        );
         for (const pid of pids) {
           try { execSync(`taskkill /PID ${pid} /T /F`, { stdio: 'ignore' }); } catch { /* already gone */ }
         }
       } else {
-        execSync(`lsof -ti tcp:${port} | xargs -r kill -9`, { stdio: 'ignore', shell: '/bin/sh' });
+        const pids = execSync(`lsof -ti tcp:${port} -sTCP:LISTEN`, { encoding: 'utf8' })
+          .split('\n')
+          .filter((p) => p && Number(p) !== process.pid);
+        for (const pid of pids) {
+          try { execSync(`kill -9 ${pid}`, { stdio: 'ignore' }); } catch { /* already gone */ }
+        }
       }
     } catch { /* nothing listening */ }
   }
