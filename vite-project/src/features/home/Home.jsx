@@ -4,6 +4,7 @@ import { useWallet } from "../../hooks/useWallet";
 import { ethers } from "ethers";
 import TopCoins from "../market/TopCoins";
 import ErrorBoundary from "../../components/ErrorBoundary";
+import Skeleton from "../../components/ui/Skeleton";
 import { gsap } from "gsap";
 
 const getNetworkName = (chainIdHex) => {
@@ -41,7 +42,7 @@ const CountUp = ({ value, duration = 800, decimals = 4 }) => {
   return <span>{currentVal.toFixed(decimals)}</span>;
 };
 
-const Home = ({ coins }) => {
+const Home = ({ coins, coinsLoading = false, coinsError = null, onRetryCoins }) => {
   const { currentAccount, getEthBalance, getTokenBalance, isConnectedToSite, connectWallet } =
     useWallet();
   const [ethBalance, setEthBalance] = useState("0");
@@ -253,7 +254,29 @@ const Home = ({ coins }) => {
         {/* Top Cryptocurrencies Table List */}
         <div className="gsap-fade-in">
           <ErrorBoundary>
-            <TopCoins coins={coins} />
+            {coinsLoading ? (
+              <div className="flex flex-col gap-xs" role="status" aria-label="Loading market data">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ) : coinsError ? (
+              <div className="flex flex-col items-center gap-sm rounded-lg border border-negative/20 bg-negative/5 px-md py-lg text-center">
+                <p className="text-sm text-negative">{coinsError}</p>
+                {onRetryCoins && (
+                  <button
+                    onClick={onRetryCoins}
+                    className="premium-btn text-white text-xs font-bold py-1.5 px-4 rounded-lg transition duration-200"
+                  >
+                    Retry
+                  </button>
+                )}
+              </div>
+            ) : (
+              <TopCoins coins={coins} />
+            )}
           </ErrorBoundary>
         </div>
       </div>
