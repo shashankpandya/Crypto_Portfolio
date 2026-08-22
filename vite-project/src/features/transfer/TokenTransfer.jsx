@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ethers } from "ethers";
 import { useWallet } from "../../hooks/useWallet";
 import { useContract } from "../../hooks/useContract";
@@ -13,7 +13,8 @@ function TokenTransfer() {
   const { formData, handleChange, sendTransaction, sendBatchTransaction } = useContract();
   
   const [activeTab, setActiveTab] = useState("single");
-  const [batchRecipients, setBatchRecipients] = useState([{ address: "", amount: "" }]);
+  const nextBatchRowId = useRef(1);
+  const [batchRecipients, setBatchRecipients] = useState([{ id: 0, address: "", amount: "" }]);
   const [batchMessage, setBatchMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -80,7 +81,7 @@ function TokenTransfer() {
   };
 
   const addBatchRow = () => {
-    setBatchRecipients([...batchRecipients, { address: "", amount: "" }]);
+    setBatchRecipients([...batchRecipients, { id: nextBatchRowId.current++, address: "", amount: "" }]);
   };
 
   const removeBatchRow = (index) => {
@@ -348,7 +349,7 @@ function TokenTransfer() {
 
               <div className="max-h-48 overflow-y-auto space-y-2.5 pr-1 py-1 border-t border-b border-white/5">
                 {batchRecipients.map((recipient, index) => (
-                  <div key={index} className="flex space-x-2 items-end bg-base p-2.5 rounded border border-white/5 relative">
+                  <div key={recipient.id} className="flex space-x-2 items-end bg-base p-2.5 rounded border border-white/5 relative">
                     <div className="flex-1">
                       <label htmlFor={`batchAddressInput_${index}`} className="block text-slate-400 text-[9px] font-semibold mb-1">
                         #{index + 1} Address

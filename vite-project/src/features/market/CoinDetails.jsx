@@ -237,12 +237,15 @@ const CoinDetails = () => {
             </h3>
             <div className="relative">
               <select
-                value={JSON.stringify(selectedRange)}
-                onChange={(e) => setSelectedRange(JSON.parse(e.target.value))}
+                value={selectedRange.days}
+                onChange={(e) => {
+                  const days = Number(e.target.value);
+                  setSelectedRange(timeRanges.find((range) => range.days === days) || timeRanges[0]);
+                }}
                 className="text-xs text-slate-400 font-semibold px-3 py-1.5 rounded bg-base border border-white/5 cursor-pointer focus:outline-none"
               >
                 {timeRanges.map((range) => (
-                  <option key={range.days} value={JSON.stringify(range)}>
+                  <option key={range.days} value={range.days}>
                     {range.label}
                   </option>
                 ))}
