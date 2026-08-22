@@ -87,22 +87,12 @@ app.use(
 app.use(express.json({ limit: '10kb' }));
 
 // ---------------------------------------------------------------------------
-// Health check (P1-15)
-// GET /health
-// Exempt from rate limiting and DB requirements. Responds even when DB is down.
+// Health check routes (P1-15, P3-10)
+// GET /health, /health/live, /health/ready
+// Exempt from rate limiting.
 // ---------------------------------------------------------------------------
-app.get('/health', (req, res) => {
-  const { dbState } = req.app.locals ?? {};
-  const dbConnected = dbState?.connected ?? false;
-
-  res.status(dbConnected ? 200 : 503).json({
-    success:   dbConnected,
-    status:    dbConnected ? 'ok' : 'degraded',
-    db:        dbConnected ? 'connected' : 'disconnected',
-    uptime:    process.uptime(),
-    timestamp: new Date().toISOString(),
-  });
-});
+const healthRoutes = require('./routes/health');
+app.use('/health', healthRoutes);
 
 // ---------------------------------------------------------------------------
 // Rate limiting policies (P3-05)
