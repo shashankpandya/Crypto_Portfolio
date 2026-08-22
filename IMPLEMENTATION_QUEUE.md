@@ -781,21 +781,23 @@ Zero observable behavior change is the acceptance bar for every task in this pha
 
 ---
 
-### P2-14
+### P2-14 ✓ DONE
 **Title:** Reorganize components into features/
 **Goal:** Group by feature. Pure file moves — no content edits in this PR.
 **Files affected:** `vite-project/src/features/{market,transfer,admin,home}/*` (moved), all import paths
 **Risk:** L — noisy diff, low semantic risk.
 **Effort:** 60 min
 **Verification checklist:**
-- [ ] Moves only. Zero content changes in the same commit — keeps `git log --follow` readable
-- [ ] `components/ui/` folder created (empty, for Phase 4)
-- [ ] `ErrorBoundary.jsx` stays in `components/` — it is cross-cutting
-- [ ] All imports resolve; `npm run build` succeeds
-- [ ] Lazy route imports in `App.jsx` updated; manual Rollup chunks still split correctly
+- [x] Moves only. Zero content changes in the same commit — keeps `git log --follow` readable
+- [x] `components/ui/` folder created (empty, for Phase 4)
+- [x] `ErrorBoundary.jsx` stays in `components/` — it is cross-cutting
+- [x] All imports resolve; `npm run build` succeeds
+- [x] Lazy route imports in `App.jsx` updated; manual Rollup chunks still split correctly
 **Rollback:** Revert.
-**Commit:** `refactor(client): group components by feature`
+**Commit:** `refactor(client): group components by feature` (1249a47)
 **Blocked by:** P2-13
+
+Wave 4 and all of Phase 2 (P2-01 through P2-14) are now complete.
 
 > **Phase 2 gate:** tag `v0.4.0-phase2`. API smoke must diff clean in both DB modes.
 
