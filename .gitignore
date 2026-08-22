@@ -81,6 +81,7 @@ backup/
 
 # Internal planning / implementation-tracking docs (not for the remote)
 IMPLEMENTATION_QUEUE.md
+IMPLEMENTATION_PROGRESS.md
 MASTER_IMPLEMENTATION_PLAN.md
 PROJECT_MEMORY.md
 PHASE_1_RETROSPECTIVE.md
