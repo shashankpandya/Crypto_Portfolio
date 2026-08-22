@@ -1,0 +1,29 @@
+# Environment Variable Matrix (P6-12)
+
+Derived by grepping every `process.env.*` / `import.meta.env.*` reference in `server/`, `vite-project/`, and `smart_contract/`. Root `.env` is loaded by `server/index.js` (`server/.env` is never loaded — see CLAUDE.md) and by `vite.config.js`'s `envDir: "../"` for `VITE_*` vars.
+
+| Var | Used by | Required? | Gates | Behavior when absent |
+|---|---|---|---|---|
+| `PORT` | server | No (default 5000) | HTTP listen port | Server listens on 5000; must be 3000 to match the Vite dev proxy target |
+| `NODE_ENV` | server, vite-project | No | Error redaction (`development` = verbose), boot-env log severity, `import.meta.env.PROD` | Defaults to non-production behavior; production redaction/severity only activate when explicitly set |
+| `MONGO_URI` | server | No | Mongo persistence (`dbState.connected`) | `connectDB()` returns false; every route falls back to `server/data/*.json`; `/health` reports `degraded` |
+| `ALCHEMY_URL` | server | No | Blockchain indexer (event listener + historical sync) | `blockchainService._init()` fails explicitly (P3-09), logged at error; indexer disabled, all non-chain routes unaffected |
+| `CONTRACT_ADDRESS` | server | No | Same as `ALCHEMY_URL` — indexer needs both | Indexer disabled (falls back to `VITE_CONTRACT_ADDRESS` if that's set instead) |
+| `VITE_CONTRACT_ADDRESS` | server (indexer fallback), vite-project (frontend contract calls) | No | Frontend on-chain reads/writes; also usable as the indexer's contract address | Frontend chain features disabled; `contractService.isContractAddressValid()` returns false |
+| `AUTH_REQUIRED` | server | No (default `false`) | Whether `requireAuth` middleware enforces a JWT on watchlist routes | `false`/absent → all requests pass through unauthenticated (current shipped default) |
+| `JWT_SECRET` | server | **Yes, if `AUTH_REQUIRED=true`** | Signing/verifying session JWTs | `requireAuth` returns 500 on any protected request; `POST /api/auth/verify` returns 500 (`AppError.internal`) |
+| `JWT_EXPIRES_IN` | server | No (default `24h`) | JWT expiry | Defaults to 24h sessions |
+| `CORS_ORIGIN` | server | No | Allowed origins in production (comma-separated) | In production: allowlist is empty → **every** cross-origin request is rejected. In non-production: dev localhost origins are always allowed regardless |
+| `COINGECKO_API_KEY` | server | No | CoinGecko demo-tier rate limit | Requests go out unauthenticated to CoinGecko's public rate limit (much lower) |
+| `VITE_COINGECKO_API_KEY` | server (fallback), vite-project (direct-fetch fallback path) | No | Same as above, for the frontend's direct-CoinGecko fallback if the server route fails | Same degraded rate limit |
+| `VITE_ETHERSCAN_API_KEY` | vite-project | No | `AdminPanel`'s `fetchContractABI` (Etherscan lookup) — dead-code path, not on the critical UI flow | That specific lookup fails; does not affect the rest of the app |
+| `LOG_LEVEL` | server | No (default `info`, or `silent` under `NODE_ENV=test`) | Pino log verbosity | Defaults as above |
+| `DEPLOYER_PRIVATE_KEY` | smart_contract (`hardhat.config.js`, deploy-time only) | Only for `npx hardhat run scripts/deploy.js --network sepolia` | Which account deploys the contract | `networks.sepolia.accounts` becomes `[]`; any deploy attempt to Sepolia fails immediately with no accounts configured |
+
+## Files
+
+- Root `.env` — loaded by `server/index.js` and (for `VITE_*` vars) by `vite-project/vite.config.js`'s `envDir: "../"`. **Not committed** (gitignored).
+- Root `.env.example` — committed template, tracked in git. No real secrets.
+- Root `.env.production` — **tracked and committed**. Per `docs/SECURITY_REVIEW.md` §4, this session could not read its contents (project's own `.env*` read-deny rule) to confirm it holds only non-secret config — flagged there for manual confirmation, same flag applies here.
+- `.env.deployment.whole` — gitignored, confirmed via `git check-ignore -v` (P6-09).
+- `server/.env` — **never loaded by the app** (`server/index.js` hardcodes the root `.env` path) — a documented gotcha, not a bug to fix here.
