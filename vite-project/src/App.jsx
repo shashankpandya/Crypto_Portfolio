@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate, Link } from "react-router-dom";
 import axios from "axios";
 import Navbar from "./features/home/Navbar";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -147,7 +147,24 @@ const App = () => {
                             />
                           }
                         />
-                        <Route path="*" element={<div>Page not found</div>} />
+                        <Route
+                          path="*"
+                          element={
+                            <div className="flex flex-col items-center justify-center gap-sm py-xl text-center">
+                              <p className="text-6xl font-black text-white">404</p>
+                              <p className="text-lg font-medium text-white">Page not found</p>
+                              <p className="max-w-sm text-sm text-muted">
+                                The page you're looking for doesn't exist or has moved.
+                              </p>
+                              <Link
+                                to="/"
+                                className="premium-btn text-white text-xs font-bold py-2 px-6 rounded-lg mt-xs transition duration-200"
+                              >
+                                Back to Dashboard
+                              </Link>
+                            </div>
+                          }
+                        />
                       </Routes>
                     </React.Suspense>
                   </ErrorBoundary>
