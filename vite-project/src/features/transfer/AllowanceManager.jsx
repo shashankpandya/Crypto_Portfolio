@@ -97,8 +97,11 @@ function AllowanceManager() {
       }, 5000);
     } catch (error) {
       console.error("Error approving allowance:", error);
-      const message =
-        error.code === 4001 || error.message?.includes("rejected")
+      const isInsufficientFunds =
+        error.code === "INSUFFICIENT_FUNDS" || /insufficient funds/i.test(error.message || "");
+      const message = isInsufficientFunds
+        ? "This wallet doesn't have enough ETH to pay for gas. Add Sepolia testnet ETH and try again."
+        : error.code === 4001 || error.message?.includes("rejected")
           ? "Approval was rejected in MetaMask."
           : error.reason || error.message || "Error approving allowance. Please try again.";
       setErrorMessage(message);

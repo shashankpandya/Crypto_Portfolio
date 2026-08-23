@@ -140,18 +140,24 @@ export const approveAllowance = async (spender, amountWei) => {
     throw new Error("Smart contract address (VITE_CONTRACT_ADDRESS) is not configured.");
   }
 
-  return retry(async () => {
-    await window.ethereum.request({ method: "eth_requestAccounts" });
-    const contract = await getSignerContract();
-    try {
-      const tx = await contract.approve(spender, amountWei);
-      await tx.wait();
-      return tx.hash;
-    } catch (error) {
-      console.error("Error approving allowance:", error);
-      throw error;
-    }
-  });
+  // Deliberately NOT wrapped in retry() — retry() re-runs the whole callback
+  // from scratch on any failure, including this one's signing step. Applied
+  // here it silently re-sent the transaction (and re-prompted MetaMask) up
+  // to 3 times for failures that can never succeed on retry — insufficient
+  // gas funds, a rejected signature, a reverted contract call — making a
+  // single real failure look like the app was stuck "trying again and
+  // again." A user-signed, state-changing transaction should fail once and
+  // let the person decide whether to click Approve again themselves.
+  await window.ethereum.request({ method: "eth_requestAccounts" });
+  const contract = await getSignerContract();
+  try {
+    const tx = await contract.approve(spender, amountWei);
+    await tx.wait();
+    return tx.hash;
+  } catch (error) {
+    console.error("Error approving allowance:", error);
+    throw error;
+  }
 };
 
 

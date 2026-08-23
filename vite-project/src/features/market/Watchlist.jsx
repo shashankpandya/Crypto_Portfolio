@@ -31,6 +31,59 @@ const TelescopeIcon = () => (
   </svg>
 );
 
+/**
+ * TrendingPicker — replaces the dead-end "no coins yet" message with a live
+ * top-gainers grid pulled from the same market data already on the page, so
+ * an empty watchlist is an invitation to act rather than a blank screen.
+ */
+const TrendingPicker = ({ coins, onAdd }) => {
+  const trending = useMemo(
+    () =>
+      [...(coins || [])]
+        .filter((c) => typeof c.price_change_percentage_24h === "number")
+        .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+        .slice(0, 6),
+    [coins]
+  );
+
+  if (trending.length === 0) return null;
+
+  return (
+    <div className="mt-8 max-w-3xl mx-auto w-full">
+      <div className="flex items-center gap-2 mb-3 justify-center">
+        <span className="text-positive text-xs">▲</span>
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
+          Trending today — top gainers
+        </h3>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {trending.map((coin) => (
+          <button
+            key={coin.id}
+            onClick={() => onAdd(coin)}
+            className="group flex items-center justify-between gap-2 p-3 rounded-lg bg-surface-raised border border-white/5 hover:border-positive/30 hover:-translate-y-px transition-all duration-150 text-left"
+          >
+            <span className="flex items-center min-w-0">
+              {coin.image && (
+                <img src={coin.image} alt="" className="w-7 h-7 mr-2.5 rounded-full flex-shrink-0" />
+              )}
+              <span className="min-w-0">
+                <span className="block text-xs font-bold text-white truncate">{coin.name}</span>
+                <span className="block text-[10px] font-mono text-positive">
+                  ▲ {coin.price_change_percentage_24h.toFixed(2)}%
+                </span>
+              </span>
+            </span>
+            <span className="text-[10px] font-bold text-slate-600 group-hover:text-positive transition-colors flex-shrink-0">
+              + Add
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const Watchlist = ({ coins }) => {
   const { currentAccount } = useWallet();
   const { notify } = useToast();
@@ -276,12 +329,15 @@ const Watchlist = ({ coins }) => {
       </div>
 
       {watchlist.length === 0 ? (
+        <>
         <EmptyState
           icon={<TelescopeIcon />}
           title="No coins tracked yet"
           description="Search above to add your first asset"
           className="max-w-lg mx-auto"
         />
+        <TrendingPicker coins={coins} onAdd={memoizedAddToWatchlist} />
+        </>
       ) : (
         /* Dense Table View */
         <div className="overflow-x-auto border border-white/5 rounded-lg bg-surface-raised shadow-lg max-w-3xl mx-auto">

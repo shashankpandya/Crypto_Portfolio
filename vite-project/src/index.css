@@ -9,6 +9,32 @@
   }
 }
 
+/* Default OS scrollbars (light gray on most platforms) clash hard against
+   this dark theme — a thin, muted-green thumb keeps the "ledger terminal"
+   identity consistent right down to the chrome the browser draws itself. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 217, 138, 0.25) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(34, 217, 138, 0.25);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(34, 217, 138, 0.45);
+}
+
 /* "Ledger Terminal" background wash — phosphor-green glow instead of a
    generic blue radial, kept faint so it reads as ambient light, not a hero. */
 .premium-bg {
