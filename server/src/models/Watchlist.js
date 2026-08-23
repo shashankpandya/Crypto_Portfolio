@@ -53,27 +53,11 @@ const watchlistSchema = new mongoose.Schema(
 );
 
 // ---------------------------------------------------------------------------
-// Instance helpers
-// ---------------------------------------------------------------------------
-
-// Add a coin only if it isn't already in the list.
-watchlistSchema.methods.addCoin = function (coinId) {
-  const id = coinId.toLowerCase().trim();
-  const exists = this.coins.some((c) => c.coinId === id);
-  if (!exists) {
-    this.coins.push({ coinId: id, addedAt: new Date() });
-  }
-  return this.save();
-};
-
-// Remove a coin by its coinId.
-watchlistSchema.methods.removeCoin = function (coinId) {
-  const id = coinId.toLowerCase().trim();
-  this.coins = this.coins.filter((c) => c.coinId !== id);
-  return this.save();
-};
-
-// ---------------------------------------------------------------------------
 // Model
+//
+// No addCoin/removeCoin instance methods — watchlistRepo.js mutates coins
+// via atomic findOneAndUpdate($push/$pull) instead of find-then-save, to
+// avoid a lost-update race between concurrent writes to the same wallet's
+// document.
 // ---------------------------------------------------------------------------
 module.exports = mongoose.model('Watchlist', watchlistSchema);

@@ -78,12 +78,15 @@ describe('watchlistController — Mongo path (P6-03)', () => {
 
   describe('POST /api/watchlist/:walletAddress/coins', () => {
     it('creates a new Mongo document and adds the coin when none exists yet', async () => {
-      vi.spyOn(Watchlist, 'findOne').mockResolvedValue(null);
-      const saveSpy = vi
-        .spyOn(Watchlist.prototype, 'save')
-        .mockImplementation(function () {
-          return Promise.resolve(this);
-        });
+      // addCoin (P6-XX rewrite) is now atomic: findOneAndUpdate(upsert shell)
+      // -> updateOne($push if not present) -> findOne(final read). No more
+      // find-then-save — see watchlistRepo.js for why (lost-update race).
+      const findOneAndUpdateSpy = vi.spyOn(Watchlist, 'findOneAndUpdate').mockResolvedValue({});
+      const updateOneSpy = vi.spyOn(Watchlist, 'updateOne').mockResolvedValue({ modifiedCount: 1 });
+      vi.spyOn(Watchlist, 'findOne').mockResolvedValue({
+        walletAddress: ADDRESS,
+        coins: [{ coinId: 'ethereum', addedAt: new Date() }],
+      });
 
       const res = await request(app)
         .post(`/api/watchlist/${ADDRESS}/coins`)
@@ -92,7 +95,8 @@ describe('watchlistController — Mongo path (P6-03)', () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.coins.map((c) => c.coinId)).toContain('ethereum');
-      expect(saveSpy).toHaveBeenCalled();
+      expect(findOneAndUpdateSpy).toHaveBeenCalled();
+      expect(updateOneSpy).toHaveBeenCalled();
     });
 
     it('returns 400 when coinId is missing from the body', async () => {
@@ -105,7 +109,7 @@ describe('watchlistController — Mongo path (P6-03)', () => {
     });
 
     it('propagates a Mongo write failure as a redacted 500', async () => {
-      vi.spyOn(Watchlist, 'findOne').mockRejectedValue(new Error('connection reset by peer'));
+      vi.spyOn(Watchlist, 'findOneAndUpdate').mockRejectedValue(new Error('connection reset by peer'));
 
       const res = await request(app)
         .post(`/api/watchlist/${ADDRESS}/coins`)
@@ -121,21 +125,23 @@ describe('watchlistController — Mongo path (P6-03)', () => {
 
   describe('DELETE /api/watchlist/:walletAddress/coins/:coinId', () => {
     it('removes the coin from an existing Mongo document', async () => {
-      const doc = {
+      // removeCoin is now atomic too: findOne (existence check) ->
+      // findOneAndUpdate($pull) — see watchlistRepo.js.
+      vi.spyOn(Watchlist, 'findOne').mockResolvedValue({ walletAddress: ADDRESS, coins: [{ coinId: 'bitcoin' }] });
+      const findOneAndUpdateSpy = vi.spyOn(Watchlist, 'findOneAndUpdate').mockResolvedValue({
         walletAddress: ADDRESS,
-        coins: [{ coinId: 'bitcoin' }],
-        removeCoin: vi.fn().mockImplementation(function (coinId) {
-          this.coins = this.coins.filter((c) => c.coinId !== coinId);
-          return Promise.resolve(this);
-        }),
-      };
-      vi.spyOn(Watchlist, 'findOne').mockResolvedValue(doc);
+        coins: [],
+      });
 
       const res = await request(app).delete(`/api/watchlist/${ADDRESS}/coins/bitcoin`);
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(doc.removeCoin).toHaveBeenCalledWith('bitcoin');
+      expect(findOneAndUpdateSpy).toHaveBeenCalledWith(
+        { walletAddress: ADDRESS },
+        { $pull: { coins: { coinId: 'bitcoin' } } },
+        { new: true },
+      );
     });
 
     it('returns 404 when no watchlist document exists for the wallet', async () => {

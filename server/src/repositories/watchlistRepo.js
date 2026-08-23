@@ -61,14 +61,28 @@ async function getWatchlist(dbState, walletAddress) {
 // ---------------------------------------------------------------------------
 async function addCoin(dbState, walletAddress, coinId) {
   if (isMongoMode(dbState)) {
-    let watchlist = await Watchlist.findOne({ walletAddress });
-
-    if (!watchlist) {
-      watchlist = new Watchlist({ walletAddress, coins: [] });
-    }
-
-    await watchlist.addCoin(coinId);
-    return watchlist;
+    // Atomic find-and-update instead of find → mutate in memory → save().
+    // The latter has a lost-update race: two concurrent adds/removes for the
+    // same wallet both read the same snapshot, and whichever .save() lands
+    // second silently overwrites the first's change.
+    //
+    // $addToSet can't be used directly here — each entry carries an
+    // `addedAt` timestamp that differs on every call, so $addToSet's exact
+    // subdocument match would never recognize a re-add as a duplicate.
+    // Instead: ensure the document exists, then push atomically only if no
+    // existing entry already has this coinId — the existence check and the
+    // push happen as one atomic operation, so a concurrent add for a
+    // different coin can't race this one into a lost update.
+    await Watchlist.findOneAndUpdate(
+      { walletAddress },
+      { $setOnInsert: { walletAddress } },
+      { upsert: true },
+    );
+    await Watchlist.updateOne(
+      { walletAddress, 'coins.coinId': { $ne: coinId } },
+      { $push: { coins: { coinId, addedAt: new Date() } } },
+    );
+    return Watchlist.findOne({ walletAddress });
   }
 
   const watchlists = readLocalWatchlists();
@@ -94,14 +108,17 @@ async function addCoin(dbState, walletAddress, coinId) {
 // ---------------------------------------------------------------------------
 async function removeCoin(dbState, walletAddress, coinId) {
   if (isMongoMode(dbState)) {
-    const watchlist = await Watchlist.findOne({ walletAddress });
-
-    if (!watchlist) {
+    // Atomic $pull instead of find → mutate in memory → save() — same
+    // lost-update race as addCoin above.
+    const existing = await Watchlist.findOne({ walletAddress });
+    if (!existing) {
       return null;
     }
-
-    await watchlist.removeCoin(coinId);
-    return watchlist;
+    return Watchlist.findOneAndUpdate(
+      { walletAddress },
+      { $pull: { coins: { coinId } } },
+      { new: true },
+    );
   }
 
   const watchlists = readLocalWatchlists();
