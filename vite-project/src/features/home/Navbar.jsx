@@ -6,7 +6,6 @@ import { Tooltip } from "react-tooltip";
 
 import { useWallet } from "../../hooks/useWallet";
 import { useContract } from "../../hooks/useContract";
-import { COLORS } from "../../utils/tokens";
 import Button from "../../components/ui/Button";
 import { useToast } from "../../components/ui/Toast";
 
@@ -41,15 +40,10 @@ const NavBarItem = ({ title, path, active, closeMenu, classprops, requiresWallet
   </li>
 );
 
-/* Ledger-block monogram: a bracketed block height, not a generic hexagon
-   badge — ties the mark to the "block explorer" identity everywhere it's
-   used, at navbar scale. */
-const CPLogo = () => (
-  <svg className="w-7 h-7" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="14" y="14" width="72" height="72" rx="8" stroke={COLORS.signal} strokeWidth="6" fill="none" />
-    <path d="M32 50 L46 64 L70 36" stroke={COLORS.signal} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
-);
+/* Reuses the site favicon as the navbar mark instead of duplicating the SVG
+   inline — one cacheable static asset instead of markup re-parsed on every
+   render, and the two stay in sync automatically if the icon changes. */
+const CPLogo = () => <img src="/favicon.svg" alt="" className="w-7 h-7" />;
 
 /** Compact address chip + disconnect, shared between the desktop bar and the mobile drawer. */
 const WalletChip = ({ currentAccount, onDisconnect, full = false }) => (
